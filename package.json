@@ -1,0 +1,47 @@
+{
+  "name": "neurolearn_frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "prepare": "husky install",
+    "check-types": "tsc --noEmit",
+    "check-format": "prettier --check .",
+    "check-lint": "eslint . --ext ts --ext tsx --ext js",
+    "test-all": "npm run check-format && npm run check-lint && npm run check-types && npm run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.8.4",
+    "next": "15.3.1",
+    "postcss": "^8.5.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.2.1",
+    "@commitlint/config-conventional": "^19.1.0",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/webpack": "^5.28.5",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-prettier": "^5.2.6",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5"
+  }
+}
