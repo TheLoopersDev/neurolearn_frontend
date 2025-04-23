@@ -18,7 +18,7 @@ module.exports = {
         'revert', // Hoàn tác commit trước đó
       ],
     ],
-    'type-case': [2, 'always', 'lower'],
+    'type-case': [2, 'always', 'lower-case'],
     'type-empty': [2, 'never'],
     'subject-empty': [2, 'never'],
     'subject-full-stop': [2, 'never', '.'],
