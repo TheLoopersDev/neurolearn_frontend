@@ -1,6 +1,5 @@
 'use client';
 import BubbleButton from '@/components/BubbleButton';
-import SignInSignUp from '@/components/SignInSignUp';
 import Image from 'next/image';
 import Link from 'next/link';
 
