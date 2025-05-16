@@ -8,8 +8,15 @@ import ExpertsSection from '@/components/home/ExpertsSection';
 import FutureOfWorkSection from '@/components/home/FutureOfWorkSection';
 import PersonalityTestSection from '@/components/home/PersonalityTestSection';
 import VideoSection from '@/components/home/VideoSection';
-import Footer from '@/components/layout/Footer';
 import CategoriesSection from '@/components/home/CategoriesSection';
+import Footer from '@/components/layout/Footer';
+'use client';
+import BubbleButton from '@/components/BubbleButton';
+import Image from 'next/image';
+import Link from 'next/link';
+
+import { useModal } from '@/context/ModalContext';
+import CtaButton from '@/components/CTAButton';
 
 // Sample course data
 const courses: Course[] = [
@@ -80,6 +87,8 @@ const courses: Course[] = [
 ];
 
 export default function Home() {
+  const { showModal } = useModal();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
