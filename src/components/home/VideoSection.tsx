@@ -2,18 +2,40 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/animations/AnimatedSection';
+import { fadeIn, slideUp } from '@/utils/animations';
 
 const VideoSection: React.FC = () => {
   return (
     <section className="py-8">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-2">
-          Top Trends For
-        </h2>
-        <h3 className="text-3xl font-bold text-blue-600 mb-6">
-          The Future Of Work
-        </h3>
-        <div className="bg-gray-900 rounded-xl overflow-hidden relative aspect-video">
+        <AnimatedSection variants={slideUp}>
+          <motion.h2 
+            className="text-3xl font-bold mb-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            Top Trends For
+          </motion.h2>
+          <motion.h3 
+            className="text-3xl font-bold text-blue-600 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            The Future Of Work
+          </motion.h3>
+        </AnimatedSection>
+        
+        <motion.div 
+          className="bg-gray-900 rounded-xl overflow-hidden relative aspect-video"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.02 }}
+        >
           <div className="absolute inset-0">
             <Image 
               src="/assets/home/TopTrend.png" 
@@ -23,12 +45,32 @@ const VideoSection: React.FC = () => {
             />
           </div>
           
-          <div className="absolute right-4 bottom-4 text-white text-xs bg-black/50 px-2 py-1 rounded">
+          <motion.div 
+            className="absolute right-4 bottom-4 text-white text-xs bg-black/50 px-2 py-1 rounded"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
             7:32
-          </div>
+          </motion.div>
           
           <div className="absolute inset-0 flex items-center justify-center">
-            <button className="bg-white rounded-full p-4 hover:bg-gray-100 transition-colors shadow-lg">
+            <motion.button 
+              className="bg-white rounded-full p-4 hover:bg-gray-100 transition-colors shadow-lg"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 260, 
+                damping: 20, 
+                delay: 0.3 
+              }}
+              whileHover={{ 
+                scale: 1.1,
+                boxShadow: "0 0 25px rgba(255,255,255,0.5)"
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-8 w-8 text-blue-600"
@@ -41,13 +83,15 @@ const VideoSection: React.FC = () => {
                   clipRule="evenodd"
                 />
               </svg>
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="py-4 text-sm text-gray-600">
-          Our latest course learning trends have made trainers more efficient with data-driven insights and personalized content.
-        </div>
+        <AnimatedSection variants={fadeIn} delay={0.4}>
+          <div className="py-4 text-sm text-gray-600">
+            Our latest course learning trends have made trainers more efficient with data-driven insights and personalized content.
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   );
