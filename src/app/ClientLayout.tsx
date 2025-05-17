@@ -1,8 +1,8 @@
-// app/ClientLayout.tsx
 'use client';
 
 import ModalContainer from '@/components/ModalContainer';
 import { ModalProvider } from '@/context/ModalContext';
+import '@/lib/fontawesome';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
