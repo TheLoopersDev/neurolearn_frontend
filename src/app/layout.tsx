@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -15,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'EDUIO - Học tập trực tuyến',
-  description: 'Nền tảng học tập trực tuyến với các khóa học chất lượng cao',
+  title: 'Academix',
+  description: 'AI-Powered Training & Market',
 };
 
 export default function RootLayout({
