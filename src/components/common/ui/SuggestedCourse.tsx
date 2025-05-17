@@ -17,7 +17,6 @@ export default function SuggestedCourse() {
           View all
         </a>
       </div>
-
       <div className="space-y-4">
         {courses.map((course, index) => (
           <div key={index} className="flex items-center gap-3">
@@ -29,9 +28,7 @@ export default function SuggestedCourse() {
               className="rounded-md object-cover"
             />
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-black leading-snug">
-                {course.title}
-              </h3>
+              <h3 className="text-sm font-semibold text-black leading-snug">{course.title}</h3>
               <p className="text-xs text-gray-500">{course.author}</p>
               <div className="flex items-center text-xs text-gray-700 gap-1 mt-1">
                 <span>{course.rating}</span>

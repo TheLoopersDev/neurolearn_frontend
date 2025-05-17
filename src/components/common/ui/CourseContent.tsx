@@ -4,7 +4,6 @@ import { useState, JSX } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 
-
 export default function CourseContent() {
   const [openSections, setOpenSections] = useState<number[]>([]);
 
@@ -28,19 +27,19 @@ export default function CourseContent() {
           title: 'Course introduce',
           duration: '03:28',
           preview: true,
-          icon: <Image src='/assets/icons/number-1.svg' alt="number 1" width={20} height={20}/>
+          icon: <Image src="/assets/icons/number-1.svg" alt="number 1" width={20} height={20} />,
         },
         {
           title: 'Downloading Photoshop, Illustrator',
           duration: '03:28',
           preview: false,
-          icon: <Image src='/assets/icons/number-2.svg' alt="number 2" width={20} height={20}/>
+          icon: <Image src="/assets/icons/number-2.svg" alt="number 2" width={20} height={20} />,
         },
         {
           title: 'Settings and Preferences',
           duration: '03:28',
           preview: false,
-          icon: <Image src='/assets/icons/number-3.svg' alt="number 3" width={20} height={20}/>
+          icon: <Image src="/assets/icons/number-3.svg" alt="number 3" width={20} height={20} />,
         },
       ],
     },
@@ -68,7 +67,10 @@ export default function CourseContent() {
     <div className="max-w-full mx-auto text-[#131836]">
       <h2 className="text-3xl font-semibold mb-4">Course content</h2>
       {sections.map((section, sectionKey) => (
-        <div key={sectionKey} className="rounded-xl bg-[#F9F9F9] w-full mb-2 overflow-hidden shadow-sm">
+        <div
+          key={sectionKey}
+          className="rounded-xl bg-[#F9F9F9] w-full mb-2 overflow-hidden shadow-sm"
+        >
           <button
             onClick={() => toggleSection(sectionKey)}
             className="flex justify-between h-[80px] items-center w-full px-4 py-3 text-left text-xl font-bold bg-[#ECECEC] focus:outline-none focus:ring-0 focus:border-none"
@@ -84,15 +86,11 @@ export default function CourseContent() {
           {openSections.includes(sectionKey) && Array.isArray(section.lectures) && (
             <div className=" text-sm">
               {section.lectures.map((lecture, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center px-4 py-2"
-                >
+                <div key={idx} className="flex justify-between items-center px-4 py-2">
                   <div className="flex items-center gap-2 h-[40px]">
                     <span className="p-2">{lecture.icon}</span>
                     <span className="text-[#3A3C45] text-xl">{lecture.title}</span>
                   </div>
-
                   <div className="flex items-center gap-2 text-[#3A3C45]">
                     {lecture.preview && (
                       <span className="bg-[#3858F8] text-white text-xs px-2 py-0.5 rounded">

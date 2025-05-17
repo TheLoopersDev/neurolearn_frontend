@@ -17,34 +17,30 @@ function page() {
         {/* LEFT: Nội dung chính khóa học */}
         <div className="w-full lg:w-[70%] space-y-10">
           {/* Banner */}
-            <Image src="/assets/images/banner.png" alt='Banner' width={1200} height={480}/>
+          <Image src="/assets/images/banner.png" alt="Banner" width={1200} height={480} />
           {/* Info: Giảng viên + Like + Share */}
-          <div className='flex items-start'>
-          <InstructorInfo/>
+          <div className="flex items-start">
+            <InstructorInfo />
           </div>
           {/* Mô tả */}
-          <CourseDetail/>
-
+          <CourseDetail />
           {/* Course Detail */}
-          <CourseContent/>
+          <CourseContent />
           {/* Review */}
-          <Review/>
+          <Review />
         </div>
-
         {/* RIGHT: Sidebar */}
         <div className="w-full lg:w-[30%] space-y-15">
           {/* Hộp giá tiền + nút mua */}
-          <CourseCard/>
-
+          <CourseCard />
           {/* Đánh giá Rating */}
-          <Rating/>
-
+          <Rating />
           {/* Publisher Info */}
-          <PublisherCard/>
+          <PublisherCard />
           {/* Overview */}
-          <OverView/>
+          <OverView />
           {/* Suggested Course */}
-          <SuggestedCourse/>
+          <SuggestedCourse />
         </div>
       </div>
     </div>

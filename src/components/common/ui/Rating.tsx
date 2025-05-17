@@ -20,7 +20,6 @@ export default function Rating() {
             <div className="text-black text-sm">2,492 Students</div>
           </div>
         </div>
-
         {/* Right: Stars + Rating */}
         <div className="flex flex-col items-end">
           <div className="flex items-center space-x-1">

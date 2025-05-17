@@ -9,7 +9,6 @@ export default function InstructorInfo() {
       <h1 className="text-3xl font-bold text-black mb-6">
         Graphic Design Master - Learn GREAT Design
       </h1>
-
       {/* Profile and Stats Row */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         {/* Profile Info */}
@@ -26,7 +25,6 @@ export default function InstructorInfo() {
             <div className="text-black text-sm">Instructional Expert</div>
           </div>
         </div>
-
         {/* Stats */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
@@ -39,7 +37,6 @@ export default function InstructorInfo() {
           </div>
         </div>
       </div>
-
       {/* Description Section */}
       <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
       <div className="prose prose-lg text-gray-700 mb-6">
