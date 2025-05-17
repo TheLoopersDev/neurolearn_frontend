@@ -1,6 +1,9 @@
 "use client";
 
 import ExpertCard from '@/components/common/ExpertCard';
+import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/animations/AnimatedSection';
+import { fadeIn, staggerContainer } from '@/utils/animations';
 
 interface ExpertsProps {
   experts?: Array<{
@@ -38,18 +41,31 @@ const ExpertsSection = ({ experts }: ExpertsProps) => {
   return (
     <section className="py-10">
       <div className="container mx-auto px-4">
-        <h2 className="text-xl font-medium mb-6">Our Experts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {displayExperts.map((expert) => (
-            <ExpertCard
+        <AnimatedSection variants={fadeIn}>
+          <h2 className="text-xl font-medium mb-6">Our Experts</h2>
+        </AnimatedSection>
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          {displayExperts.map((expert, index) => (
+            <motion.div
               key={expert.id}
-              name={expert.name}
-              role={expert.role}
-              imageUrl={expert.imageUrl}
-              profileUrl={`/experts/${expert.id}`}
-            />
+              variants={fadeIn}
+              transition={{ delay: index * 0.2 }}
+            >
+              <ExpertCard
+                name={expert.name}
+                role={expert.role}
+                imageUrl={expert.imageUrl}
+                profileUrl={`/experts/${expert.id}`}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
