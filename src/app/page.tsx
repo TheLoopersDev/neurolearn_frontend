@@ -1,3 +1,5 @@
+'use client';
+
 import { Course } from '@/types/course';
 import Header from '@/components/layout/Header';
 import HeroSection from '@/components/home/HeroSection';
@@ -10,15 +12,7 @@ import PersonalityTestSection from '@/components/home/PersonalityTestSection';
 import VideoSection from '@/components/home/VideoSection';
 import CategoriesSection from '@/components/home/CategoriesSection';
 import Footer from '@/components/layout/Footer';
-'use client';
-import BubbleButton from '@/components/BubbleButton';
-import Image from 'next/image';
-import Link from 'next/link';
 
-import { useModal } from '@/context/ModalContext';
-import CtaButton from '@/components/CTAButton';
-
-// Sample course data
 const courses: Course[] = [
   {
     id: '1',
@@ -87,7 +81,6 @@ const courses: Course[] = [
 ];
 
 export default function Home() {
-  const { showModal } = useModal();
 
   return (
     <div className="min-h-screen bg-gray-50">
