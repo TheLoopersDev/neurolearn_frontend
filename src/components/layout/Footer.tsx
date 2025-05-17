@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Button from '@/components/common/Button';
+import { useModal } from '@/context/ModalContext';
 
 const Footer = () => {
+  const { showModal } = useModal();
+  
   return (
     <footer className="bg-gray-100 py-10 mt-10">
       <div className="container mx-auto px-4">
@@ -12,7 +15,7 @@ const Footer = () => {
           <div className="mb-6 md:mb-0">
             <div className="flex items-center mb-4">
               <Link href="/" className="text-xl font-bold text-gray-900">
-                <span className="text-blue-600">U</span>demy
+                <span className="text-blue-600">A</span>cademix
               </Link>
             </div>
             <p className="text-gray-600 mb-4 text-sm">
@@ -26,7 +29,7 @@ const Footer = () => {
                 placeholder="Your email address" 
                 className="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-sm"
               />
-              <Button variant="primary" showArrow={false} className="text-sm">
+              <Button onClick={() => showModal('login')} variant="primary" showArrow={false} className="text-sm">
                 Contact us
               </Button>
             </div>
