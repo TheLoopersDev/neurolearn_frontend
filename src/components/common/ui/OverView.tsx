@@ -6,11 +6,9 @@ export default function OverView() {
       <div className="flex justify-between items-start mb-3">
         <h2 className="text-xl font-semibold text-black">Overview</h2>
       </div>
-
       <h2 className="text-2xl font-bold text-black mb-4">
         Graphic Design Mastercla - Learn GREAT Design
       </h2>
-
       <div className="flex flex-wrap gap-2 mb-4">
         {[
           'Typography',
@@ -34,7 +32,6 @@ export default function OverView() {
         learners with essential skills, creative thinking, and modern tools to thrive in the digital
         design industry.
       </p>
-
       <div className="text-black font-bold text-xl">The course will have stages:</div>
       <div className="space-y-4 mt-4 ">
         <div className="flex items-center text-sm text-black gap-3">
