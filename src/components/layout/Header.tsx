@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Button from '@/components/common/Button';
+import Button from '@/components/common/ui/Button';
 import { useModal } from '@/context/ModalContext';
+import AuthDialog from '../learner/auth/AuthDialog';
 
 interface Category {
   name: string;
@@ -18,10 +19,10 @@ const Header: React.FC = () => {
   const { showModal } = useModal();
 
   const categories: Category[] = [
-    { name: "Programming", href: "/categories/programming" },
-    { name: "Business", href: "/categories/business" },
-    { name: "Design", href: "/categories/design" },
-    { name: "Marketing", href: "/categories/marketing" },
+    { name: 'Programming', href: '/categories/programming' },
+    { name: 'Business', href: '/categories/business' },
+    { name: 'Design', href: '/categories/design' },
+    { name: 'Marketing', href: '/categories/marketing' },
   ];
 
   useEffect(() => {
@@ -34,8 +35,8 @@ const Header: React.FC = () => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsSearchActive(false);
     };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
   return (
@@ -53,14 +54,20 @@ const Header: React.FC = () => {
                 className="flex items-center space-x-1 text-sm rounded-full bg-blue-600 text-white px-4 py-1 hover:bg-blue-700 transition"
               >
                 <span>Explore</span>
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
               {isOpen && (
                 <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded z-10">
-                  {categories.map((category) => (
+                  {categories.map(category => (
                     <Link
                       key={category.name}
                       href={category.href}
@@ -80,7 +87,12 @@ const Header: React.FC = () => {
             {/* Search toggle */}
             <div className="relative flex items-center">
               <button onClick={() => setIsSearchActive(!isSearchActive)} className="p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path
                     fillRule="evenodd"
                     d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -104,15 +116,17 @@ const Header: React.FC = () => {
 
             {/* Cart */}
             <button onClick={() => setIsCartOpen(true)} className="p-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
               </svg>
             </button>
 
-            <button onClick={() => showModal('login')} className="text-sm">Log in</button>
-            <Button onClick={() => showModal('register')} variant="primary" showArrow={false} className="text-sm">
-              Sign up
-            </Button>
+            <AuthDialog />
           </div>
         </div>
       </header>
@@ -126,14 +140,33 @@ const Header: React.FC = () => {
         <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg px-6 py-8 z-40">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold">Your Cart</h2>
-            <button onClick={() => setIsCartOpen(false)} className="text-gray-500 hover:text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <button
+              onClick={() => setIsCartOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
           <p className="text-gray-600">Your cart is empty.</p>
-          <Button onClick={() => setIsCartOpen(false)} variant="primary" showArrow={false} className="mt-4 w-full">
+          <Button
+            onClick={() => setIsCartOpen(false)}
+            variant="primary"
+            showArrow={false}
+            className="mt-4 w-full"
+          >
             Continue Shopping
           </Button>
         </div>

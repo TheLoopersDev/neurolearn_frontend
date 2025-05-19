@@ -1,5 +1,5 @@
 import { useModal } from '@/context/ModalContext';
-import SignInUpForm from '@/components/learner/auth/SignInSignUp';
+import AuthDialog from '@/components/learner/auth/AuthDialog';
 
 export default function ModalContainer() {
   const { modalType, hideModal } = useModal();
@@ -8,9 +8,7 @@ export default function ModalContainer() {
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[999]">
-      {(modalType === 'register' || modalType === 'login') && (
-        <SignInUpForm onClose={hideModal} defaultToSignUp={modalType === 'register'} />
-      )}
+      {(modalType === 'register' || modalType === 'login') && <AuthDialog />}
     </div>
   );
 }
