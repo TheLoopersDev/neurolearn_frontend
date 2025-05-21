@@ -26,7 +26,7 @@ const ForgotPasswordForm = ({ onClose }: { onClose: () => void }) => {
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
           <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Forgot Password</h2>
           <p className="text-sm text-gray-600 text-center mb-4">
-            Enter your email and we'll send you a reset link.
+            Enter your email and we&rsquo;ll send you a reset link.
           </p>
           <input
             type="email"

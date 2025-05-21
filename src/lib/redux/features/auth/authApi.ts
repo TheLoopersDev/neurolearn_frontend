@@ -6,8 +6,10 @@ type RegistrationResponse = {
   activationToken: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type RegistrationData = {};
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// type RegistrationData = {};
+// Nếu đây là một object rỗng thực sự:
+type RegistrationData = Record<string, never>;
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
