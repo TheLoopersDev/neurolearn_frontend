@@ -6,6 +6,7 @@ import PasswordField from './PasswordField';
 import SocialLogin from './SocialLogin';
 import { useModal } from '@/context/ModalContext';
 import { useLoginMutation } from '@/lib/redux/features/auth/authApi';
+import Image from 'next/image';
 
 const LoginForm = ({ onClose }: { onClose: () => void }) => {
   const { showModal } = useModal();
@@ -84,7 +85,7 @@ const LoginForm = ({ onClose }: { onClose: () => void }) => {
 
         {/* Right: Image */}
         <div className="hidden md:block md:w-1/2 bg-[#ECECEC]">
-          <img
+          <Image
             src="/assets/home/login-bg.png"
             alt="Login visual"
             className="w-full h-full object-cover"

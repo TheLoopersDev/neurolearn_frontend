@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React from 'react';
 
 const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
@@ -32,7 +33,7 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
 
         {/* Right: Image */}
         <div className="hidden md:block md:w-1/2 bg-[#ECECEC]">
-          <img
+          <Image
             src="/assets/home/login-bg.png"
             alt="New Password visual"
             className="w-full h-full object-cover"

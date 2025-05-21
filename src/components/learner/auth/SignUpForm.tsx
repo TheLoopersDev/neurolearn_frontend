@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import SocialLogin from './SocialLogin';
@@ -48,7 +49,7 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
 
         {/* Right: Image */}
         <div className="hidden md:block md:w-1/2 bg-[#ECECEC]">
-          <img
+          <Image
             src="/assets/home/login-bg.png"
             alt="Sign up visual"
             className="w-full h-full object-cover"
