@@ -9,10 +9,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useResetPasswordMutation } from '@/lib/redux/features/auth/authApi';
 import { useModal } from '@/context/ModalContext';
 import SpinnerMini from '@/components/common/ui/SpinnerMini';
-import Button from '@/components/common/ui/Button';
-import { Input } from './InputField';
 import { X } from 'lucide-react';
 import PasswordField from './PasswordField';
+// Removed unused imports:
+// import Button from '@/components/common/ui/Button';
+// import { Input } from './InputField';
 
 const passwordSchema = z
   .object({
@@ -31,17 +32,49 @@ const passwordSchema = z
     path: ['confirmPassword'],
   });
 
+// Define a type for the auth state slice
+interface AuthState {
+  token: string | null;
+  // Add other properties of your auth state if needed
+}
+
+// Define a type for the overall Redux state
+interface RootState {
+  auth: AuthState;
+  // Add other state slices if needed
+}
+
+// Define a type for API errors (similar to ForgotPasswordForm)
+interface ApiError {
+  data?: {
+    message?: string;
+    // other error data fields
+  };
+  status?: number;
+  // other error fields
+}
+
+// Define a type for the success data from useResetPasswordMutation
+interface ResetPasswordSuccessData {
+  message?: string;
+  // other success data fields
+}
+
 const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [resetPassword, { data, error, isSuccess, isLoading }] = useResetPasswordMutation();
-  const { token } = useSelector((state: any) => state.auth);
+
+  // Use the defined RootState type for useSelector
+  const { token } = useSelector((state: RootState) => state.auth);
   const { toast } = useToast();
   const { showModal } = useModal();
 
   useEffect(() => {
     if (isSuccess) {
-      const message = data?.message || 'Password has been updated';
+      // Explicitly type data if its structure is known
+      const successData = data as ResetPasswordSuccessData | undefined;
+      const message = successData?.message || 'Password has been updated';
       toast({
         variant: 'success',
         title: 'Reset Password Successfully',
@@ -50,14 +83,17 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
       showModal('login');
     }
     if (error && 'data' in error) {
-      const errData = error as any;
+      // Use the ApiError type for better type safety
+      const errData = error as ApiError;
+      const errorMessage = errData.data?.message || 'An unknown error occurred.';
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: errData.data.message,
+        description: errorMessage,
       });
     }
-  }, [isSuccess, error]);
+    // Add missing dependencies to the array
+  }, [isSuccess, error, data, toast, showModal]);
 
   const handleSubmit = async () => {
     const result = passwordSchema.safeParse({ password, confirmPassword });
@@ -72,7 +108,7 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
 
     await resetPassword({
       newPassword: password,
-      reset_token: token,
+      reset_token: token, // Ensure token is not null here or handle appropriately
     });
   };
 

@@ -8,7 +8,6 @@ import CtaButton from '../CTAButton';
 import BubbleButton from '../BubbleButton';
 import { useSelector } from 'react-redux';
 import { UserDropdown } from '../learner/auth/UserDropDown';
-
 interface Category {
   name: string;
   href: string;
@@ -20,7 +19,21 @@ const Header: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector(
+    (state: {
+      auth: {
+        user: {
+          id: string;
+          name: string;
+          email: string;
+          // Thêm các thuộc tính khác của user nếu có
+        } | null; // User có thể là null nếu chưa đăng nhập
+        token: string | null;
+        // Các thuộc tính khác của auth state nếu cần truy cập
+      };
+      // các reducer khác nếu cần truy cập
+    }) => state.auth.user
+  );
 
   const categories: Category[] = [
     { name: 'Programming', href: '/categories/programming' },
@@ -171,48 +184,45 @@ const Header: React.FC = () => {
             )}
           </div>
         </div>
-      </header >
+      </header>
 
       {/* Cart Drawer */}
-      < div className={`transition-all duration-300 ease-in-out ${isCartOpen ? 'mr-96' : ''}`
-      } />
-      {
-        isCartOpen && (
-          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg px-6 py-8 z-40">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Your Cart</h2>
-              <button
-                onClick={() => setIsCartOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <p className="text-gray-600">Your cart is empty.</p>
-            <Button
+      <div className={`transition-all duration-300 ease-in-out ${isCartOpen ? 'mr-96' : ''}`} />
+      {isCartOpen && (
+        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg px-6 py-8 z-40">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">Your Cart</h2>
+            <button
               onClick={() => setIsCartOpen(false)}
-              variant="primary"
-              showArrow={false}
-              className="mt-4 w-full"
+              className="text-gray-500 hover:text-gray-700"
             >
-              Continue Shopping
-            </Button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
-        )
-      }
+          <p className="text-gray-600">Your cart is empty.</p>
+          <Button
+            onClick={() => setIsCartOpen(false)}
+            variant="primary"
+            showArrow={false}
+            className="mt-4 w-full"
+          >
+            Continue Shopping
+          </Button>
+        </div>
+      )}
     </>
   );
 };

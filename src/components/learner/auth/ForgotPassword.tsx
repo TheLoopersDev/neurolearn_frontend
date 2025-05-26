@@ -20,6 +20,13 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+interface ApiError {
+  data?: {
+    message?: string;
+  };
+  status?: number;
+}
+
 export default function ForgotPasswordForm({ onClose }: { onClose: () => void }) {
   const { showModal } = useModal();
   const { toast } = useToast();
@@ -45,11 +52,19 @@ export default function ForgotPasswordForm({ onClose }: { onClose: () => void })
         description: 'Check your inbox for the reset code.',
       });
       showModal('verifyResetCode');
-    } catch (err: any) {
+    } catch (e: unknown) {
+      let errorMessage = 'Failed to send reset email';
+      if (typeof e === 'object' && e !== null) {
+        const err = e as ApiError;
+        if (err.data && typeof err.data.message === 'string') {
+          errorMessage = err.data.message;
+        }
+      }
+
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: err?.data?.message || 'Failed to send reset email',
+        description: errorMessage,
       });
     }
   };

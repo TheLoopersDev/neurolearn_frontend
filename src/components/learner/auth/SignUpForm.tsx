@@ -14,7 +14,7 @@ import { Input } from './InputField';
 import SpinnerMini from '@/components/common/ui/SpinnerMini';
 import SocialLogin from './SocialLogin';
 import PasswordField from './PasswordField';
-import { User, User2, X } from 'lucide-react';
+import { User, X } from 'lucide-react';
 
 const formSchema = z
   .object({
@@ -35,6 +35,18 @@ const formSchema = z
   });
 
 type FormData = z.infer<typeof formSchema>;
+
+// --- START OF CHANGES ---
+// Define a type for API errors
+interface ApiError {
+  data?: {
+    message?: string;
+    // other error data fields
+  };
+  status?: number;
+  // other error fields
+}
+// --- END OF CHANGES ---
 
 const SignUpForm = ({ onClose }: { onClose: () => void }) => {
   const { showModal } = useModal();
@@ -70,11 +82,23 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
       });
 
       showModal('verifyCode');
-    } catch (err: any) {
+    } catch (e: unknown) {
+      // --- CHANGED err: any to e: unknown ---
+      // --- START OF CHANGES ---
+      // Type check and cast the error object
+      let errorMessage = 'Registration failed';
+      if (typeof e === 'object' && e !== null) {
+        const err = e as ApiError; // Cast to ApiError
+        if (err.data && typeof err.data.message === 'string') {
+          errorMessage = err.data.message;
+        }
+      }
+      // --- END OF CHANGES ---
+
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: err?.data?.message || 'Registration failed',
+        description: errorMessage,
       });
     }
   };
@@ -88,12 +112,12 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
           fill
           className="absolute inset-0 w-full h-full object-cover object-center z-0"
           priority
-          quality={100} // 👈 đảm bảo độ nét
+          quality={100}
           sizes="100vw"
         />
-        {/* 🔹 Content over background */}
-        <div className="relative z-70 flex flex-col md:flex-row rounded-3xl">
-          {/* Left: Form */}
+        <div className="relative z-10 flex flex-col md:flex-row rounded-3xl">
+          {' '}
+          {/* Changed z-70 to z-10 for more standard layering */}
           <div className="w-full md:w-1/2 p-10">
             <button
               onClick={onClose}
@@ -109,8 +133,9 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
               <Input
                 {...register('name')}
                 placeholder="Full Name"
-                icon={<User className="w-5 h-5" />} // Truyền icon User vào đây
+                icon={<User className="w-5 h-5" />}
               />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
 
               <Input {...register('email')} placeholder="Email" type="email" />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -151,8 +176,6 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
               </button>
             </div>
           </div>
-
-          {/* Right: Empty area or illustration (still over background) */}
           <div className="hidden md:block md:w-1/2" />
         </div>
       </div>
