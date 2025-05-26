@@ -47,20 +47,22 @@ const LoginForm = ({ onClose }: LoginFormProps) => {
         {/* Content */}
         <div className="relative z-10 flex flex-col md:flex-row w-full h-full rounded-3xl">
           {/* Left: Login Form */}
-          <div className="w-full md:w-1/2 p-10">
+          <div className="w-full md:w-1/2 p-10 ">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              className="absolute right-4 top-4 text-[#ededed] hover:text-black text-xl hover:cursor-pointer transition-colors duration-200"
               aria-label="Close login modal"
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6 " />
             </button>
 
             <h2 className="text-3xl font-bold mb-8 text-gray-900 text-left">Login</h2>
 
             {error && (
               <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">
-                {'data' in error ? (error.data as { message?: string })?.message || 'Login failed' : 'Login failed'}
+                {'data' in error
+                  ? (error.data as { message?: string })?.message || 'Login failed'
+                  : 'Login failed'}
               </div>
             )}
 
@@ -69,14 +71,14 @@ const LoginForm = ({ onClose }: LoginFormProps) => {
                 placeholder="Email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
               />
 
               <PasswordField
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
               />
 

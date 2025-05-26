@@ -58,3 +58,27 @@ body {
   background: var(--primary);
   border-radius: 2px;
 }
+
+.spinner-mini-enhanced {
+  display: inline-block; /* Hoặc 'block' nếu muốn nó chiếm hết chiều rộng để căn giữa */
+  border-radius: 50%;
+  animation: spinner-mini-spin 0.75s linear infinite; /* Tên animation và thời gian */
+}
+
+@keyframes spinner-mini-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

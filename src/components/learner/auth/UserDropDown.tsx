@@ -20,7 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/common/ui/DropdownMenu';
 
 import defaultAvatar from '@/public/assets/images/avatar.png';
@@ -61,49 +61,49 @@ export function UserDropdown() {
     {
       title: 'Order',
       href: '/dashboard/orders',
-      icon: <PiBagBold className="text-[20px]" />
+      icon: <PiBagBold className="text-[20px]" />,
     },
     {
       title: 'Settings',
       href: '/dashboard/settings',
-      icon: <IoSettingsOutline className="text-[20px]" />
-    }
+      icon: <IoSettingsOutline className="text-[20px]" />,
+    },
   ];
 
   const instructorNavbarItems = [
     {
       title: 'Dashboard',
       href: '/dashboard/instructor',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />
+      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
     },
     {
       title: 'My Course',
       href: '/dashboard/instructor/my-course',
-      icon: <MdOutlineSlowMotionVideo className="text-[20px]" />
+      icon: <MdOutlineSlowMotionVideo className="text-[20px]" />,
     },
     {
       title: 'Reviews',
       href: '/dashboard/instructor/reviews',
-      icon: <TbMessageDots className="text-[20px]" />
+      icon: <TbMessageDots className="text-[20px]" />,
     },
     {
       title: 'Wishlist',
       href: '/dashboard/instructor/wishlist',
-      icon: <FaRegHeart className="text-[20px]" />
+      icon: <FaRegHeart className="text-[20px]" />,
     },
     {
       title: 'Quizzes',
       href: '/dashboard/quizzes',
-      icon: <FaRegCircleQuestion className="text-[20px]" />
-    }
+      icon: <FaRegCircleQuestion className="text-[20px]" />,
+    },
   ];
 
   const userNavbarItems = [
     {
       title: 'Dashboard',
       href: '/dashboard/user',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />
-    }
+      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
+    },
   ];
 
   const dropdownList =
@@ -114,7 +114,7 @@ export function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="h-[60px] flex items-center gap-3 cursor-pointer">
+        <div className="h-[60px] flex items-center gap-3 cursor-pointer ">
           <Image
             className="h-8 rounded-full"
             width={32}
@@ -126,11 +126,11 @@ export function UserDropdown() {
           <span className="font-medium">{user.name}</span>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent className="w-56 bg-white text-blue-600">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {dropdownList.map((item) => (
+          {dropdownList.map(item => (
             <Link href={item.href} key={item.href}>
               <DropdownMenuItem>
                 {item.title}

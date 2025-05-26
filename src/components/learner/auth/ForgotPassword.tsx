@@ -74,21 +74,19 @@ export default function ForgotPasswordForm({ onClose }: { onClose: () => void })
           <div className="w-full md:w-1/2 p-10">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              className="absolute right-4 top-4 text-[#ededed] hover:text-black text-xl hover:cursor-pointer transition-colors duration-200"
               aria-label="Close"
             >
               <X className="h-6 w-6" />
             </button>
 
             <h2 className="text-3xl font-bold mb-2 text-gray-900 text-left">Forgot Password</h2>
-            <p className="text-sm text-gray-600 mb-6">Enter your email to receive the reset code.</p>
+            <p className="text-sm text-gray-600 mb-6">
+              Enter your email to receive the reset code.
+            </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <Input
-                {...register('email')}
-                type="email"
-                placeholder="Your email"
-              />
+              <Input {...register('email')} type="email" placeholder="Your email" />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
               <button

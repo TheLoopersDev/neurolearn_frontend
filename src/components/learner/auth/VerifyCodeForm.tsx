@@ -104,13 +104,15 @@ const VerifyCodeForm = ({ onClose }: { onClose: () => void }) => {
           <div className="w-full md:w-1/2 p-10">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              className="absolute right-4 top-4 text-[#ededed] hover:text-black text-xl hover:cursor-pointer transition-colors duration-200"
               aria-label="Close"
             >
               <X className="h-6 w-6" />
             </button>
 
-            <h2 className="text-3xl font-bold mb-2 text-gray-900 text-left">Enter Verification Code</h2>
+            <h2 className="text-3xl font-bold mb-2 text-gray-900 text-left">
+              Enter Verification Code
+            </h2>
             <p className="text-sm text-gray-600 mb-6">Check your email for the 4-digit code</p>
 
             <div className="flex justify-center gap-4 mb-6">
@@ -121,7 +123,7 @@ const VerifyCodeForm = ({ onClose }: { onClose: () => void }) => {
                   type="text"
                   maxLength={1}
                   value={verifyNumber[key as keyof VerifyNumber]}
-                  onChange={(e) => handleInputChange(index, e.target.value)}
+                  onChange={e => handleInputChange(index, e.target.value)}
                   className={`w-14 h-14 border-2 text-center text-lg font-semibold rounded-md outline-none transition ${invalidError ? 'border-red-500' : 'border-gray-400'} focus:ring-2 focus:ring-blue-500`}
                 />
               ))}

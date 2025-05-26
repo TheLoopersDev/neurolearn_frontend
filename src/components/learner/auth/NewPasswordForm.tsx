@@ -12,6 +12,7 @@ import SpinnerMini from '@/components/common/ui/SpinnerMini';
 import Button from '@/components/common/ui/Button';
 import { Input } from './InputField';
 import { X } from 'lucide-react';
+import PasswordField from './PasswordField';
 
 const passwordSchema = z
   .object({
@@ -19,15 +20,15 @@ const passwordSchema = z
       .string()
       .min(8, { message: 'Password must be at least 8 characters long.' })
       .max(20, { message: 'Password must be at most 20 characters long.' })
-      .refine((val) => /[A-Z]/.test(val), { message: 'Must contain an uppercase letter.' })
-      .refine((val) => /[a-z]/.test(val), { message: 'Must contain a lowercase letter.' })
-      .refine((val) => /[0-9]/.test(val), { message: 'Must contain a number.' })
-      .refine((val) => /[!@#$%^&*]/.test(val), { message: 'Must contain a special character.' }),
-    confirmPassword: z.string().min(1, { message: 'This field has to be filled.' })
+      .refine(val => /[A-Z]/.test(val), { message: 'Must contain an uppercase letter.' })
+      .refine(val => /[a-z]/.test(val), { message: 'Must contain a lowercase letter.' })
+      .refine(val => /[0-9]/.test(val), { message: 'Must contain a number.' })
+      .refine(val => /[!@#$%^&*]/.test(val), { message: 'Must contain a special character.' }),
+    confirmPassword: z.string().min(1, { message: 'This field has to be filled.' }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirmPassword']
+    path: ['confirmPassword'],
   });
 
 const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
@@ -44,7 +45,7 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
       toast({
         variant: 'success',
         title: 'Reset Password Successfully',
-        description: message
+        description: message,
       });
       showModal('login');
     }
@@ -53,7 +54,7 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: errData.data.message
+        description: errData.data.message,
       });
     }
   }, [isSuccess, error]);
@@ -64,14 +65,14 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: result.error.issues[0].message
+        description: result.error.issues[0].message,
       });
       return;
     }
 
     await resetPassword({
       newPassword: password,
-      reset_token: token
+      reset_token: token,
     });
   };
 
@@ -92,7 +93,7 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
           <div className="w-full md:w-1/2 p-10">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              className="absolute right-4 top-4 text-[#ededed] hover:text-black text-xl hover:cursor-pointer transition-colors duration-200"
               aria-label="Close"
             >
               <X className="h-6 w-6" />
@@ -102,16 +103,16 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
             <p className="text-sm text-gray-600 mb-6">Set your new password</p>
 
             <div className="space-y-4">
-              <Input
+              <PasswordField
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="New Password"
               />
-              <Input
+              <PasswordField
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Confirm Password"
               />
               <button

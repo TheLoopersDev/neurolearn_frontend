@@ -14,21 +14,25 @@ import { Input } from './InputField';
 import SpinnerMini from '@/components/common/ui/SpinnerMini';
 import SocialLogin from './SocialLogin';
 import PasswordField from './PasswordField';
+import { User, User2, X } from 'lucide-react';
 
-const formSchema = z.object({
-  name: z.string().min(1, { message: 'Please enter your name' }),
-  email: z.string().email({ message: 'Invalid email address' }),
-  password: z.string()
-    .min(8, { message: 'Password must be at least 8 characters' })
-    .regex(/[A-Z]/, 'Must include an uppercase letter')
-    .regex(/[a-z]/, 'Must include a lowercase letter')
-    .regex(/[0-9]/, 'Must include a number')
-    .regex(/[!@#$%^&*]/, 'Must include a special character'),
-  confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
+const formSchema = z
+  .object({
+    name: z.string().min(1, { message: 'Please enter your name' }),
+    email: z.string().email({ message: 'Invalid email address' }),
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters' })
+      .regex(/[A-Z]/, 'Must include an uppercase letter')
+      .regex(/[a-z]/, 'Must include a lowercase letter')
+      .regex(/[0-9]/, 'Must include a number')
+      .regex(/[!@#$%^&*]/, 'Must include a special character'),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -78,7 +82,6 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/1 px-4 backdrop-blur-xs font-inter">
       <div className="relative w-[100%] max-w-5xl h-[600px] bg-white overflow-hidden rounded-3xl shadow-xl">
-
         <Image
           src={login_background}
           alt="Sign up background"
@@ -94,17 +97,20 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
           <div className="w-full md:w-1/2 p-10">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              className="absolute right-4 top-4 text-[#ededed] hover:text-black text-xl hover:cursor-pointer transition-colors duration-200"
               aria-label="Close"
             >
-              ✕
+              <X className="h-6 w-6" />
             </button>
 
             <h2 className="text-3xl font-bold mb-8 text-gray-900 text-left">Sign Up</h2>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <Input {...register('name')} placeholder="Full Name" />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+              <Input
+                {...register('name')}
+                placeholder="Full Name"
+                icon={<User className="w-5 h-5" />} // Truyền icon User vào đây
+              />
 
               <Input {...register('email')} placeholder="Email" type="email" />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -152,6 +158,6 @@ const SignUpForm = ({ onClose }: { onClose: () => void }) => {
       </div>
     </div>
   );
-}
+};
 
 export default SignUpForm;
