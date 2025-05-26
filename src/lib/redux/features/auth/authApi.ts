@@ -7,15 +7,15 @@ type RegistrationResponse = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-// type RegistrationData = {};
+type RegistrationData = {};
 // Nếu đây là một object rỗng thực sự:
-type RegistrationData = Record<string, never>;
+// type RegistrationData = Record<string, never>;
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
     register: builder.mutation<RegistrationResponse, RegistrationData>({
       query: data => ({
-        url: 'users/register',
+        url: 'user/register',
         method: 'POST',
         body: data,
         credentials: 'include' as const,
@@ -31,7 +31,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     activation: builder.mutation({
       query: ({ activation_token, activation_code }) => ({
-        url: 'users/activate-user',
+        url: 'user/activate-user',
         method: 'POST',
         body: {
           activation_token,
@@ -41,7 +41,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     login: builder.mutation({
       query: ({ email, password }) => ({
-        url: 'users/login',
+        url: 'user/login',
         method: 'POST',
         body: {
           email,
@@ -65,7 +65,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     socialAuth: builder.mutation({
       query: ({ email, name, avatar }) => ({
-        url: 'users/social-auth',
+        url: 'user/social-auth',
         method: 'POST',
         body: {
           email,
@@ -90,7 +90,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     logout: builder.query({
       query: () => ({
-        url: 'users/logout',
+        url: 'user/logout',
         method: 'GET',
         credentials: 'include' as const,
       }),
@@ -104,7 +104,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     forgotPassword: builder.mutation({
       query: ({ email }) => ({
-        url: 'users/forgot-password',
+        url: 'user/forgot-password',
         method: 'POST',
         body: { email },
       }),
@@ -119,7 +119,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     resetCode: builder.mutation({
       query: ({ reset_token, reset_code }) => ({
-        url: 'users/resetcode-verify',
+        url: 'user/resetcode-verify',
         method: 'POST',
         body: {
           reset_token,
@@ -129,7 +129,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     resetPassword: builder.mutation({
       query: ({ reset_token, newPassword }) => ({
-        url: 'users/reset-password',
+        url: 'user/reset-password',
         method: 'PUT',
         body: {
           reset_token,

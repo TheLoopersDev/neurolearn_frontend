@@ -6,6 +6,8 @@ import Button from '@/components/common/ui/Button';
 import { useModal } from '@/context/ModalContext';
 import CtaButton from '../CTAButton';
 import BubbleButton from '../BubbleButton';
+import { useSelector } from 'react-redux';
+import { UserDropdown } from '../learner/auth/UserDropDown';
 
 interface Category {
   name: string;
@@ -18,6 +20,7 @@ const Header: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
+  const user = useSelector((state: any) => state.auth.user);
 
   const categories: Category[] = [
     { name: 'Programming', href: '/categories/programming' },
@@ -114,20 +117,20 @@ const Header: React.FC = () => {
               )}
             </div>
             {/* Cart */}
-            user ? (
-            <>
-              {/* Cart */}
-              <Link href="/shop-cart" className="mr-[10px] relative">
-                <svg
-                  className="hover:text-accent-900 transition-colors"
-                  width="17"
-                  height="18"
-                  viewBox="0 0 17 18"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M8.55005 0.693359C7.99927 0.693359 7.48364 0.787109 7.00317 0.974609C6.51099 1.16211 6.07446 1.42578 5.6936 1.76562C5.31274 2.10547 4.99927 2.50391 4.75317 2.96094C4.50708 
+            {user ? (
+              <>
+                {/* Cart */}
+                <Link href="/shop-cart" className="mr-[10px] relative">
+                  <svg
+                    className="hover:text-accent-900 transition-colors"
+                    width="17"
+                    height="18"
+                    viewBox="0 0 17 18"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.55005 0.693359C7.99927 0.693359 7.48364 0.787109 7.00317 0.974609C6.51099 1.16211 6.07446 1.42578 5.6936 1.76562C5.31274 2.10547 4.99927 2.50391 4.75317 2.96094C4.50708 
                                        3.41797 4.34888 3.91016 4.27856 4.4375H3.7688C3.40552 4.4375 3.0686 4.44043 2.75806 4.44629C2.44751 4.45215 2.16919 4.47266 1.9231 4.50781C1.66528 4.54297 1.42505 4.60449 1.20239 
                                        4.69238C0.979736 4.78027 0.780518 4.92383 0.604736 5.12305C0.428955 5.32227 0.308838 5.53906 0.244385 5.77344C0.179932 6.00781 0.141846 6.25391 0.130127 6.51172C0.130127 6.74609 
                                        0.144775 7.01855 0.174072 7.3291C0.203369 7.63965 0.235596 7.98242 0.270752 8.35742L0.499268 10.4316C0.593018 11.2051 0.677979 11.8994 0.75415 12.5146C0.830322 13.1299 0.927002 
@@ -148,62 +151,68 @@ const Header: React.FC = () => {
                                        4.0647 16.1768 3.77759 16.0654C3.49048 15.9541 3.24146 15.8047 3.03052 15.6172C2.81958 15.4414 2.6438 15.2158 2.50317 14.9404C2.36255 14.665 2.2395 14.3105 2.13403 13.877C2.02856 13.4434 1.93774 
                                        12.9336 1.86157 12.3477C1.7854 11.7617 1.7063 11.0703 1.62427 10.2734L1.39575 8.26953C1.34888 7.87109 1.31372 7.53418 1.29028 7.25879C1.26685 6.9834 1.25513 6.74023 1.25513 6.5293C1.26685 6.3418 
                                        1.29028 6.19824 1.32544 6.09863C1.3606 5.99902 1.40161 5.92578 1.44849 5.87891Z"
-                  />
-                </svg>
-                {1 > 0 && (
-                  <span className="absolute bottom-3 left-4 text-xs text-white bg-accent-900 rounded-full w-3 h-3 flex items-center justify-center">
-                    {1}
-                  </span>
-                )}
-              </Link>
-            </>
+                    />
+                  </svg>
+                  {1 > 0 && (
+                    <span className="absolute bottom-3 left-4 text-xs text-white bg-accent-900 rounded-full w-3 h-3 flex items-center justify-center">
+                      {1}
+                    </span>
+                  )}
+                </Link>
+                <div className="text-sm font-medium text-gray-700">
+                  <UserDropdown />
+                </div>
+              </>
             ) : (
-            <div className="flex gap-2">
-              <CtaButton text="Đăng nhập" onClick={() => showModal('login')} />
-              <BubbleButton onClick={() => showModal('signup')}>Đăng kí</BubbleButton>
-            </div>
-            ){'}'}
+              <div className="flex gap-2">
+                <CtaButton text="Đăng nhập" onClick={() => showModal('login')} />
+                <BubbleButton onClick={() => showModal('signup')}>Đăng kí</BubbleButton>
+              </div>
+            )}
           </div>
         </div>
-      </header>
+      </header >
 
       {/* Cart Drawer */}
-      <div className={`transition-all duration-300 ease-in-out ${isCartOpen ? 'mr-96' : ''}`} />
-      {isCartOpen && (
-        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg px-6 py-8 z-40">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold">Your Cart</h2>
-            <button
-              onClick={() => setIsCartOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+      < div className={`transition-all duration-300 ease-in-out ${isCartOpen ? 'mr-96' : ''}`
+      } />
+      {
+        isCartOpen && (
+          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg px-6 py-8 z-40">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Your Cart</h2>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-600">Your cart is empty.</p>
+            <Button
+              onClick={() => setIsCartOpen(false)}
+              variant="primary"
+              showArrow={false}
+              className="mt-4 w-full"
+            >
+              Continue Shopping
+            </Button>
           </div>
-          <p className="text-gray-600">Your cart is empty.</p>
-          <Button
-            onClick={() => setIsCartOpen(false)}
-            variant="primary"
-            showArrow={false}
-            className="mt-4 w-full"
-          >
-            Continue Shopping
-          </Button>
-        </div>
-      )}
+        )
+      }
     </>
   );
 };

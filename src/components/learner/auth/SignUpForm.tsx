@@ -1,63 +1,157 @@
 'use client';
 
 import Image from 'next/image';
-import InputField from './InputField';
-import PasswordField from './PasswordField';
-import SocialLogin from './SocialLogin';
+import login_background from '@/public/assets/home/login-bg.png';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 import { useModal } from '@/context/ModalContext';
+import { useToast } from '@/hooks/use-toast';
+import { useRegisterMutation } from '@/lib/redux/features/auth/authApi';
+
+import { Input } from './InputField';
+import SpinnerMini from '@/components/common/ui/SpinnerMini';
+import SocialLogin from './SocialLogin';
+import PasswordField from './PasswordField';
+
+const formSchema = z.object({
+  name: z.string().min(1, { message: 'Please enter your name' }),
+  email: z.string().email({ message: 'Invalid email address' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters' })
+    .regex(/[A-Z]/, 'Must include an uppercase letter')
+    .regex(/[a-z]/, 'Must include a lowercase letter')
+    .regex(/[0-9]/, 'Must include a number')
+    .regex(/[!@#$%^&*]/, 'Must include a special character'),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 const SignUpForm = ({ onClose }: { onClose: () => void }) => {
   const { showModal } = useModal();
+  const { toast } = useToast();
+  const [registerUser, { isLoading }] = useRegisterMutation();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onSubmit = async (values: FormData) => {
+    try {
+      await registerUser({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+
+      toast({
+        variant: 'success',
+        title: 'Success',
+        description: 'Registration successful!',
+      });
+
+      showModal('verifyCode');
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.data?.message || 'Registration failed',
+      });
+    }
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50 font-inter px-4">
-      <div className="bg-[#ECECEC] rounded-2xl shadow-xl w-full max-w-3xl flex flex-col md:flex-row overflow-hidden relative">
-        {/* Nút đóng */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white hover:text-gray-700 z-[9999] hover:cursor-pointer hover:font-bold"
-        >
-          ✕
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/1 px-4 backdrop-blur-xs font-inter">
+      <div className="relative w-[100%] max-w-5xl h-[600px] bg-white overflow-hidden rounded-3xl shadow-xl">
 
-        {/* Left: Sign up form */}
-        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Sign Up</h2>
-
-          <InputField label="Full Name" type="text" />
-          <InputField label="Email" type="email" />
-          <PasswordField placeholder="Password" />
-          <PasswordField placeholder="Confirm Password" />
-
-          <button className="w-full bg-gray-800 text-white py-2 rounded-full text-sm font-medium hover:bg-gray-600 transition cursor-pointer mt-2">
-            Create Account
-          </button>
-
-          <div className="text-center mt-6 text-gray-800 text-sm">Or sign up with</div>
-          <SocialLogin />
-
-          <div className="text-sm mt-6 text-center text-gray-800">
-            Already have an account?{' '}
-            <span
-              onClick={() => showModal('login')}
-              className="text-blue-600 font-semibold hover:underline cursor-pointer"
+        <Image
+          src={login_background}
+          alt="Sign up background"
+          fill
+          className="absolute inset-0 w-full h-full object-cover object-center z-0"
+          priority
+          quality={100} // 👈 đảm bảo độ nét
+          sizes="100vw"
+        />
+        {/* 🔹 Content over background */}
+        <div className="relative z-70 flex flex-col md:flex-row rounded-3xl">
+          {/* Left: Form */}
+          <div className="w-full md:w-1/2 p-10">
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              aria-label="Close"
             >
-              Login
-            </span>
-          </div>
-        </div>
+              ✕
+            </button>
 
-        {/* Right: Image */}
-        <div className="hidden md:block md:w-1/2 bg-[#ECECEC]">
-          <Image
-            src="/assets/home/login-bg.png"
-            alt="Sign up visual"
-            className="w-full h-full object-cover"
-          />
+            <h2 className="text-3xl font-bold mb-8 text-gray-900 text-left">Sign Up</h2>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <Input {...register('name')} placeholder="Full Name" />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+
+              <Input {...register('email')} placeholder="Email" type="email" />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+
+              <PasswordField {...register('password')} placeholder="Password" />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+
+              <PasswordField {...register('confirmPassword')} placeholder="Confirm Password" />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-full bg-gray-800 py-3 text-white font-semibold transition hover:bg-gray-900 disabled:opacity-50"
+              >
+                {isLoading ? <SpinnerMini /> : 'Create Account'}
+              </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-2 text-sm text-gray-600">
+              <div className="h-px flex-1 bg-gray-300" />
+              <span>Or sign up with</span>
+              <div className="h-px flex-1 bg-gray-300" />
+            </div>
+
+            <SocialLogin />
+
+            <div className="mt-6 text-center text-sm text-gray-700">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => showModal('login')}
+                className="text-blue-600 font-semibold hover:underline"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Empty area or illustration (still over background) */}
+          <div className="hidden md:block md:w-1/2" />
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default SignUpForm;

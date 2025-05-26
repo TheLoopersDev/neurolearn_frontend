@@ -1,95 +1,126 @@
 'use client';
 
 import { useState } from 'react';
-import InputField from './InputField';
+import Image from 'next/image';
+import login_background from '@/public/assets/home/login-bg.png';
+import { Input } from './InputField';
 import PasswordField from './PasswordField';
 import SocialLogin from './SocialLogin';
 import { useModal } from '@/context/ModalContext';
 import { useLoginMutation } from '@/lib/redux/features/auth/authApi';
-import Image from 'next/image';
+import { X } from 'lucide-react';
 
-const LoginForm = ({ onClose }: { onClose: () => void }) => {
+interface LoginFormProps {
+  onClose: () => void;
+}
+
+const LoginForm = ({ onClose }: LoginFormProps) => {
   const { showModal } = useModal();
-  const [email, setEmail] = useState('danhmuto@gmail.com');
-  const [password, setPassword] = useState('Hayquenlamon@1');
-  const [login, { isLoading }] = useLoginMutation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [login, { isLoading, error }] = useLoginMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login({ email, password }).unwrap();
-
       onClose();
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (err) {
+      console.error('Login error:', err);
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50 font-inter px-4">
-      <div className="bg-[#ECECEC] rounded-2xl shadow-xl w-full max-w-3xl flex flex-col md:flex-row overflow-hidden relative">
-        {/* Nút đóng */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white hover:text-gray-700 z-[9999] hover:cursor-pointer hover:font-bold"
-        >
-          ✕
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray/10 px-4 backdrop-blur-xs font-inter">
+      <div className="relative w-full max-w-5xl h-[600px] bg-white overflow-hidden rounded-3xl shadow-xl">
+        {/* Background Image */}
+        <Image
+          src={login_background}
+          alt="Login background"
+          fill
+          className="absolute inset-0 w-full h-full object-cover object-center z-0"
+          priority
+          quality={100}
+          sizes="100vw"
+        />
 
-        {/* Left: Login form */}
-        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Login</h2>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <InputField
-              label="Email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-            <PasswordField
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-
-            <div
-              className="text-right font-semibold text-sm text-blue-600 cursor-pointer hover:underline"
-              onClick={() => showModal('forgotPassword')}
+        {/* Content */}
+        <div className="relative z-10 flex flex-col md:flex-row w-full h-full rounded-3xl">
+          {/* Left: Login Form */}
+          <div className="w-full md:w-1/2 p-10">
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 text-gray-600 hover:text-black text-xl"
+              aria-label="Close login modal"
             >
-              Forgot password?
+              <X className="h-6 w-6" />
+            </button>
+
+            <h2 className="text-3xl font-bold mb-8 text-gray-900 text-left">Login</h2>
+
+            {error && (
+              <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">
+                {'data' in error ? (error.data as { message?: string })?.message || 'Login failed' : 'Login failed'}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                placeholder="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <PasswordField
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+
+              <div className="flex justify-end text-sm font-medium">
+                <button
+                  type="button"
+                  onClick={() => showModal('forgotPassword')}
+                  className="text-gray-800 hover:underline"
+                >
+                  Forgot password ?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-full bg-gray-800 py-3 text-white font-semibold transition hover:bg-gray-900 disabled:opacity-50"
+              >
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-2 text-sm text-gray-600">
+              <div className="h-px flex-1 bg-gray-300" />
+              <span>Or sign in with</span>
+              <div className="h-px flex-1 bg-gray-300" />
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gray-800 text-white py-2 rounded-full text-sm font-medium hover:bg-gray-600 transition cursor-pointer disabled:opacity-50"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
+            <SocialLogin />
 
-          <div className="text-center mt-6 text-gray-800 text-sm">Or sign in with</div>
-          <SocialLogin />
-
-          <div className="text-sm mt-6 text-center text-gray-800">
-            You do not have an account?{' '}
-            <span
-              onClick={() => showModal('signup')}
-              className="text-blue-600 font-semibold hover:underline cursor-pointer"
-            >
-              Sign up
-            </span>
+            <div className="mt-6 text-center text-sm text-gray-700">
+              You do not have an account?{' '}
+              <button
+                type="button"
+                onClick={() => showModal('signup')}
+                className="text-blue-600 font-semibold hover:underline"
+              >
+                Sign up
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Right: Image */}
-        <div className="hidden md:block md:w-1/2 bg-[#ECECEC]">
-          <Image
-            src="/assets/home/login-bg.png"
-            alt="Login visual"
-            className="w-full h-full object-cover"
-          />
+          {/* Right: Visual */}
+          <div className="hidden md:block md:w-1/2" />
         </div>
       </div>
     </div>

@@ -16,9 +16,9 @@ const authConfig = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export const auth = () => NextAuth(authConfig);
-
-// Tạo handler riêng cho route API
-export const handler = NextAuth(authConfig);
-export { handler as GET, handler as POST };
-export const { signIn, signOut } = NextAuth(authConfig);
+export const {
+    auth,
+    signIn,
+    signOut,
+    handlers: { GET, POST }
+} = NextAuth(authConfig);

@@ -1,24 +1,36 @@
-import { useState } from 'react';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
-interface PasswordFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  placeholder?: string;
-}
+interface PasswordFieldProps extends React.InputHTMLAttributes<HTMLInputElement> { }
 
-const PasswordField: React.FC<PasswordFieldProps> = ({ placeholder, ...props }) => {
+const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldProps>((props, ref) => {
   const [show, setShow] = useState(false);
+
   return (
-    <div className="relative mb-4">
+    <div className="relative">
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+        <Lock className="w-5 h-5" />
+      </span>
       <input
+        ref={ref}
         type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        className="border-[0.5px] text-black rounded px-4 py-2 w-full mb-4 focus:outline-none focus:ring"
         {...props}
+        className="w-full rounded-xl bg-white pl-11 pr-10 py-3 text-gray-900 placeholder-gray-400
+                   border border-gray-200 shadow-sm outline-none focus:ring-2 focus:ring-gray-400
+                    autofill:shadow-[inset_0_0_0_1000px_white]
+                   "
+      // fix cứng màu trắng dành riêng cho auth
       />
-      <div className="absolute right-3 top-3 cursor-pointer" onClick={() => setShow(!show)}>
-        {show ? <FaEyeSlash /> : <FaEye />}
-      </div>
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+      </button>
     </div>
   );
-};
+});
+
+PasswordField.displayName = 'PasswordField';
 export default PasswordField;

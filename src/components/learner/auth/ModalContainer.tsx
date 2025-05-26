@@ -4,6 +4,7 @@ import SignUpForm from './SignUpForm';
 import ForgotPasswordForm from './ForgotPassword';
 import VerifyCodeForm from './VerifyCodeForm';
 import NewPasswordForm from './NewPasswordForm';
+import VerifyResetCodeForm from './VerifyResetCode';
 
 export default function ModalContainer() {
   const { modalType, hideModal } = useModal();
@@ -25,6 +26,7 @@ export default function ModalContainer() {
         {modalType === 'forgotPassword' && <ForgotPasswordForm onClose={hideModal} />}
         {modalType === 'verifyCode' && <VerifyCodeForm onClose={hideModal} />}
         {modalType === 'newPassword' && <NewPasswordForm onClose={hideModal} />}
+        {modalType === 'verifyResetCode' && <VerifyResetCodeForm onClose={hideModal} />}
       </div>
     </div>
   );
