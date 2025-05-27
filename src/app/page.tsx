@@ -1,6 +1,5 @@
 'use client';
 
-import { Course } from '@/types/course';
 import Header from '@/components/layout/Header';
 import HeroSection from '@/components/home/HeroSection';
 import CourseGrid from '@/components/home/CourseGrid';
@@ -13,72 +12,6 @@ import VideoSection from '@/components/home/VideoSection';
 import CategoriesSection from '@/components/home/CategoriesSection';
 import Footer from '@/components/layout/Footer';
 
-const courses: Course[] = [
-  {
-    id: '1',
-    title: 'Thiết kế đồ họa',
-    description: 'Học thiết kế đồ họa từ cơ bản đến nâng cao với các công cụ hiện đại.',
-    imageUrl: '/placeholder-course.jpg',
-    price: 49.99,
-    teacherId: 't1',
-    teacherName: 'Tiến sĩ Đỗ Hòa',
-    rating: 4.8,
-    totalStudents: 1200,
-    level: 'Beginner',
-    category: 'Design',
-    topics: ['Photoshop', 'Illustrator'],
-    createdAt: '2023-01-01',
-    updatedAt: '2023-06-01',
-  },
-  {
-    id: '2',
-    title: 'Thiết kế đồ họa',
-    description: 'Học thiết kế đồ họa từ cơ bản đến nâng cao với các công cụ hiện đại.',
-    imageUrl: '/placeholder-course.jpg',
-    price: 49.99,
-    teacherId: 't1',
-    teacherName: 'Tiến sĩ Đỗ Hòa',
-    rating: 4.7,
-    totalStudents: 980,
-    level: 'Intermediate',
-    category: 'Design',
-    topics: ['Photoshop', 'Illustrator'],
-    createdAt: '2023-01-01',
-    updatedAt: '2023-06-01',
-  },
-  {
-    id: '3',
-    title: 'Thiết kế đồ họa',
-    description: 'Học thiết kế đồ họa từ cơ bản đến nâng cao với các công cụ hiện đại.',
-    imageUrl: '/placeholder-course.jpg',
-    price: 49.99,
-    teacherId: 't1',
-    teacherName: 'Tiến sĩ Đỗ Hòa',
-    rating: 4.5,
-    totalStudents: 850,
-    level: 'Advanced',
-    category: 'Design',
-    topics: ['Photoshop', 'Illustrator'],
-    createdAt: '2023-01-01',
-    updatedAt: '2023-06-01',
-  },
-  {
-    id: '4',
-    title: 'Thiết kế đồ họa',
-    description: 'Học thiết kế đồ họa từ cơ bản đến nâng cao với các công cụ hiện đại.',
-    imageUrl: '/placeholder-course.jpg',
-    price: 49.99,
-    teacherId: 't1',
-    teacherName: 'Tiến sĩ Đỗ Hòa',
-    rating: 4.6,
-    totalStudents: 1050,
-    level: 'Beginner',
-    category: 'Design',
-    topics: ['Photoshop', 'Illustrator'],
-    createdAt: '2023-01-01',
-    updatedAt: '2023-06-01',
-  },
-];
 
 export default function Home() {
 
@@ -94,13 +27,13 @@ export default function Home() {
       <CategoriesSection />
 
       {/* Popular Courses */}
-      <CourseGrid title="Khóa học phổ biến" courses={courses} />
+      <CourseGrid title="Popular Courses" type="top" />
       
       {/* Why Study Section */}
       <WhyStudySection />
       
       {/* Learners are viewing */}
-      <CourseGrid title="Learners are viewing" courses={courses} />
+      <CourseGrid title="Learners are viewing" type="all" />
       
       {/* Learning Focused */}
       <LearningFocusSection />

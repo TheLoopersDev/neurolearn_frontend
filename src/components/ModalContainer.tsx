@@ -1,5 +1,5 @@
 import { useModal } from '@/context/ModalContext';
-import SignInUpForm from './SignInSignUp';
+import SignInUpForm from '@/components/SignInSignUp';
 
 export default function ModalContainer() {
   const { modalType, hideModal } = useModal();
