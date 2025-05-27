@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    domains: ['example.com'],
   },
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js', 'axios'],

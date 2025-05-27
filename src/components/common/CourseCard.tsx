@@ -1,98 +1,49 @@
-
 "use client";
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Course } from '@/types/course';
-import { motion } from 'framer-motion';
-import { hoverScale } from '@/utils/animations';
+import { StarIcon } from '@heroicons/react/24/solid';
+import { useState } from 'react';
 
 interface CourseCardProps {
-  readonly course: Course;
+  course: Course;
 }
 
-export default function CourseCard({
-  course,
-}: CourseCardProps) {
+const CourseCard = ({ course }: CourseCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <motion.div 
-      className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
-      whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="relative">
-        <motion.div 
-          className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-sm"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Hot Sale!
-        </motion.div>
-        <div className="relative h-40">
+    <Link href={`/courses/${course._id}`} className="block h-full">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col transform hover:-translate-y-1">
+        <div className="relative h-48 w-full">
           <Image
-            src={course.imageUrl || '/placeholder-course.jpg'}
-            alt={course.title}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail.url}
+            alt={course.name}
             fill
-            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 hover:scale-105"
+            onError={() => setImageError(true)}
           />
         </div>
-        <motion.div 
-          className="absolute right-3 -bottom-4"
-          whileHover={hoverScale}
-        >
-          <div className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
-            <Image 
-              src="/assets/home/Heart.svg" 
-              alt="Favorite" 
-              width={16} 
-              height={16} 
-            />
-          </div>
-        </motion.div>
-      </div>
-      <div className="p-4 pt-6">
-        <div className="flex items-center mb-1">
-          <motion.span 
-            className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-sm"
-            whileHover={{ scale: 1.05 }}
-          >
-            {course.level ?? 'All Levels'}
-          </motion.span>
-        </div>
-        <h3 className="text-md font-medium mb-1">{course.title}</h3>
-        <p className="text-xs text-gray-500 mb-2">
-          By <span className="font-medium">{course.teacherName}</span>
-        </p>
-        <div className="flex items-center mb-3">
-          {course.rating && (
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-lg font-semibold mb-2 line-clamp-2 h-14">{course.name}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 h-10">{course.description}</p>
+          <div className="flex items-center justify-between mt-auto">
             <div className="flex items-center">
-              <span className="text-yellow-500 text-xs">★</span>
-              <span className="text-yellow-500 text-xs">★</span>
-              <span className="text-yellow-500 text-xs">★</span>
-              <span className="text-yellow-500 text-xs">★</span>
-              <span className="text-gray-300 text-xs">★</span>
-              <span className="ml-1 text-xs text-gray-600">{course.rating.toFixed(1)}</span>
+              <StarIcon className="h-5 w-5 text-yellow-400" />
+              <span className="ml-1 text-sm text-gray-600">{course.rating.toFixed(1)}</span>
+              <span className="mx-2 text-gray-300">|</span>
+              <span className="text-sm text-gray-600">{course.purchased} students</span>
             </div>
-          )}
-          {course.totalStudents && (
-            <span className="ml-auto text-xs text-gray-500">
-              {course.totalStudents} students
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-sm">${course.price.toFixed(2)}</span>
-          <motion.div whileHover={{ scale: 1.1 }}>
-            <Link
-              href={`/courses/${course.id}`}
-              className="text-blue-600 text-xs"
-            >
-              View Details
-            </Link>
-          </motion.div>
+            <div className="text-lg font-semibold text-primary">
+              {course.isFree ? 'Free' : `$${course.price}`}
+            </div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </Link>
   );
-}
+};
+
+export default CourseCard;
