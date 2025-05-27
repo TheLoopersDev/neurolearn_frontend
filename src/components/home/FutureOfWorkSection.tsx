@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Button from '@/components/common/Button';
+import Button from '@/components/common/ui/Button';
 
 interface FutureOfWorkSectionProps {
   title?: string;
@@ -15,7 +15,7 @@ const FutureOfWorkSection = ({
   subtitle = 'The Future Of Work',
   description = 'Our 2025 Global Learning & Skills Trends Report is out now! Find out how to build the skills to keep pace with change.',
   buttonText = 'Get Started',
-  buttonUrl = '/trends'
+  buttonUrl = '/trends',
 }: FutureOfWorkSectionProps) => {
   return (
     <section className="py-10">
@@ -27,10 +27,9 @@ const FutureOfWorkSection = ({
               backgroundImage: `url(/assets/home/TopTrend.png)`,
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              backgroundSize: 'cover', 
+              backgroundSize: 'cover',
             }}
-          >
-          </div>
+          ></div>
           <div className="relative z-10 min-h-[240px] flex items-center">
             <div className="p-8 md:p-12 w-full md:w-3/5">
               <h2 className="text-3xl font-bold text-gray-900 mb-1">{title}</h2>
