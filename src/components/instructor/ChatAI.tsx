@@ -1,4 +1,3 @@
-// components/ChatAI.tsx
 'use client';
 
 import Image from 'next/image';
@@ -8,7 +7,7 @@ export default function ChatAI() {
     <div className="p-6 bg-white rounded-2xl shadow text-[#0D0D0D]">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-4xl font-bold text-[#3858F8]">Hey, I'm Academix.</h1>
+        <h1 className="text-4xl font-bold text-[#3858F8]">Hey, I&apos;m Academix.</h1>
         <p className="text-[#D9D9D9]">Your AI-Powered copilot for the web.</p>
       </div>
 

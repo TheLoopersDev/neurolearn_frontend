@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Star, StarHalf, Star as StarFilled, ChevronDown } from 'lucide-react';
+import { Star, Star as StarFilled, ChevronDown } from 'lucide-react';
 
 const feedbacks = [
   {
