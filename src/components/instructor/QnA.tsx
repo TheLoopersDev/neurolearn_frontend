@@ -60,7 +60,7 @@ export default function QnA() {
                 Dao Tuan Kiet, <span className="font-normal text-gray-500">at 5:05</span>
               </div>
               <p className="text-sm mt-1">
-                Hey guys, I'm having trouble understanding how to add curves in Blender. Any tips?
+                Hey guys, I&apos;m having trouble understanding how to add curves in Blender. Any tips?
               </p>
               <div className="flex gap-4 text-xs text-gray-500 mt-1">
                 <Image
@@ -77,7 +77,7 @@ export default function QnA() {
                   Le Xuan Huy, <span className="font-normal text-gray-500">replied</span>
                 </div>
                 <p className="text-sm mt-1">
-                  Sure thing, Andrew! You can go to the "Add" menu in Blender and select "Curve" to
+                  Sure thing, Andrew! You can go to the &quot;Add&quot; menu in Blender and select &quot;Curve&quot; to
                   add different types of curves.
                 </p>
                 <div className="flex items-center gap-x-1">
@@ -109,7 +109,7 @@ export default function QnA() {
                 Le Xuan Huy, <span className="font-normal text-gray-500">at 5:05</span>
               </div>
               <p className="text-sm mt-1">
-                Hey guys, I'm having trouble understanding how to add curves in Blender.
+                Hey guys, I&apos;m having trouble understanding how to add curves in Blender.
               </p>
             </div>
             <span className="text-xs text-gray-400">3d ago</span>
