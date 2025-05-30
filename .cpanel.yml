@@ -1,23 +1,5 @@
 ---
 deployment:
   tasks:
-    - echo "📁 Bắt đầu sao chép mã nguồn..."
-    - rsync -a --exclude='.git' --exclude='node_modules' ./ /home/academix/api-academix.site/
-    - echo "✅ Đã sao chép mã nguồn đến thư mục triển khai."
-
-    - cd /home/academix/api-academix.site/
-
-    - if [ -f package.json ]; then
-        echo "📦 Đang cài đặt Node modules...";
-        npm install --omit=dev;
-        echo "🔧 Đang build và export dự án Next.js...";
-        npm run build && npm run export;
-      fi
-
-    - echo "📂 Tạo thư mục build nếu chưa có..."
-    - mkdir -p /home/academix/api-academix.site/build
-
-    - echo "📦 Đang sao chép nội dung đã export vào thư mục build..."
-    - rsync -a out/ /home/academix/api-academix.site/build/
-
-    - echo "🚀 Hoàn tất triển khai. File đã export nằm trong thư mục 'build/'."
+    - export DEPLOYPATH=/home/academix/academix.id.vn/
+    - /bin/cp -R * $DEPLOYPATH
