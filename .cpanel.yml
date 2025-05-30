@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/academix/api-academix.site/
+    - /bin/cp -R * $DEPLOYPATH
