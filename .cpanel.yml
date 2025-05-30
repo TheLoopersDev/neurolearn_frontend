@@ -2,4 +2,9 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/academix/api-academix.site/
+    - echo "➡️ Bắt đầu sao chép mã nguồn..."
     - /bin/cp -R * $DEPLOYPATH
+    - echo "✅ Sao chép mã nguồn xong."
+    - cd $DEPLOYPATH
+    - if [ -f package.json ]; then echo "📦 Cài đặt Node modules..." && npm install --omit=dev; fi
+    - echo "🚀 Hoàn tất triển khai."
