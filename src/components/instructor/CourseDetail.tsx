@@ -10,28 +10,28 @@ export default function CourseDetail() {
           {/* Lesson */}
           <div className="flex items-center gap-3">
             <Image src="/assets/icons/play.svg" alt="Play Icon" width={24} height={24} />
-            <span>Lesson</span>
+            <span className="w-24">Lesson</span>
             <span className="font-semibold text-black">128 videos</span>
           </div>
 
           {/* Duration */}
           <div className="flex items-center gap-3">
             <Image src="/assets/icons/clock.svg" alt="Clock Icon" width={24} height={24} />
-            <span>Duration</span>
+            <span className="w-24">Duration</span>
             <span className="font-semibold text-black">56h 28m</span>
           </div>
 
           {/* Skill level */}
           <div className="flex items-center gap-3">
             <Image src="/assets/icons/sort.svg" alt="Sort Icon" width={24} height={24} />
-            <span>Skill level</span>
+            <span className="w-24">Skill level</span>
             <span className="font-semibold text-black">Beginner</span>
           </div>
 
           {/* View */}
           <div className="flex items-center gap-3">
             <Image src="/assets/icons/eye.svg" alt="Eye Icon" width={24} height={24} />
-            <span>View</span>
+            <span className="w-24">View</span>
             <span className="font-semibold text-black">12,450 person</span>
           </div>
         </div>
