@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetCoursesQuery, useSearchCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { setCourses, setLoading, setError, setFilters } from '@/lib/redux/features/course/courseSlice';
@@ -84,11 +85,14 @@ const CourseList: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {displayCourses?.map((course: Course) => (
           <div key={course.id} className="border rounded-lg overflow-hidden shadow-lg">
-            <img
-              src={course.thumbnail}
-              alt={course.title}
-              className="w-full h-48 object-cover"
-            />
+            <div className="relative w-full h-48">
+              <Image
+                src={course.thumbnail}
+                alt={course.title}
+                fill
+                className="object-cover"
+              />
+            </div>
             <div className="p-4">
               <h3 className="text-xl font-semibold mb-2">{course.title}</h3>
               <p className="text-gray-600 mb-4">{course.description}</p>

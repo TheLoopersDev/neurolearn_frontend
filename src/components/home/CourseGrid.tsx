@@ -10,10 +10,9 @@ import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 
 interface CourseGridProps {
   title: string;
-  type?: 'all' | 'top';
 }
 
-const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
+const CourseGrid = ({ title }: CourseGridProps) => {
   const { data: response, isLoading, error } = useGetCoursesQuery();
   
   // Get courses from response
