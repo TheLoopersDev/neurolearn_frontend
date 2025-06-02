@@ -15,11 +15,11 @@ import setting from '@/public/assets/icons/setting.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: courses, label: 'Courses', path: '/courses' },
-  { icon: createQuiz, label: 'Create Quiz', path: '/create-quiz' },
-  { icon: earning, label: 'Earning', path: '/earning' },
-  { icon: message, label: 'Message', path: '/message' },
-  { icon: setting, label: 'Setting', path: '/setting' },
+  { icon: courses, label: 'Courses', path: '/dashboard/courses' },
+  { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz' },
+  { icon: earning, label: 'Earning', path: '/dashboard/earning' },
+  { icon: message, label: 'Message', path: '/dashboard/message' },
+  { icon: setting, label: 'Setting', path: '/dashboard/setting' },
 ];
 
 const Sidebar = () => {

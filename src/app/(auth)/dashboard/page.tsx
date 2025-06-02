@@ -1,6 +1,6 @@
 'use client';
 
-import Sidebar from '@/components/admin/Sidebar';
+import Sidebar from '@/components/instructor/Sidebar';
 import React from 'react';
 
 export default function DashboardPage() {
