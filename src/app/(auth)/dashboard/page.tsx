@@ -1,10 +1,21 @@
+'use client';
+
+import Sidebar from '@/components/admin/Sidebar';
 import React from 'react';
 
 export default function DashboardPage() {
   return (
-    <main style={{ padding: '2rem' }}>
-      <h1>Learner Dashboard</h1>
-      <p>Welcome to your dashboard.</p>
-    </main>
+    <div className="flex h-screen">
+      {/* Sidebar chiếm 1/6 */}
+      <div className="w-1/6 bg-white">
+        <Sidebar />
+      </div>
+
+      {/* Nội dung chiếm 5/6 */}
+      <div className="w-5/6 bg-[#F7F8FA] p-6 overflow-y-auto">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="mt-4 text-gray-600">Nội dung chính hiển thị ở đây...</p>
+      </div>
+    </div>
   );
 }
