@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/common/ui/Button';
 import { useModal } from '@/context/ModalContext';
-import CtaButton from '../CTAButton';
-import BubbleButton from '../BubbleButton';
+import CtaButton from '../common/ui/CTAButton';
+import BubbleButton from '../common/ui/BubbleButton';
 import { useSelector } from 'react-redux';
 import { UserDropdown } from '../learner/auth/UserDropDown';
 interface Category {

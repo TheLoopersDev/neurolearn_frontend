@@ -1,39 +1,34 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import ExpertCard from '@/components/common/ExpertCard';
-import { User } from '@/types/user';
 import { motion } from 'framer-motion';
 import AnimatedSection from '@/components/animations/AnimatedSection';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 import Loading from '@/components/common/Loading';
-import userApi from '@/lib/api/user';
+import { useGetAllExpertsQuery } from '@/lib/redux/features/expert/expertApi';
 
 const ExpertsSection = () => {
-  const [instructors, setInstructors] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: experts, isLoading, error } = useGetAllExpertsQuery();
+  
+  const displayExperts = experts ? experts.slice(0, 3) : [];
 
-  useEffect(() => {
-    const fetchInstructors = async () => {
-      try {
-        const response = await userApi.getInstructors();
-        if (response?.success && response.instructors) {
-          setInstructors(response.instructors.slice(0, 3));
-        }
-      } catch (error) {
-        console.error('Error fetching instructors:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInstructors();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <Loading title="Our Experts" />;
   }
 
-  if (instructors.length === 0) {
+  if (error) {
+    console.error('Error fetching experts:', error);  
+    return (
+      <section className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-medium mb-6">Our Experts</h2>
+          <div className="text-center text-gray-500">Error loading experts</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (displayExperts.length === 0) {
     return (
       <section className="py-10">
         <div className="container mx-auto px-4">
@@ -57,18 +52,18 @@ const ExpertsSection = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {instructors.map((instructor) => (
+          {displayExperts.map((expert) => (
             <motion.div
-              key={instructor._id}
+              key={expert._id}
               variants={fadeIn}
             >
               <ExpertCard
-                name={instructor.name}
-                profession={instructor.profession ?? ''}
-                description={instructor.introduce ?? ''}
-                imageUrl={instructor.avatar?.url ?? '/assets/images/default-avatar.png'}
-                socialLinks={instructor.socialLinks}
-                profileUrl={`/experts/${instructor._id}`}
+                name={expert.name}
+                profession={expert.profession ?? ''}
+                description={expert.introduce ?? ''}
+                imageUrl={expert.avatar?.url ?? '/assets/images/default-avatar.png'}
+                socialLinks={expert.socialLinks}
+                profileUrl={`/experts/${expert._id}`}
               />
             </motion.div>
           ))}
