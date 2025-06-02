@@ -4,64 +4,66 @@ import ExpertCard from '@/components/common/ExpertCard';
 import { motion } from 'framer-motion';
 import AnimatedSection from '@/components/animations/AnimatedSection';
 import { fadeIn, staggerContainer } from '@/utils/animations';
+import Loading from '@/components/common/Loading';
+import { useGetAllExpertsQuery } from '@/lib/redux/features/expert/expertApi';
 
-interface ExpertsProps {
-  experts?: Array<{
-    id: string;
-    name: string;
-    role: string;
-    imageUrl: string;
-  }>;
-}
+const ExpertsSection = () => {
+  const { data: experts, isLoading, error } = useGetAllExpertsQuery();
+  
+  const displayExperts = experts ? experts.slice(0, 3) : [];
 
-const ExpertsSection = ({ experts }: ExpertsProps) => {
-  const defaultExperts = [
-    {
-      id: '1',
-      name: 'Tuyết Trinh',
-      role: 'Academic Director',
-      imageUrl: '/placeholder-course.jpg',
-    },
-    {
-      id: '2',
-      name: 'Tuyết Trinh',
-      role: 'Senior Instructor',
-      imageUrl: '/placeholder-course.jpg',
-    },
-    {
-      id: '3',
-      name: 'Tuyết Trinh',
-      role: 'Technology Lead',
-      imageUrl: '/placeholder-course.jpg',
-    },
-  ];
+  if (isLoading) {
+    return <Loading title="Our Experts" />;
+  }
 
-  const displayExperts = experts || defaultExperts;
+  if (error) {
+    console.error('Error fetching experts:', error);  
+    return (
+      <section className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-medium mb-6">Our Experts</h2>
+          <div className="text-center text-gray-500">Error loading experts</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (displayExperts.length === 0) {
+    return (
+      <section className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-medium mb-6">Our Experts</h2>
+          <div className="text-center text-gray-500">No experts available</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-10">
       <div className="container mx-auto px-4">
         <AnimatedSection variants={fadeIn}>
-          <h2 className="text-xl font-medium mb-6">Our Experts</h2>
+          <h2 className="text-2xl font-bold mb-8">Our Experts</h2>
         </AnimatedSection>
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {displayExperts.map((expert, index) => (
+          {displayExperts.map((expert) => (
             <motion.div
-              key={expert.id}
+              key={expert._id}
               variants={fadeIn}
-              transition={{ delay: index * 0.2 }}
             >
               <ExpertCard
                 name={expert.name}
-                role={expert.role}
-                imageUrl={expert.imageUrl}
-                profileUrl={`/experts/${expert.id}`}
+                profession={expert.profession ?? ''}
+                description={expert.introduce ?? ''}
+                imageUrl={expert.avatar?.url ?? '/assets/images/default-avatar.png'}
+                socialLinks={expert.socialLinks}
+                profileUrl={`/experts/${expert._id}`}
               />
             </motion.div>
           ))}

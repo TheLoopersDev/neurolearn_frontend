@@ -5,13 +5,49 @@ import CourseCard from '@/components/common/CourseCard';
 import AnimatedSection from '@/components/animations/AnimatedSection';
 import { motion } from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/animations';
+import Loading from '@/components/common/Loading';
+import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 
 interface CourseGridProps {
   title: string;
-  courses: Course[];
+  type?: 'all' | 'top';
 }
 
-const CourseGrid = ({ title, courses }: CourseGridProps) => {
+const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
+  const { data: response, isLoading, error } = useGetCoursesQuery();
+  
+  // Get courses from response
+  const courses = response?.success && response.courses 
+    ? response.courses.slice(0, 4)
+    : [];
+
+  if (isLoading) {
+    return <Loading title={title} />;
+  }
+
+  if (error) {
+    console.error('Error fetching courses:', error);
+    return (
+      <div className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-medium mb-6">{title}</h2>
+          <div className="text-center text-gray-500">Error loading courses</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-xl font-medium mb-6">{title}</h2>
+          <div className="text-center text-gray-500">No courses available</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-10">
       <div className="container mx-auto px-4">
@@ -25,9 +61,9 @@ const CourseGrid = ({ title, courses }: CourseGridProps) => {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {courses.map((course, index) => (
+          {courses.map((course: Course, index: number) => (
             <motion.div
-              key={course.id}
+              key={course._id}
               variants={fadeIn}
               transition={{ delay: index * 0.1 }}
             >

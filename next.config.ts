@@ -18,17 +18,10 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'jxaztnbdaxoeftmzztcc.supabase.co',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['example.com'],
   },
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', 'axios'],
+    optimizePackageImports: ['axios'],
   },
 };
 
