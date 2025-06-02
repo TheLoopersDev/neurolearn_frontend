@@ -15,15 +15,9 @@
     "test-all": "npm run check-format && npm run check-lint && npm run check-types && npm run build"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.7.2",
-    "@fortawesome/free-brands-svg-icons": "^6.7.2",
-    "@fortawesome/react-fontawesome": "^0.2.2",
     "@supabase/supabase-js": "^2.49.4",
     "autoprefixer": "^10.4.21",
     "axios": "^1.8.4",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.12.1",
-    "lucide-react": "^0.511.0",
     "next": "15.3.1",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
