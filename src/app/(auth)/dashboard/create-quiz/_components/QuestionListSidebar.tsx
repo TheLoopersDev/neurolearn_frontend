@@ -22,8 +22,8 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
     : `Questions (${questions.length})`;
 
   return (
-    <aside className="w-72 h-full bg-white border-r border-gray-200 flex flex-col flex-shrink-0 shadow-sm">
-      <div className="p-4 flex items-center justify-between border-b border-gray-200">
+    <aside className="w-72 h-full bg-white  flex flex-col flex-shrink-0 rounded-2xl mx-auto ">
+      <div className="p-4 flex items-center justify-between ">
         <h2 className="text-lg font-semibold text-gray-800">{headerText}</h2>
         <button
           onClick={onAddQuestion}

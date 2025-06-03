@@ -192,7 +192,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-lg max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 bg-white rounded-2xl  w-full mx-auto">
       <div className="flex items-center justify-between mb-4 text-black pb-3 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <svg
@@ -242,10 +242,10 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
           value={questionText}
           onChange={e => handleSetQuestionText(e.target.value)}
           placeholder="Ví dụ: Trong các nguyên tắc thiết kế trực quan..."
-          className="flex-grow w-full p-3 border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px] text-sm text-black"
+          className="flex-grow w-full p-3  border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px] text-sm text-black"
         />
         <div
-          className="w-full md:w-64 md:flex-shrink-0 h-40 md:min-h-[100px] flex flex-col items-center justify-center p-3 border-2 border-dashed border-blue-300 rounded-md bg-blue-50 text-center cursor-pointer hover:bg-blue-100 group transition-colors"
+          className="w-full md:w-48 md:flex-shrink-0 h-25 md:min-h-[100px] flex flex-col items-center justify-center p-3 border-2 border-dashed border-blue-300 rounded-md bg-blue-50 text-center cursor-pointer hover:bg-blue-100 group transition-colors"
           onClick={() => document.getElementById(`questionImageUpload-${internalId}`)?.click()}
         >
           <input
@@ -281,9 +281,12 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
               />
             </svg>
           )}
-          <p className="text-xs text-blue-500 group-hover:text-blue-600">
+          <p className="text-xs text-black group-hover:text-blue-600">
             {' '}
-            Drag and drop or <span className="font-semibold">Choose File</span>{' '}
+            Drag and drop or <br /> <span className="font-semibold text-blue-500">
+              Choose File
+            </span>{' '}
+            to upload{' '}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">(Max 10MB)</p>
           {questionImageFile && (
@@ -332,10 +335,10 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
           ))}
         </div>
       </>
-      <div className="flex items-center gap-8 pt-4 border-t border-gray-200 justify-between">
+      <div className="flex cursor-pointer items-center gap-8 pt-4 border-t border-gray-200 justify-between">
         <button
           onClick={addOption}
-          className="flex border border-amber-50 bg-[#eceaea] py-2 px-3 rounded-3xl items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+          className="flex border cursor-pointer border-amber-50 bg-[#eceaea] py-2 px-3 rounded-3xl items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
