@@ -7,12 +7,18 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+interface RootState {
+  auth?: {
+    token?: string;
+  };
+}
+
 export const courseApi = createApi({
   reducerPath: 'courseApi',
   baseQuery: fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_SERVER_URI}/courses`,
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth?.token;
+      const token = (getState() as RootState).auth?.token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
