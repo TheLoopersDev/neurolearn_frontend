@@ -61,7 +61,7 @@ importers:
         version: 2.1.1
       framer-motion:
         specifier: ^12.12.1
-        version: 12.12.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 12.15.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       jwt-decode:
         specifier: ^4.0.0
         version: 4.0.0
@@ -114,6 +114,9 @@ importers:
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
+      '@next/eslint-plugin-next':
+        specifier: ^15.3.3
+        version: 15.3.3
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.4
@@ -153,6 +156,9 @@ importers:
       eslint-plugin-prettier:
         specifier: ^5.2.6
         version: 5.2.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.2(eslint@9.25.0(jiti@2.4.2)))(eslint@9.25.0(jiti@2.4.2))(prettier@3.5.3)
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.25.0(jiti@2.4.2))
       husky:
         specifier: ^9.0.11
         version: 9.1.7
@@ -508,6 +514,9 @@ packages:
 
   '@next/eslint-plugin-next@15.3.1':
     resolution: {integrity: sha512-oEs4dsfM6iyER3jTzMm4kDSbrQJq8wZw5fmT6fg2V3SMo+kgG+cShzLfEV20senZzv8VF+puNLheiGPlBGsv2A==}
+
+  '@next/eslint-plugin-next@15.3.3':
+    resolution: {integrity: sha512-VKZJEiEdpKkfBmcokGjHu0vGDG+8CehGs90tBEy/IDoDDKGngeyIStt2MmE5FYNyU9BhgR7tybNWTAJY/30u+Q==}
 
   '@next/swc-darwin-arm64@15.3.1':
     resolution: {integrity: sha512-hjDw4f4/nla+6wysBL07z52Gs55Gttp5Bsk5/8AncQLJoisvTBP0pRIBK/B16/KqQyH+uN4Ww8KkcAqJODYH3w==}
@@ -1919,8 +1928,8 @@ packages:
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
-  framer-motion@12.12.1:
-    resolution: {integrity: sha512-PFw4/GCREHI2suK/NlPSUxd+x6Rkp80uQsfCRFSOQNrm5pZif7eGtmG1VaD/UF1fW9tRBy5AaS77StatB3OJDg==}
+  framer-motion@12.15.0:
+    resolution: {integrity: sha512-XKg/LnKExdLGugZrDILV7jZjI599785lDIJZLxMiiIFidCsy0a4R2ZEf+Izm67zyOuJgQYTHOmodi7igQsw3vg==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -2464,8 +2473,8 @@ packages:
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
-  motion-dom@12.12.1:
-    resolution: {integrity: sha512-GXq/uUbZBEiFFE+K1Z/sxdPdadMdfJ/jmBALDfIuHGi0NmtealLOfH9FqT+6aNPgVx8ilq0DtYmyQlo6Uj9LKQ==}
+  motion-dom@12.15.0:
+    resolution: {integrity: sha512-D2ldJgor+2vdcrDtKJw48k3OddXiZN1dDLLWrS8kiHzQdYVruh0IoTwbJBslrnTXIPgFED7PBN2Zbwl7rNqnhA==}
 
   motion-utils@12.12.1:
     resolution: {integrity: sha512-f9qiqUHm7hWSLlNW8gS9pisnsN7CRFRD58vNjptKdsqFLpkVnX00TNeD6Q0d27V9KzT7ySFyK1TZ/DShfVOv6w==}
@@ -3617,6 +3626,10 @@ snapshots:
   '@next/env@15.3.1': {}
 
   '@next/eslint-plugin-next@15.3.1':
+    dependencies:
+      fast-glob: 3.3.1
+
+  '@next/eslint-plugin-next@15.3.3':
     dependencies:
       fast-glob: 3.3.1
 

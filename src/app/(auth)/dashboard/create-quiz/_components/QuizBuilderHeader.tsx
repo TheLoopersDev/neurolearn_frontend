@@ -1,8 +1,6 @@
 'use client'; // Nếu có state hoặc event handlers cần client-side
 import React from 'react';
-import Image from 'next/image';
 // Import IconAI từ đường dẫn chính xác của bạn
-import IconAI from '@/public/assets/create-quiz/magicpen.svg'; // Đường dẫn ví dụ
 
 interface QuizBuilderHeaderProps {
   title: string;
@@ -21,7 +19,6 @@ const QuizBuilderHeader: React.FC<QuizBuilderHeaderProps> = ({ title, onCreateQu
         >
           Create
         </button>
-        {/* Nút "Create with AI" là tùy chọn, bạn có thể thêm logic để ẩn/hiện nếu cần */}
       </div>
     </header>
   );

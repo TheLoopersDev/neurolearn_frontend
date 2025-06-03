@@ -1,11 +1,12 @@
 // InstructorQuestionEditor.tsx
 'use client';
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Thêm useCallback, useMemo
+import React, { useState, useEffect, useMemo } from 'react'; // Thêm useCallback, useMemo
 import QuizAnswerOption from './QuizAnswerOption';
 import ToggleSwitch from './ToggleSwitch';
 import { QuestionData, AnswerOptionData } from './types';
 
 import { debounce } from 'lodash'; // Thêm lodash để sử dụng debounce
+import Image from 'next/image';
 
 interface InstructorQuestionEditorProps {
   questionToLoad?: QuestionData | null;
@@ -256,14 +257,27 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
             onChange={handleLocalQuestionImageChange}
           />
           {questionImageUrl && !questionImageFile && (
-            <img src={questionImageUrl} alt="Preview" className="max-h-20 mb-2 object-contain" />
+            <div className="relative w-full max-w-[150px] h-20 mb-2">
+              <Image
+                src={questionImageUrl}
+                alt="Question Preview"
+                layout="fill" // Hoặc width/height cố định
+                objectFit="contain" // Giữ tỷ lệ và hiển thị toàn bộ ảnh
+                className="rounded-md" // Thêm class nếu muốn bo góc ảnh
+              />
+            </div>
           )}
           {questionImageFile && (
-            <img
-              src={URL.createObjectURL(questionImageFile)}
-              alt="New Preview"
-              className="max-h-20 mb-2 object-contain"
-            />
+            <div className="relative w-full max-w-[150px] h-20 mb-2">
+              <Image
+                src={URL.createObjectURL(questionImageFile)}
+                alt="New Question Image Preview"
+                layout="fill"
+                objectFit="contain"
+                className="rounded-md"
+                onLoad={() => URL.revokeObjectURL(URL.createObjectURL(questionImageFile))} // Giải phóng bộ nhớ sau khi ảnh tải xong
+              />
+            </div>
           )}
           {!questionImageUrl && !questionImageFile && (
             <svg

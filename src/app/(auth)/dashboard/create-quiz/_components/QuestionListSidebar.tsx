@@ -92,7 +92,7 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
         ))}
         {questions.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-4">
-            No questions yet. Click "+" to add.
+            No questions yet. Click &quot;+&quot; to add.
           </p>
         )}
       </nav>
