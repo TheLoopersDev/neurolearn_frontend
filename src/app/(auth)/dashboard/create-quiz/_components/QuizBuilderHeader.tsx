@@ -1,23 +1,29 @@
-'use client'; // Nếu có state hoặc event handlers cần client-side
+// app/(auth)/dashboard/create-quiz/_components/QuizBuilderHeader.tsx
+'use client';
 import React from 'react';
-// Import IconAI từ đường dẫn chính xác của bạn
 
 interface QuizBuilderHeaderProps {
-  title: string;
-  onCreateQuiz: () => void;
-  onCreateQuizWithAI?: () => void; // Optional: nếu bạn có chức năng này
+  title: string; // Sẽ là "Name Quiz" hoặc tên của quiz đang sửa
+  onSaveQuiz: () => void; // Đổi tên từ onCreateQuiz cho rõ ràng hơn
+  isEditing: boolean; // Để biết nút nên là "Create" hay "Update"
+  // onCreateQuizWithAI?: () => void; // Tùy chọn
 }
 
-const QuizBuilderHeader: React.FC<QuizBuilderHeaderProps> = ({ title, onCreateQuiz }) => {
+const QuizBuilderHeader: React.FC<QuizBuilderHeaderProps> = ({
+  title,
+  onSaveQuiz,
+  isEditing,
+  // onCreateQuizWithAI,
+}) => {
   return (
-    <header className="bg-white rounded-2xl p-3 sm:p-4 flex items-center justify-between flex-shrink-0 z-20 shadow-sm">
-      <h1 className="text-lg sm:text-xl font-semibold text-gray-800">{title}</h1>
+    <header className="bg-white rounded-t-xl sm:rounded-none md:rounded-t-xl p-3 sm:p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-gray-200">
+      <h1 className="text-lg sm:text-xl font-semibold text-gray-800 truncate pr-2">{title}</h1>
       <div className="flex items-center space-x-3 sm:space-x-4">
         <button
-          onClick={onCreateQuiz}
-          className="bg-blue-500 rounded-2xl text-white px-8 sm:px-8  py-2  text-xs sm:text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+          onClick={onSaveQuiz}
+          className="bg-blue-500 text-white px-5 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
         >
-          Create
+          {isEditing ? 'Save Changes' : 'Create Quiz'}
         </button>
       </div>
     </header>

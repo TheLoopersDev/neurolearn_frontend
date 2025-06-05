@@ -1,18 +1,11 @@
-import Sidebar from '@/components/instructor/Sidebar';
-import QuizBuilderPage from '@/app/(auth)/dashboard/create-quiz/_components/QuizBuilderPage';
+// app/(auth)/dashboard/create-quiz/page.tsx
+import QuizListPage from './_components/QuizListPage'; // Điều chỉnh đường dẫn nếu cần
 import React from 'react';
 
-export default function Page() {
+export default function ListQuizzesPage() {
   return (
-    <div>
-      <div className="flex">
-        <div className="w-1/6 bg-gray-100">
-          <Sidebar />
-        </div>
-        <div className="w-5/6 bg-gray-100 p-6 overflow-y-auto">
-          <QuizBuilderPage />
-        </div>
-      </div>
+    <div className="bg-white">
+      <QuizListPage />
     </div>
   );
 }
