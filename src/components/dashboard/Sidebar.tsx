@@ -40,14 +40,14 @@ const Sidebar = () => {
       </div>
 
       {/* Menu */}
-      <nav className="flex flex-col gap-2 w-full">
+      <nav className="flex flex-col gap-4 w-full">
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link
               key={item.label}
               href={item.path}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-xl font-medium transition-all h-15 ${
                 isActive
                   ? 'bg-gray-100 text-[#3858F8]'
                   : 'text-black hover:text-[#3858F8] hover:bg-gray-50'
