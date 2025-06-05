@@ -147,16 +147,17 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSu
   const renderInitialStep = () => (
     <>
       <div className="text-center mb-6">
-        <div className="w-16 h-16 mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-4">
+        <h2 className="text-2xl font-bold text-gray-800">Create A Test</h2>
+
+        <div className="w-[390px] h-[160px] mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-4">
           {/* Thay bằng icon phù hợp với "Create A Test" chung chung hơn */}
           <Image
-            src="/assets/create-quiz/quiz-modal-icon.png"
+            src="/assets/create-quiz/Rectangle 576.png"
             alt="Create Test Icon"
-            width={40}
-            height={40}
+            width={390}
+            height={160}
           />
         </div>
-        <h2 className="text-xl font-semibold text-gray-800">Create A Test</h2>
       </div>
       <div className="space-y-5">
         <div>

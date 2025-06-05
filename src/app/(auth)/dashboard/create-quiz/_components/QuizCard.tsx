@@ -23,7 +23,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
   return (
     <Link
       href={`/dashboard/create-quiz/builder/${quiz.id}`}
-      className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-200"
+      className="block bg-white rounded-2xl hover:shadow-lg transition-all duration-300 overflow-hidden group "
       // Bỏ flex flex-col ở đây vì chúng ta sẽ dùng grid cho phần nội dung
     >
       {/* Phần nội dung của card giờ sẽ được chia bằng CSS Grid mới */}
@@ -65,17 +65,17 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
           </div>
         )}
         {/* 3. Dấu 3 chấm (Cột 3, Hàng 1, căn phải) */}
-        <div className="col-start-3 row-start-1 flex justify-end items-center">
+        <div className="col-start-3  row-start-1 flex justify-end items-center">
           <button
             className="p-1 bg-white/50 hover:bg-gray-100 rounded-full transition-opacity"
             onClick={handleMoreOptionsClick}
             title="More options"
           >
-            <MoreHorizontal size={16} className="text-gray-500" />
+            <MoreHorizontal size={16} className="text-gray-500 font-bold " />
           </button>
         </div>
         {/* 4. Title (Cột 2 & 3, Hàng 2) */}
-        <h3 className="col-span-2 col-start-2 row-start-2 text-sm sm:text-[15px] font-semibold text-gray-800 leading-tight group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+        <h3 className="col-span-2 col-start-2 pr-30 row-start-2 text-sm sm:text-[15px] font-semibold text-gray-800 leading-tight group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
           {quiz.name}
         </h3>
         {/* 5. Thông tin chi tiết (Exam Title, Question, Duration - Cột 1 đến 3, Hàng 3) */}
@@ -114,22 +114,22 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         {/* 6. Thanh Progress (Cột 1 & 2, Hàng 4) */}
         {quiz.progress !== undefined && (
           <div className="col-span-2 row-start-4 flex items-center mt-1">
-            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-1.5 bg-blue-500" style={{ width: `${quiz.progress}%` }}></div>
+            <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-blue-500" style={{ width: `${quiz.progress}%` }}></div>
             </div>
           </div>
         )}
         {/* 7. Phần trăm Progress (Cột 3, Hàng 4, căn phải) */}
         {quiz.progress !== undefined && (
           <div className="col-start-3 row-start-4 flex justify-end items-center mt-1">
-            <p className="text-xs font-medium text-blue-500">{quiz.progress}%</p>
+            <p className="text-md font-bold pr-5 text-blue-500">{quiz.progress}%</p>
           </div>
         )}
         {/* 8. Creation Date (Cột 1 & 2, Hàng 5) */}
         <div className="col-span-3 sm:col-span-2 row-start-5 flex items-end mt-1">
           {' '}
           {/* items-end để đẩy xuống cuối hàng nếu hàng cao hơn */}
-          <p className="text-[10px] sm:text-[11px] text-gray-400 flex gap-1">
+          <p className="text-[11px] font-semibold sm:text-[11px] text-gray-400 flex gap-1">
             Creation Date: <p className="text-blue-600">{quiz.createdAt || 'N/A'}</p>
           </p>
         </div>
