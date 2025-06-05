@@ -16,7 +16,16 @@ import Footer from '@/components/layout/Footer';
 export default function Home() {
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background Ellipse */}
+      <div
+        className="absolute inset-x-0 top-0 h-[480px] md:h-[520px] lg:h-[560px] -z-10 rounded-b-[100%]"
+        style={{
+          background:
+            'radial-gradient(80% 60% at 50% 0%, rgba(91, 120, 255, 0.4) 0%, #f7f8fa 100%)',
+        }}
+      ></div>
+
       {/* Header */}
       <Header />
 
@@ -28,25 +37,25 @@ export default function Home() {
 
       {/* Popular Courses */}
       <CourseGrid title="Popular Courses" type="top" />
-      
+
       {/* Why Study Section */}
       <WhyStudySection />
-      
+
       {/* Learners are viewing */}
       <CourseGrid title="Learners are viewing" type="all" />
-      
+
       {/* Learning Focused */}
       <LearningFocusSection />
-      
+
       {/* Our Experts */}
       <ExpertsSection />
-      
+
       {/* Future of Work Section */}
       <FutureOfWorkSection />
-      
+
       {/* Personality Test Section */}
       <PersonalityTestSection />
-      
+
       {/* Video Section */}
       <VideoSection />
 

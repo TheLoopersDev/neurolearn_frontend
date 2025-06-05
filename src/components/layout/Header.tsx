@@ -58,7 +58,8 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white py-4 shadow-sm z-50 relative">
+      <header className="relative py-4 z-50">
+        {/* shadow-sm z-50 relative */}
         <div className="container mx-auto px-4 flex justify-between items-center relative">
           {/* Logo & Explore */}
           <div className="flex items-center relative">

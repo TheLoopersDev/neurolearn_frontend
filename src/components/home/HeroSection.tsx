@@ -8,7 +8,7 @@ import { slideFromLeft, slideFromRight } from '@/utils/animations';
 
 const HeroSection = () => {
   return (
-    <section className="bg-gray-50 py-12">
+    <section className="py-12">
       <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
         <AnimatedSection variants={slideFromLeft} className="md:w-1/2 mb-8 md:mb-0">
           <h1 className="text-4xl font-bold mb-4">

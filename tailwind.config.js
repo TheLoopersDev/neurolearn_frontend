@@ -2,6 +2,9 @@
 export default {
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['inter', ...fontFamily.sans], // đặt Inter làm mặc định
+      },
       colors: {
         background: '#ffffff',
         foreground: '#171717',
@@ -26,5 +29,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-font-inter')],
 };
