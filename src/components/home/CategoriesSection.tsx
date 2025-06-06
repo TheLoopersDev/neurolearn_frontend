@@ -15,7 +15,7 @@ const CategoriesSection = () => {
   ];
 
   return (
-    <AnimatedSection variants={fadeIn} className="py-8 bg-white">
+    <AnimatedSection variants={fadeIn} className="py-8 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.div 
           className="flex overflow-x-auto pb-4 gap-4"

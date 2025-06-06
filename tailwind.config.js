@@ -27,6 +27,13 @@ export default {
         input: '#d1d5db', // để dùng border-input
         ring: '#3b82f6', // để dùng focus:ring-ring
       },
+      maskImage: {
+        'course-shape': "url('/assets/home/Subtract.svg')",
+      },
+      clipPath: {
+        'course-clip':
+          'path("M0,0 h260 q50,0 50,50 v0 q0,35 35,35 h65 q40,0 40,40 v191 q0,40 -40,40 H40 q-40,0 -40,-40 V40 Q0,0 0,0 Z")',
+      },
     },
   },
   plugins: [require('tailwindcss-font-inter')],

@@ -82,7 +82,16 @@ export interface Course {
   name: string;
   subTitle?: string;
   description?: string;
-  authorId: string;
+  authorId: {
+    _id: string;
+    name: string;
+    email: string;
+    avatar?: {
+      public_id: string;
+      url: string;
+    };
+    profession: string;
+  };
   price?: number;
   estimatedPrice?: number;
   thumbnail: {

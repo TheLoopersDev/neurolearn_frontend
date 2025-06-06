@@ -6,19 +6,18 @@ import AnimatedSection from '@/components/animations/AnimatedSection';
 import { motion } from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 import Loading from '@/components/common/Loading';
-import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
+import { useGetTopCoursesQuery } from '@/lib/redux/features/course/courseApi';
 
 interface CourseGridProps {
   title: string;
-  type?: 'all' | 'top';
 }
 
-const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
-  const { data: response, isLoading, error } = useGetCoursesQuery();
+const CourseGrid = ({ title }: CourseGridProps) => {
+  const { data: response, isLoading, error } = useGetTopCoursesQuery();
   
   // Get courses from response
-  const courses = response?.success && response.courses 
-    ? response.courses.slice(0, 4)
+  const courses = response?.success && response.data?.topCourses
+    ? response.data?.topCourses.slice(0, 4)
     : [];
 
   if (isLoading) {
@@ -28,7 +27,7 @@ const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
   if (error) {
     console.error('Error fetching courses:', error);
     return (
-      <div className="py-10">
+      <div className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">Error loading courses</div>
@@ -39,7 +38,7 @@ const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
 
   if (courses.length === 0) {
     return (
-      <div className="py-10">
+      <div className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">No courses available</div>
@@ -52,7 +51,7 @@ const CourseGrid = ({ title, type = 'all' }: CourseGridProps) => {
     <div className="py-10">
       <div className="container mx-auto px-4">
         <AnimatedSection variants={fadeIn}>
-          <h2 className="text-xl font-medium mb-6">{title}</h2>
+          <h2 className="text-4xl font-medium mb-6">{title}</h2>
         </AnimatedSection>
         <motion.div 
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"

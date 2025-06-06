@@ -16,7 +16,7 @@ import Footer from '@/components/layout/Footer';
 export default function Home() {
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative bg-gray-50 min-h-screen overflow-hidden z-10">
       {/* Background Ellipse */}
       <div
         className="absolute inset-x-0 top-0 h-[480px] md:h-[520px] lg:h-[560px] -z-10 rounded-b-[100%]"
@@ -36,13 +36,13 @@ export default function Home() {
       <CategoriesSection />
 
       {/* Popular Courses */}
-      <CourseGrid title="Popular Courses" type="top" />
+      <CourseGrid title="Popular Courses" />
 
       {/* Why Study Section */}
       <WhyStudySection />
 
       {/* Learners are viewing */}
-      <CourseGrid title="Learners are viewing" type="all" />
+      <CourseGrid title="Learners are viewing" />
 
       {/* Learning Focused */}
       <LearningFocusSection />

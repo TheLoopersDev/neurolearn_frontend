@@ -7,12 +7,18 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+interface RootState {
+  auth?: {
+    token?: string;
+  };
+}
+
 export const courseApi = createApi({
   reducerPath: 'courseApi',
   baseQuery: fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_SERVER_URI}/courses`,
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth?.token;
+      const token = (getState() as RootState).auth?.token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
@@ -20,17 +26,22 @@ export const courseApi = createApi({
     },
   }),
   tagTypes: ['Course'],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '',
       providesTags: ['Course'],
     }),
     getCourseById: builder.query<ApiResponse<Course>, string>({
-      query: (id) => `/${id}`,
+      query: id => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Course', id }],
     }),
+    getTopCourses: builder.query<ApiResponse<{ topCourses: Course[] }>, void>({
+      query: () => '/top-courses',
+      providesTags: ['Course'],
+    }),
+
     createCourse: builder.mutation<ApiResponse<Course>, Partial<Course>>({
-      query: (course) => ({
+      query: course => ({
         url: '',
         method: 'POST',
         body: course,
@@ -46,13 +57,13 @@ export const courseApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Course', id }],
     }),
     deleteCourse: builder.mutation<ApiResponse<void>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Course'],
     }),
-    searchCourses: builder.query<ApiResponse<Course[]>, { search: string; category?: string; level?: string }>({
+    searchCourses: builder.query<ApiResponse<Course[]>,{ search: string; category?: string; level?: string }>({
       query: ({ search, category, level }) => ({
         url: '/search',
         method: 'GET',
@@ -66,8 +77,9 @@ export const courseApi = createApi({
 export const {
   useGetCoursesQuery,
   useGetCourseByIdQuery,
+  useGetTopCoursesQuery,
   useCreateCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useSearchCoursesQuery,
-} = courseApi; 
+} = courseApi;
