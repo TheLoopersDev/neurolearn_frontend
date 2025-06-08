@@ -12,37 +12,35 @@ import React from 'react';
 
 function page() {
   return (
-    <div className="w-full bg-[#F7F8FA] px-4 sm:px-6 lg:px-20 py-20">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="flex flex-col lg:flex-row gap-20">
-          {/* LEFT: Nội dung chính khóa học */}
-          <div className="w-full lg:w-[70%] space-y-10">
-            {/* Banner */}
-            <Image src="/assets/images/banner.png" alt="Banner" width={1200} height={480} />
-
-            {/* Info: Giảng viên + Like + Share */}
-            <div className="flex items-start">
-              <InstructorInfo />
-            </div>
-
-            {/* Mô tả */}
-            <CourseDetail />
-
-            {/* Nội dung khóa học */}
-            <CourseContent />
-
-            {/* Đánh giá học viên */}
-            <Review />
+    <div className="max-w-full mx-auto p-20 bg-[#F7F8FA]">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* LEFT: Nội dung chính khóa học */}
+        <div className="w-full lg:w-[70%] space-y-10">
+          {/* Banner */}
+          <Image src="/assets/images/banner.png" alt="Banner" width={1200} height={480} />
+          {/* Info: Giảng viên + Like + Share */}
+          <div className="flex items-start">
+            <InstructorInfo />
           </div>
-
-          {/* RIGHT: Sidebar */}
-          <div className="w-full lg:w-[30%] space-y-6">
-            <CourseCard />
-            <Rating />
-            <PublisherCard />
-            <OverView />
-            <SuggestedCourse />
-          </div>
+          {/* Mô tả */}
+          <CourseDetail />
+          {/* Course Detail */}
+          <CourseContent />
+          {/* Review */}
+          <Review />
+        </div>
+        {/* RIGHT: Sidebar */}
+        <div className="w-full lg:w-[30%] space-y-15">
+          {/* Hộp giá tiền + nút mua */}
+          <CourseCard />
+          {/* Đánh giá Rating */}
+          <Rating />
+          {/* Publisher Info */}
+          <PublisherCard />
+          {/* Overview */}
+          <OverView />
+          {/* Suggested Course */}
+          <SuggestedCourse />
         </div>
       </div>
     </div>
