@@ -1,44 +1,46 @@
-import React from "react";
+import React from 'react';
+import { TotalWithdrawIcon, ServiceFeeIcon, CurrentBalanceIcon } from '@/components/instructor/revenue/RevenueIcons';
+import { BalanceOverviewProps } from '@/types/income';
 
-export default function BalanceOverview() {
+export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
+  totalWithdraw,
+  serviceFee,
+  currentBalance
+}) => {
   return (
-    <div className="flex flex-col gap-[32px] p-6 bg-white">
-      <div className="text-[28px] font-bold text-black">Balance Overview</div>
-      
-      <div className="flex gap-[32px] items-start">
-        {/* Card 1 - Total Withdraw */}
-        <div className="flex flex-col items-center gap-[16px]">
-          <div className="w-[140px] h-[140px] bg-cover bg-center bg-no-repeat rounded-[20px]"
-               style={{ backgroundImage: "url('/assets/revenue/total-withdraw.png')" }}>
+    <section className="mt-6 w-full">
+      <h2 className="text-2xl font-semibold leading-none text-stone-950">Balance Overview</h2>
+      <div className="flex flex-wrap gap-6 items-center mt-6 w-full">
+        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+          <div className="w-full">
+            <TotalWithdrawIcon />
+            <div className="mt-2 w-full">
+              <p className="text-2xl font-semibold leading-none text-blue-600">{totalWithdraw}</p>
+              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Total Withdraw</p>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-[24px] font-bold text-blue-600 mb-[4px]">84.900 VND</div>
-            <div className="text-[14px] text-gray-600">Total Withdraw</div>
+        </article>
+        
+        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+          <div className="w-full">
+            <ServiceFeeIcon />
+            <div className="mt-2 w-full">
+              <p className="text-2xl font-semibold leading-none text-blue-600">{serviceFee}</p>
+              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Service Fee</p>
+            </div>
           </div>
-        </div>
-
-        {/* Card 2 - Service Fee */}
-        <div className="flex flex-col items-center gap-[16px]">
-          <div className="w-[140px] h-[140px] bg-cover bg-center bg-no-repeat rounded-[20px]"
-               style={{ backgroundImage: "url('/assets/revenue/service-fee.png')" }}>
+        </article>
+        
+        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+          <div className="w-full">
+            <CurrentBalanceIcon />
+            <div className="mt-2 w-full">
+              <p className="text-2xl font-semibold leading-none text-blue-600">{currentBalance}</p>
+              <p className="mt-1 text-base font-medium leading-none text-right text-neutral-500">Current Balance</p>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-[24px] font-bold text-blue-600 mb-[4px]">100.000 VND</div>
-            <div className="text-[14px] text-gray-600">Service Fee</div>
-          </div>
-        </div>
-
-        {/* Card 3 - Current Balance */}
-        <div className="flex flex-col items-center gap-[16px]">
-          <div className="w-[140px] h-[140px] bg-cover bg-center bg-no-repeat rounded-[20px]"
-               style={{ backgroundImage: "url('/assets/revenue/current-balance.png')" }}>
-          </div>
-          <div className="text-center">
-            <div className="text-[24px] font-bold text-blue-600 mb-[4px]">200.000 VND</div>
-            <div className="text-[14px] text-gray-600">Current Balance</div>
-          </div>
-        </div>
+        </article>
       </div>
-    </div>
+    </section>
   );
-}
+};
