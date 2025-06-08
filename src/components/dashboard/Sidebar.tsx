@@ -28,7 +28,7 @@ const Sidebar = () => {
   return (
     <div className="w-full h-screen bg-white flex flex-col items-start p-4 border-r">
       {/* Logo */}
-      {/* <div className="flex items-center gap-3 mb-6 h-20">
+      <div className="flex items-center gap-3 mb-6 h-20">
         <Image
           src="/assets/images/avatar.png"
           alt="Academix Logo"
@@ -37,17 +37,17 @@ const Sidebar = () => {
           className="rounded-full"
         />
         <h1 className="text-4xl font-bold text-black">Academix</h1>
-      </div> */}
+      </div>
 
       {/* Menu */}
-      <nav className="flex flex-col gap-2 w-full">
-        {menuItems.map(item => {
+      <nav className="flex flex-col gap-4 w-full">
+        {menuItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link
               key={item.label}
               href={item.path}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-xl font-medium transition-all h-15 ${
                 isActive
                   ? 'bg-gray-100 text-[#3858F8]'
                   : 'text-black hover:text-[#3858F8] hover:bg-gray-50'
@@ -59,7 +59,9 @@ const Sidebar = () => {
                 width={20}
                 height={20}
                 className={`transition-colors ${
-                  isActive ? 'filter-blue' : 'group-hover:filter-blue'
+                  isActive
+                    ? 'filter-blue'
+                    : 'group-hover:filter-blue'
                 }`}
               />
               {item.label}
