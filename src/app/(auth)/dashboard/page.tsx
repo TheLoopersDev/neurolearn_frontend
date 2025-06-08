@@ -9,11 +9,7 @@ import StudentStatisticChart from '@/components/dashboard/StudentStatisticChart'
 import Image from 'next/image';
 import React from 'react';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout() {
   return (
     <div className="flex h-screen bg-[#F7F8FA]">
       {/* Sidebar chiếm 1/6 */}
@@ -49,4 +45,4 @@ export default function DashboardLayout({
       </div>
     </div>
   );
-} 
+}
