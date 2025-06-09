@@ -36,7 +36,7 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
             <CurrentBalanceIcon />
             <div className="mt-2 w-full">
               <p className="text-2xl font-semibold leading-none text-blue-600">{currentBalance}</p>
-              <p className="mt-1 text-base font-medium leading-none text-right text-neutral-500">Current Balance</p>
+              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Current Balance</p>
             </div>
           </div>
         </article>

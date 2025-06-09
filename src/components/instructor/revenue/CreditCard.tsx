@@ -1,87 +1,103 @@
 import React from 'react';
+import Image from 'next/image';
 import { CardInfoProps } from '@/types/income';
 
-interface CreditCardProps extends CardInfoProps {}
+interface CreditCardProps extends CardInfoProps {
+  bankLogo?: string;
+}
 
 export const CreditCard: React.FC<CreditCardProps> = ({
-  bankName,
-  cardHolder,
-  cardNumber,
-  expiryDate
+  bankName = 'MB Bank',
+  bankLogo,
+  cardHolder = 'DAO TUAN K',
+  cardNumber = '1231 2312 3123 456',
+  expiryDate = '12/28'
 }) => {
-  // Format card number with spaces (xxxx xxxx xxxx xxxx)
-  const formatCardNumber = (number: string) => {
-    return number.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
-  };
-
   return (
-    <div className="w-full h-[242px] bg-[url('/assets/revenue/custom-card.png')] bg-cover bg-center bg-no-repeat rounded-2xl p-5 shadow-lg text-white relative">
+    <div className="w-full max-w-[380px] h-[240px] rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-500 hover:shadow-3xl hover:-translate-y-1">
+      {/* Background image with overlay */}
+      <div 
+        className="absolute inset-0 bg-[url('/assets/revenue/custom-card.png')] bg-cover bg-center"
+        style={{
+          filter: 'brightness(0.9) contrast(1.1)'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-blue-900/30"></div>
+      </div>
       
-      {/* Top row - Bank name and chip + contactless */}
-      <div className="flex justify-between items-start mb-8">
-        <div className="text-lg font-semibold uppercase tracking-wide">
-          {bankName}
-        </div>
-        <div className="flex items-center gap-4">
+      {/* Glossy reflection effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent pointer-events-none"></div>
+      
+      {/* Holographic security strip */}
+      <div className="absolute top-5 w-full h-8 bg-gradient-to-r from-transparent via-white/40 to-transparent transform rotate-3"></div>
+      
+      {/* Content container */}
+      <div className="relative z-10 h-full flex flex-col p-6 text-white">
+        {/* Bank logo/name top row */}
+        <div className="flex justify-between items-start">
+          {bankLogo ? (
+            <div className="relative h-8 w-24">
+              <Image
+                src={bankLogo}
+                alt={bankName}
+                fill
+                className="object-contain"
+                sizes="(max-width: 96px) 100vw, 96px"
+              />
+            </div>
+          ) : (
+            <div className="text-xl font-bold drop-shadow-md">{bankName}</div>
+          )}
+          
           {/* EMV Chip */}
-          <div className="w-12 h-9 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-md shadow-md relative">
-            <div className="absolute inset-0.5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-6 h-4 border border-yellow-700 rounded-xs bg-yellow-200"></div>
-              </div>
-            </div>
-          </div>
-          {/* Contactless symbol */}
-          <div className="flex flex-col gap-0.5">
-            <div className="w-4 h-0.5 bg-white rounded-full opacity-80"></div>
-            <div className="w-5 h-0.5 bg-white rounded-full opacity-80"></div>
-            <div className="w-6 h-0.5 bg-white rounded-full opacity-80"></div>
-            <div className="w-7 h-0.5 bg-white rounded-full opacity-80"></div>
+          <div className="w-10 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm flex items-center justify-center">
+            <div className="w-6 h-3 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-xs border border-yellow-700"></div>
           </div>
         </div>
-      </div>
-
-      {/* Card number - large and prominent */}
-      <div className="mb-6">
-        <div className="text-2xl font-mono font-semibold tracking-widest">
-          {formatCardNumber(cardNumber)}
+        
+        {/* Centered card number */}
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-2xl font-mono tracking-widest text-center font-medium drop-shadow-lg">
+            {cardNumber}
+          </div>
         </div>
-        {/* Small number below first 4 digits */}
-        <div className="text-sm font-mono mt-1 opacity-80">
-          {cardNumber.slice(0, 4)}
-        </div>
-      </div>
-
-      {/* Bottom row - Cardholder, expiry, and logo */}
-      <div className="flex justify-between items-end">
-        <div className="flex gap-8">
-          {/* Cardholder name */}
+        
+        {/* Bottom section */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Card holder */}
           <div>
-            <div className="text-xs opacity-80 mb-1 uppercase tracking-wide">
-              Card Holder Name
-            </div>
-            <div className="text-base font-semibold uppercase tracking-wide">
+            <div className="text-[11px] uppercase tracking-wider opacity-85 mb-1">CARD HOLDER</div>
+            <div className="text-sm font-bold uppercase tracking-wider truncate">
               {cardHolder}
             </div>
           </div>
           
           {/* Expiry date */}
-          <div>
-            <div className="text-xs opacity-80 mb-1 uppercase tracking-wide flex flex-col leading-tight">
-              <span>Month/Year</span>
-              <span>Good Thru</span>
-            </div>
-            <div className="text-base font-mono font-semibold">
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-wider opacity-85 mb-1">VALID THRU</div>
+            <div className="text-sm font-mono font-medium">
               {expiryDate}
             </div>
           </div>
-        </div>
-        
-        {/* Payment network logo placeholder */}
-        <div className="text-right">
-          <div className="text-lg font-bold tracking-wider">
-            NAPAS
+          
+          {/* Payment network - centered below */}
+          <div className="col-span-2 text-center mt-2">
+            <div className="text-lg font-bold inline-block px-4 py-1 rounded-md bg-white/10 backdrop-blur-sm">
+              NAPAS
+            </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Contactless payment icon */}
+      <div className="absolute bottom-10 right-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+        <div className="flex flex-col gap-[2px]">
+          {[...Array(4)].map((_, i) => (
+            <div 
+              key={i}
+              className={`h-[2px] bg-white rounded-full ${i === 0 ? 'w-2' : i === 1 ? 'w-3' : i === 2 ? 'w-4' : 'w-5'}`}
+            ></div>
+          ))}
         </div>
       </div>
     </div>
