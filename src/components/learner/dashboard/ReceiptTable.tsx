@@ -3,24 +3,28 @@
 export default function ReceiptTable() {
     const data = [
         {
+            id: '1',
             name: 'Graphic Design Mastercla–Learn GREAT Design',
             payment: 'Credit card',
             price: '400.000 VNĐ',
             date: '20 May,2025',
         },
         {
+            id: '2',
             name: 'Graphic Design Mastercla–Learn GREAT Design',
             payment: 'Momo',
             price: '400.000 VNĐ',
             date: '20 May,2025',
         },
         {
+            id: '3',
             name: 'Graphic Design Mastercla–Learn GREAT Design',
             payment: 'Credit card',
             price: '400.000 VNĐ',
             date: '22 May,2025',
         },
     ];
+
 
     return (
         <div className="bg-white pt-6 px-6 rounded-2xl shadow-sm">
@@ -37,7 +41,7 @@ export default function ReceiptTable() {
                 <tbody>
                     {data.map((item, idx) => (
                         <tr
-                            key={idx}
+                            key={item.id}
                             className={`text-sm text-black ${idx !== data.length - 1 ? 'border-b border-gray-200' : ''
                                 }`}
                         >
@@ -53,7 +57,6 @@ export default function ReceiptTable() {
                         </tr>
                     ))}
                 </tbody>
-
             </table>
         </div>
     );
