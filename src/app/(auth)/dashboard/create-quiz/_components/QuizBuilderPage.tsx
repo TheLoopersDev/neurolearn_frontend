@@ -62,7 +62,7 @@ function getIconForQuestionType(type: QuestionData['questionType']): React.React
 }
 
 interface QuizBuilderPageProps {
-  params?: { quizId?: string };
+  params: { quizId: string };
 }
 
 const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
@@ -70,8 +70,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const pathParams = useParams();
   const { toast } = useToast();
 
-  const quizIdToLoad =
-    params?.quizId || (typeof pathParams?.quizId === 'string' ? pathParams.quizId : undefined);
+  const quizIdToLoad = params.quizId || (typeof pathParams?.quizId === 'string' ? pathParams.quizId : undefined);
 
   const [quizName, setQuizName] = useState('Name Quiz');
   const [questionsList, setQuestionsList] = useState<QuestionData[]>([]);

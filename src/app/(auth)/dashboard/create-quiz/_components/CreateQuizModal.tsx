@@ -1,6 +1,6 @@
 // app/(auth)/dashboard/create-quiz/_components/CreateQuizModal.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronDown, UploadCloud, Plus, ArrowLeft, Minus } from 'lucide-react';
 import { ManualCreationDetails, AICreationDetails } from './types'; // Đảm bảo đường dẫn đúng
@@ -28,31 +28,30 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSu
   const [aiTopic, setAiTopic] = useState('');
   const [aiQuestionTypes, setAiQuestionTypes] = useState([{ type: 'multiple-choice', count: 1 }]);
 
-  // Reset form khi modal mở hoặc khi quay lại bước đầu
-  const resetInitialStepFields = () => {
+  const resetInitialStepFields = useCallback(() => {
     setExamTitle('');
     setDuration('');
     setCreationModeSelection('manual');
-  };
+  }, []);
 
-  const resetAiFormFields = () => {
+  const resetAiFormFields = useCallback(() => {
     setAiScannedFile(null);
     setAiDifficultyLevel('Easy');
     setAiTopic('');
     setAiQuestionTypes([{ type: 'multiple-choice', count: 1 }]);
-  };
+  }, []);
+
+  const resetForms = useCallback(() => {
+    resetInitialStepFields();
+    resetAiFormFields();
+  }, [resetInitialStepFields, resetAiFormFields]);
 
   useEffect(() => {
     if (isOpen) {
       setCurrentStep('initialStep');
-      resetForms(); // Reset tất cả khi modal mở
+      resetForms();
     }
-  }, [isOpen]);
-
-  const resetForms = () => {
-    resetInitialStepFields();
-    resetAiFormFields();
-  };
+  }, [isOpen, resetForms]);
 
   const handleClose = () => {
     setCurrentStep('initialStep'); // Luôn quay về bước chọn khi đóng hoàn toàn
