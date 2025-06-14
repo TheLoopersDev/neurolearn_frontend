@@ -67,7 +67,7 @@ importers:
         version: 4.1.0
       framer-motion:
         specifier: ^12.12.1
-        version: 12.15.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 12.12.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       jwt-decode:
         specifier: ^4.0.0
         version: 4.0.0
