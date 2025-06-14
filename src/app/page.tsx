@@ -10,9 +10,7 @@ import VideoSection from '@/components/home/VideoSection';
 import FilterTagsContainer from '@/components/common/ui/FilterTagsContainer';
 import LearningGoals from '@/components/home/LearningGoals';
 
-
 export default function Home() {
-
   return (
     <div>
       {/* Hero Section */}
