@@ -12,12 +12,14 @@ import createQuiz from '@/public/assets/icons/create.svg';
 import earning from '@/public/assets/icons/wallet.svg';
 import message from '@/public/assets/icons/message.svg';
 import setting from '@/public/assets/icons/setting.svg';
+import teacher from '@/public/assets/icons/teacher.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: courses, label: 'Courses', path: '/dashboard/courses' },
   { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz' },
   { icon: earning, label: 'Earning', path: '/dashboard/earning' },
+  { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
   { icon: message, label: 'Message', path: '/dashboard/message' },
   { icon: setting, label: 'Setting', path: '/dashboard/setting' },
 ];
@@ -26,7 +28,7 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col items-start p-4 border-r">
+    <div className="w-full h-screen  bg-white flex flex-col items-start p-4 border-r">
       {/* Logo */}
       {/* <div className="flex items-center gap-3 mb-6 h-20">
         <Image
