@@ -165,16 +165,33 @@ export function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="h-[60px] flex items-center gap-3 cursor-pointer ">
-          <Image
-            className="h-8 w-8 rounded-full object-cover" // Added w-8 and object-cover
-            width={32}
-            height={32}
-            src={user?.avatar?.url ?? defaultAvatar}
-            alt={user.name ?? 'User Avatar'}
-            referrerPolicy="no-referrer" // Good for privacy with external avatar URLs
-          />
-          <span className="font-medium">{user.name}</span>
+        <div className="flex items-center gap-2 sm:gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow">
+          {/* Avatar */}
+          <div className="w-10 h-10 rounded-full bg-[#B8DFF2] overflow-hidden flex items-center justify-center">
+            <Image
+              className="w-full h-full object-cover rounded-full"
+              width={40}
+              height={40}
+              src={user?.avatar?.url ?? defaultAvatar}
+              alt={user.name ?? 'User Avatar'}
+              referrerPolicy="no-referrer"
+            />
+          </div>
+
+          {/* Name + Arrow */}
+          <div className="flex items-center gap-1 sm:gap-2 w-auto">
+            <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
+              {user.name}
+            </span>
+            <svg
+              className="w-[15.5px] h-[8.5px]"
+              viewBox="0 0 16 9"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
+            </svg>
+          </div>
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-white text-blue-600">

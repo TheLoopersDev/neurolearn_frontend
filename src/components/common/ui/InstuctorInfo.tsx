@@ -13,10 +13,9 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
         {courseName || 'Graphic Design Master – Learn GREAT Design'}
       </h1>
 
-      {/* Profile and Stats Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex items-center justify-between gap-4 mb-8 w-full">
         {/* Profile Info */}
-        <div className="flex items-center gap-4 flex-1 min-w-[250px]">
+        <div className="flex items-center gap-4 min-w-[250px]">
           <Image
             src={
               imageError
@@ -36,7 +35,7 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-6 flex-wrap">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 text-sm text-black">
             <Image src="/assets/icons/heart.svg" alt="Heart Icon" width={20} height={20} />
             <span>{instructor?.likes || 300} Likes</span>
@@ -46,15 +45,6 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
             <span>Share</span>
           </div>
         </div>
-      </div>
-
-      {/* Description Section */}
-      <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
-      <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
-        <p>{instructor?.introduce || 'No introduction provided by instructor.'}</p>
-        <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
-          View all &gt;
-        </a>
       </div>
     </div>
   );

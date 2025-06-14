@@ -13,11 +13,12 @@ interface CourseGridProps {
 }
 
 const CourseGrid = ({ title }: CourseGridProps) => {
-  const { data: response, isLoading, error } = useGetTopCoursesQuery();
+  const { data, isLoading, error } = useGetTopCoursesQuery();
   
   // Get courses from response
-  const courses = response?.success && response.data?.topCourses
-    ? response.data?.topCourses.slice(0, 4)
+
+  const courses = data?.success && Array.isArray(data.courses)
+    ? data.courses.slice(0, 4)
     : [];
 
   if (isLoading) {
@@ -29,7 +30,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
     return (
       <div className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl font-medium mb-6">{title}</h2>
+          <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">Error loading courses</div>
         </div>
       </div>
@@ -40,7 +41,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
     return (
       <div className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl font-medium mb-6">{title}</h2>
+          <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">No courses available</div>
         </div>
       </div>
@@ -51,7 +52,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
     <div className="py-10">
       <div className="container mx-auto px-4">
         <AnimatedSection variants={fadeIn}>
-          <h2 className="text-4xl font-medium mb-6">{title}</h2>
+          <h2 className="text-4xl md:text-4xl text-[#0D0D0D] mb-6">{title}</h2>
         </AnimatedSection>
         <motion.div 
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"

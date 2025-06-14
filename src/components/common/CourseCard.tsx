@@ -32,7 +32,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
               src={
                 imageError
                   ? '/assets/images/placeholder-teacher.jpg'
-                  : course.authorId?.avatar?.url || '/assets/images/teacher.jpg'
+                  : course.author?.avatar?.url || '/assets/images/teacher.jpg'
               }
               alt="Instructor"
               width={32}
@@ -42,15 +42,15 @@ const CourseCard = ({ course }: CourseCardProps) => {
             />
           </div>
           <div className="leading-tight text-sm">
-            <p className="text-gray-900 font-semibold">{course.authorId.name}</p>
-            <p className="text-xs text-gray-700">{course.authorId.profession || 'Instructor'}</p>
+            <p className="text-gray-900 font-semibold">{course.author.name}</p>
+            <p className="text-xs text-gray-700">{course.author.profession || 'Instructor'}</p>
           </div>
         </div>
 
         {/* Thumbnail Image */}
         <div className="absolute top-[50px] left-[3%] w-[94%] h-[38%] rounded-[16px] overflow-hidden">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail.url}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail}
             alt={course.name}
             fill
             className="object-cover"
@@ -75,12 +75,12 @@ const CourseCard = ({ course }: CourseCardProps) => {
               <span>{course.rating.toFixed(1)}</span>
               <span className="text-[#6B6B6B] ml-1">({course.purchased} reviews)</span>
             </div>
-            <span className="text-[#6B6B6B] line-through">800.000 VNĐ</span>
+            <span className="text-[#6B6B6B] line-through">{course.estimatedPrice}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-[#0D0D0D]">200 Review rating</span>
             <span className="text-[#3858F8] text-[16px] font-semibold">
-              {course.isFree ? 'Free' : `${course.price.toLocaleString()} VNĐ`}
+              {course.isFree ? 'Free' : `${course.price} $`}
             </span>
           </div>
         </div>

@@ -41,17 +41,27 @@ const HeroSection = () => {
               priority
             />
             <motion.div
-              className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm text-blue-600 px-3 py-1 rounded-lg font-semibold flex items-center"
+              className="
+              absolute top-2 right-2 w-[158px] h-[112px] bg-white shadow-md rounded-[12px] flex flex-col items-center justify-center"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <span className="mr-1">800</span>
-              <span className="text-sm">+</span>
+              <span className="text-[40px] font-semibold text-[#3858F8]">800</span>
+              <span className="text-[32px] font-bold text-[#3858F8]">+</span>
+              <span className="absolute mt-2 text-[14px] text-gray-500">Participants</span>
             </motion.div>
+
             <motion.div
-              className="absolute -bottom-4 -left-4 bg-blue-50 p-3 rounded-lg shadow"
+              className="absolute w-[101px] h-[73px]
+               right-[calc(100%)]  
+               top-[calc(80%-16px)]          
+               bg-white
+               rounded-[12px]
+               shadow
+               flex flex-col items-center justify-center
+               p-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}

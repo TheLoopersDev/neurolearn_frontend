@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { Course } from '@/types/course';
+import { Course, CourseDetail } from '@/types/course';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -31,15 +31,14 @@ export const courseApi = createApi({
       query: () => '',
       providesTags: ['Course'],
     }),
-    getCourseById: builder.query<ApiResponse<Course>, string>({
+    getCourseById: builder.query<ApiResponse<CourseDetail>, string>({
       query: id => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Course', id }],
     }),
-    getTopCourses: builder.query<ApiResponse<{ topCourses: Course[] }>, void>({
+    getTopCourses: builder.query<ApiResponse<{ courses: Course[] }>, void>({
       query: () => '/top-courses',
       providesTags: ['Course'],
     }),
-
     createCourse: builder.mutation<ApiResponse<Course>, Partial<Course>>({
       query: course => ({
         url: '',

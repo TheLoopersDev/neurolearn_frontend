@@ -107,19 +107,19 @@ const LearningFocusSection = () => {
       title: 'Hands-on training',
       description:
         'Upskill effectively with AI-powered coding exercises, practice tests, and quizzes.',
-      icon: '/assets/icons/training.png',
+      icon: '/assets/icons/heart.svg',
     },
     {
       title: 'Certification prep',
       description:
         'Prep for industry-recognized certifications by solving real-world challenges and earn badges along the way.',
-      icon: '/assets/icons/certification.png',
+      icon: '/assets/icons/heart.svg',
     },
     {
       title: 'Insights and analytics',
       description:
         'Fast-track goals with advanced insights plus a dedicated customer success team to help drive effective learning.',
-      icon: '/assets/icons/insights.png',
+      icon: '/assets/icons/heart.svg',
     },
   ];
 
