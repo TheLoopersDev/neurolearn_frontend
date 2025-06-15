@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import AnimatedSection from '@/components/animations/AnimatedSection';
-import { fadeIn, slideUp } from '@/utils/animations';
+import { slideUp } from '@/utils/animations';
 
 const VideoSection = () => {
   return (

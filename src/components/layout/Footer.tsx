@@ -35,7 +35,7 @@ export default function Footer() {
           >
             Get Started <ArrowUpRight size={16} />
           </Link>
-          <p className="text-xs mt-4">Don't like the forms? Drop us a line via email.</p>
+          <p className="text-xs mt-4">Don&apos;t like the forms? Drop us a line via email.</p>
           <p className="text-xs font-semibold text-black">info@awsmd.com</p>
         </div>
 

@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 interface CourseCardProps {
   course: {
-    price?: any;
+    price?: number;
     estimatedPrice?: number;
     isFree?: boolean;
     durationText?: string;
@@ -14,9 +14,10 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
-  const discount = course.estimatedPrice
-    ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
-    : 0;
+  const discount =
+    typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
+      ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
+      : 0;
 
   return (
     <div className="w-[395px] bg-white rounded-2xl max-w-full mx-auto">
@@ -47,7 +48,10 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       <div className="text-black pb-4">
         <div className="text-sm space-y-4 px-4">
           <div className="text-4xl text-[#3858F8] mt-2">
-            {course.isFree ? 'Miễn phí' : `${course.price.toLocaleString()} $`}
+            {course.isFree
+              ? 'Free'
+              : `$${(course.price ?? 0).toLocaleString()}`}
+
           </div>
 
           <div className="text-black text-2xl">Course includes</div>

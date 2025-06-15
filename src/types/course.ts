@@ -235,20 +235,19 @@ export interface CourseDetail {
     public_id: string;
     url: string;
   };
-  price: number;
+  price?: number;
   estimatedPrice?: number;
   isFree: boolean;
   purchased?: number;
   rating?: number;
   totalLessons?: number;
   durationText?: string;
-
   level?: {
     _id: string;
     name: string;
   };
-  category?: any;
-  subCategory?: any;
+  category?: string;
+  subCategory?: string;
 
   publisher: {
     _id: string;

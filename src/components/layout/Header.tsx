@@ -13,6 +13,7 @@ import NotificationIcon from '@/public/assets/home/notification-black.svg'
 import ArrowDownIcon from '@/public/assets/home/arrow-top-down.svg';
 import LogoSVG from '@/public/assets/icons/logo.svg';
 import Image from 'next/image';
+import { RootState } from '@/lib/redux/store';
 
 interface Category {
   name: string;
@@ -24,7 +25,7 @@ const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const categories: Category[] = [
     { name: 'Programming', href: '/categories/programming' },
@@ -196,24 +197,24 @@ const Header: React.FC = () => {
                 </button>
               </>
             ) : (
-            /* Nếu đã login, giữ lại Cart + UserDropdown như cũ */
+              /* Nếu đã login, giữ lại Cart + UserDropdown như cũ */
               <>
-                  <button
-                    // onClick={() => showModal('notification')}
-                    className="
+                <button
+                  // onClick={() => showModal('notification')}
+                  className="
                   bg-white rounded-full
                   p-[16px]
                   flex items-center justify-center color-black"
-                  >
-                    <Image
-                      src={NotificationIcon}
-                      alt="Notification"
-                      width={20}
-                      height={20}
-                    />
-                  </button>
-                  <UserDropdown />
-                </>
+                >
+                  <Image
+                    src={NotificationIcon}
+                    alt="Notification"
+                    width={20}
+                    height={20}
+                  />
+                </button>
+                <UserDropdown />
+              </>
             )}
           </div>
         </div>
