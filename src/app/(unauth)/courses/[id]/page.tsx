@@ -1,35 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { useGetCourseByIdQuery } from '@/lib/redux/features/course/courseApi';
 import { useParams } from 'next/navigation';
-import api from '@/lib/api';
-import { Course } from '@/types/course';
+import Image from 'next/image';
+
+import CourseContent from '@/components/common/ui/CourseContent';
+import CourseDetail from '@/components/common/ui/CourseDetail';
+import InstructorInfo from '@/components/common/ui/InstuctorInfo';
+import OverView from '@/components/common/ui/OverView';
+import PublisherCard from '@/components/common/ui/PublisherCard';
+import Rating from '@/components/common/ui/Rating';
+import Review from '@/components/common/ui/Review';
+import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
+import CourseCard from '@/components/learner/course-detail/CourseCard';
+import CourseGrid from '@/components/home/CourseGrid';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const {
+    data: response,
+    isLoading: loading,
+    error,
+  } = useGetCourseByIdQuery(id as string);
 
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/courses/${id}`);
-        setCourse(response.data);
-      } catch (err) {
-        console.error('Error fetching course:', err);
-        setError('Failed to load course details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchCourse();
-    }
-  }, [id]);
+  const course = response?.courses;
 
   if (loading) {
     return (
@@ -42,101 +36,64 @@ export default function CourseDetailsPage() {
   if (error || !course) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-500">{error || 'Course not found'}</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-red-500">
+          {error ? JSON.stringify(error) : 'Course not found'}
+        </h1>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <h1 className="text-3xl font-bold mb-4">{course.title}</h1>
-          <div className="flex items-center space-x-2 mb-4">
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-              {course.category}
-            </span>
-            {course.level && (
-              <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">
-                {course.level}
-              </span>
-            )}
-          </div>
-
-          <div className="relative h-64 md:h-80 w-full mb-6 rounded-lg overflow-hidden">
+    <div className="w-full px-4 sm:px-6 lg:px-20 py-20">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex flex-col lg:flex-row gap-20">
+          {/* LEFT COLUMN */}
+          <div className="w-full lg:w-[70%] space-y-10">
+            {/* Course Thumbnail */}
             <Image
-              src={course.imageUrl || '/placeholder-course.jpg'}
-              alt={course.title}
-              fill
-              className="object-cover"
+              src={course.thumbnail?.url || '/placeholder-course.jpg'}
+              alt={course.name}
+              width={1200}
+              height={480}
+              className="rounded-4xl object-cover"
             />
-          </div>
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Description</h2>
-            <p className="text-gray-700 whitespace-pre-line">{course.description}</p>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Topics</h2>
-            <ul className="list-disc list-inside">
-              {course.topics.map((topic, index) => (
-                <li key={`topic-${topic}-${index}`} className="mb-1 text-gray-700">
-                  {topic}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="md:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
-            <div className="text-center mb-4">
-              <span className="text-3xl font-bold">${course.price.toFixed(2)}</span>
+            {/* Instructor Info */}
+            <InstructorInfo courseName={course.name} instructor={course.publisher} />
+            {/* Description Section */}
+            <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
+            <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
+              <p>{course?.description || 'No description provided by instructor.'}</p>
+              <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
+                View all &gt;
+              </a>
             </div>
 
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 mb-4">
-              Enroll Now
-            </button>
+            {/* Course Detail */}
+            <CourseDetail course={course} />
 
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">Instructor:</span>
-                <span className="font-medium">{course.teacherName}</span>
-              </div>
-              {course.duration && (
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Duration:</span>
-                  <span className="font-medium">{course.duration}</span>
-                </div>
-              )}
-              {course.totalStudents && (
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Students:</span>
-                  <span className="font-medium">{course.totalStudents}</span>
-                </div>
-              )}
-              {course.rating && (
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Rating:</span>
-                  <span className="font-medium flex items-center">
-                    <span className="text-yellow-500 mr-1">★</span>
-                    {course.rating.toFixed(1)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">Last Updated:</span>
-                <span className="font-medium">
-                  {new Date(course.updatedAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
+            {/* Course Content */}
+            <CourseContent sections={course.sections} />
+
+            {/* Reviews */}
+            <Review reviews={course.reviews} />
+
           </div>
+
+          {/* RIGHT SIDEBAR */}
+          <div className="w-full lg:w-[30%] space-y-15">
+            <CourseCard course={course} />
+            <Rating rating={course.rating} />
+            <PublisherCard author={course.publisher} updatedAt={course.publisher.updatedAt} />
+            <OverView title={course.name} overview={course.overview} topics={course.topics} />
+            <SuggestedCourse />
+            {/* Learners are viewing */}
+
+          </div>
+
         </div>
       </div>
+      <CourseGrid title="Learners are viewing" />
     </div>
   );
 }

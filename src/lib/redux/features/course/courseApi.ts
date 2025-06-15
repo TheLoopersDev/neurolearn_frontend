@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { Course } from '@/types/course';
+import { Course, CourseDetail } from '@/types/course';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -26,17 +26,21 @@ export const courseApi = createApi({
     },
   }),
   tagTypes: ['Course'],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '',
       providesTags: ['Course'],
     }),
-    getCourseById: builder.query<ApiResponse<Course>, string>({
-      query: (id) => `/${id}`,
+    getCourseById: builder.query<ApiResponse<CourseDetail>, string>({
+      query: id => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Course', id }],
     }),
+    getTopCourses: builder.query<ApiResponse<{ courses: Course[] }>, void>({
+      query: () => '/top-courses',
+      providesTags: ['Course'],
+    }),
     createCourse: builder.mutation<ApiResponse<Course>, Partial<Course>>({
-      query: (course) => ({
+      query: course => ({
         url: '',
         method: 'POST',
         body: course,
@@ -52,13 +56,13 @@ export const courseApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Course', id }],
     }),
     deleteCourse: builder.mutation<ApiResponse<void>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Course'],
     }),
-    searchCourses: builder.query<ApiResponse<Course[]>, { search: string; category?: string; level?: string }>({
+    searchCourses: builder.query<ApiResponse<Course[]>,{ search: string; category?: string; level?: string }>({
       query: ({ search, category, level }) => ({
         url: '/search',
         method: 'GET',
@@ -72,8 +76,9 @@ export const courseApi = createApi({
 export const {
   useGetCoursesQuery,
   useGetCourseByIdQuery,
+  useGetTopCoursesQuery,
   useCreateCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useSearchCoursesQuery,
-} = courseApi; 
+} = courseApi;

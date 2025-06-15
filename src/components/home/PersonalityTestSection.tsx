@@ -1,129 +1,73 @@
-"use client";
+'use client';
 
-import { motion } from 'framer-motion';
-import AnimatedSection from '@/components/animations/AnimatedSection';
-import { slideUp } from '@/utils/animations';
-import Link from 'next/link';
+import Button from '../common/ui/Button';
 
-interface PersonalityTestSectionProps {
-  title?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-}
+const traits = [
+  {
+    label: 'REALISTIC',
+    desc: 'Practical, hands-on, tangible work'
+  },
+  {
+    label: 'CONVENTIONAL',
+    desc: 'Structured, organized, careful'
+  },
+  {
+    label: 'INVESTIGATIVE',
+    desc: 'Practical, hands-on, tangible work'
+  },
+  {
+    label: 'ENTERPRISING',
+    desc: 'Practical, hands-on, tangible work'
+  },
+  {
+    label: 'ARTISTIC',
+    desc: 'Practical, hands-on, tangible work'
+  },
+  {
+    label: 'SOCIAL',
+    desc: 'Practical, hands-on, tangible work'
+  }
+];
 
-const PersonalityTestSection = ({
-  title = 'Test your personality and interests',
-  buttonText = 'Explore Now',
-  buttonUrl = '/personality-test'
-}: PersonalityTestSectionProps) => {
+export default function PersonalityTestSection() {
   return (
     <section className="py-10">
-      <div className="container mx-auto px-4">
-        <AnimatedSection variants={slideUp} className="bg-white rounded-xl p-8 w-full">
-          {/* Header with title and button */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <motion.h2 
-              className="text-3xl font-bold mb-4 md:mb-0"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              {title}
-            </motion.h2>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href={buttonUrl} className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors">
-                  {buttonText} <span className="ml-2">→</span>
-                </Link>
-              </motion.div>
-            </motion.div>
+      <div className="container mx-auto px-4 flex flex-col gap-[60px]">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
+          <h2 className="text-[54px] leading-[64px] text-[#0D0D0D] max-w-[648px] font-normal">
+            Test your personality and interests
+          </h2>
+          <Button href="/personality-test" variant="primary">
+            Explore Now
+          </Button>
+        </div>
+
+        {/* Description */}
+        <p className="text-[24px] leading-[29px] max-w-[525px] text-[#4B5563] font-medium">
+          <span className="text-[#3858F8]">Explore your strengths, preferences</span>, and discover your <span className="text-[#3858F8]">growth path</span> with this quick personality quiz.
+        </p>
+
+        {/* Timeline */}
+        <div className="relative h-[20px] w-full max-w-[1080px]">
+          <div className="absolute top-[8px] left-0 right-0 h-1 bg-[#3858F8] rounded-[12px] z-0" />
+          <div className="flex justify-between items-center absolute top-0 left-0 right-0 z-10">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="w-[20px] h-[20px] bg-[#3858F8] rounded-full" />
+            ))}
           </div>
-          
-          {/* Main content */}
-          <div className="flex flex-col md:flex-row">
-            {/* Left side - Empty space */}
-            <div className="md:w-1/2"></div>
-            
-            {/* Right side - Description */}
-            <div className="md:w-1/2 mb-8">
-              <motion.div 
-                className="text-gray-600"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <p>Explore your <span className="text-blue-600">strengths, preferences</span>, and discover your <span className="text-blue-600">growth path</span> with this quick personality quiz.</p>
-              </motion.div>
+        </div>
+
+        {/* Traits */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[32px] max-w-[1240px]">
+          {traits.map((trait, idx) => (
+            <div key={idx} className="flex flex-col gap-[10px] w-[180px]">
+              <h3 className="text-[20px] text-[#0D0D0D]">{trait.label}</h3>
+              <p className="text-[12px] text-[#6B6B6B] leading-[14px]">{trait.desc}</p>
             </div>
-          </div>
-          
-          {/* Progress indicator */}
-          <motion.div 
-            className="mb-6 relative mt-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="flex justify-between items-center mb-2">
-              {[0, 1, 2, 3, 4, 5].map((index) => (
-                <motion.span 
-                  key={index}
-                  className="w-3 h-3 bg-blue-600 rounded-full"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.6 + index * 0.1 }}
-                />
-              ))}
-            </div>
-            <motion.div 
-              className="h-0.5 bg-blue-600 absolute top-1.5 left-0 right-0 -z-10"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-            />
-          </motion.div>
-          
-          {/* Personality types */}
-          <motion.div 
-            className="grid grid-cols-6 gap-x-1 text-xs text-gray-500"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-          >
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">REALISTIC</span>
-              <span className="text-[10px] text-gray-400 text-center">Practical, hands-on, tangible work</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">CONVENTIONAL</span>
-              <span className="text-[10px] text-gray-400 text-center">Structured, organized, careful</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">INVESTIGATIVE</span>
-              <span className="text-[10px] text-gray-400 text-center">Practical, hands-on, tangible work</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">ENTERPRISING</span>
-              <span className="text-[10px] text-gray-400 text-center">Practical, hands-on, tangible work</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">ARTISTIC</span>
-              <span className="text-[10px] text-gray-400 text-center">Practical, hands-on, tangible work</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium mb-1">SOCIAL</span>
-              <span className="text-[10px] text-gray-400 text-center">Practical, hands-on, tangible work</span>
-            </div>
-          </motion.div>
-        </AnimatedSection>
+          ))}
+        </div>
       </div>
     </section>
   );
-};
-
-export default PersonalityTestSection;
+}
