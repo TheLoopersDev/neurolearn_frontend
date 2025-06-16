@@ -14,7 +14,7 @@ import Review from '@/components/learner/course-detail/Review';
 import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
 import CourseCard from '@/components/learner/course-detail/CourseCard';
 import CourseGrid from '@/components/home/CourseGrid';
-import { ISection } from '@/types/course';
+import { IReview, ISection } from '@/types/course';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -77,7 +77,7 @@ export default function CourseDetailsPage() {
             <CourseContent sections={course.sections as ISection[]} />
 
             {/* Reviews */}
-            <Review reviews={course.reviews} />
+            <Review reviews={course.reviews as IReview[]} />
 
           </div>
 
