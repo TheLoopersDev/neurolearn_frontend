@@ -10,7 +10,7 @@ import React from 'react';
 
 export default function DashboardLayout() {
   return (
-    <div className="flex h-full bg-[#F7F8FA]">
+    <div className="flex h-full ">
       {/* Sidebar chiếm 1/6 */}
 
       {/* Nội dung chiếm 5/6 */}
