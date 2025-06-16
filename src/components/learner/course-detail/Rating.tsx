@@ -1,35 +1,50 @@
 'use client';
 
 import Image from 'next/image';
+import React from 'react';
 
-export default function Rating() {
+export default function Rating({ rating }: { rating: number }) {
+  // number of full stars
+  const fullStars = Math.floor(rating);
+  // build an array of booleans length 5
+  const stars = Array.from({ length: 5 }, (_, i) => i < fullStars);
+
   return (
-    <div className="w-[395px] h-[91px]  bg-white rounded-2xl shadow-md p-4 max-w-full mx-auto">
+    <div className="w-full max-w-[395px] h-[91px] bg-white rounded-2xl shadow-md p-4 mx-auto">
       <div className="flex items-center justify-between h-full">
         {/* Left: Avatar + Info */}
         <div className="flex items-center gap-4">
           <Image
-            src="/assets/images/happy-face.png"
-            alt="Avatar"
+            src={"/assets/images/happy-face.png"}
+            alt={'rating'}
             width={50}
             height={50}
             className="rounded-full object-cover"
           />
           <div>
             <div className="text-black font-bold text-xl">Rating</div>
-            <div className="text-black text-sm">2,492 Students</div>
+            <div className="text-black text-sm">
+              {/* {studentCount} Students */}
+            </div>
           </div>
         </div>
+
         {/* Right: Stars + Rating */}
         <div className="flex flex-col items-end">
           <div className="flex items-center space-x-1">
-            <Image src="/assets/icons/star.svg" alt="Star Icon" width={24} height={24} />
-            <Image src="/assets/icons/star.svg" alt="Star Icon" width={24} height={24} />
-            <Image src="/assets/icons/star.svg" alt="Star Icon" width={24} height={24} />
-            <Image src="/assets/icons/star.svg" alt="Star Icon" width={24} height={24} />
-            <Image src="/assets/icons/un-star.svg" alt="Star Icon" width={24} height={24} />
+            <div className="text-black text-lg mt-1">
+              {rating.toFixed(1)}
+            </div>
+            {stars.map((filled, idx) => (
+              <Image
+                key={idx}
+                src={filled ? '/assets/icons/star.svg' : '/assets/icons/un-star.svg'}
+                alt={filled ? 'Star filled' : 'Star empty'}
+                width={24}
+                height={24}
+              />
+            ))}
           </div>
-          <div className="text-black text-sm mt-1">4.8 (880 rating)</div>
         </div>
       </div>
     </div>

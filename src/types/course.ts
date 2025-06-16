@@ -95,32 +95,38 @@
 //   subCategory?: string;
 // }
 
-interface IReviewReply {
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    avatar?: string;
-  };
-  comment: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// interface IReviewReply {
+//   user: {
+//     _id: string;
+//     name: string;
+//     email: string;
+//     role: string;
+//     avatar?: string;
+//   };
+//   comment: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
-interface IReview {
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    avatar?: string;
-  };
+export interface IReview {
+  _id: string;
   rating: number;
   comment: string;
-  commentReplies: IReviewReply[];
-  createdAt: string;
-  updatedAt: string;
+  user: {
+    name: string;
+    avatar?: {
+      thumnail?: string;
+      url?: string;
+    };
+  };
+  commentReplies?: Array<{
+    user: {
+      name: string;
+      avatar: string;
+    };
+    comment: string;
+  }>;
+  createdAt?: Date;
 }
 
 interface ILink {

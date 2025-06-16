@@ -4,16 +4,17 @@ import { useGetCourseByIdQuery } from '@/lib/redux/features/course/courseApi';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 
-import CourseContent from '@/components/common/ui/CourseContent';
-import CourseDetail from '@/components/common/ui/CourseDetail';
+import CourseContent from '@/components/learner/course-detail/CourseContent';
+import CourseDetail from '@/components/learner/course-detail/CourseDetail';
 import InstructorInfo from '@/components/common/ui/InstuctorInfo';
-import OverView from '@/components/common/ui/OverView';
-import PublisherCard from '@/components/common/ui/PublisherCard';
-import Rating from '@/components/common/ui/Rating';
-import Review from '@/components/common/ui/Review';
+import OverView from '@/components/learner/course-detail/OverView';
+import PublisherCard from '@/components/learner/course-detail/PublisherCard';
+import Rating from '@/components/learner/course-detail/Rating';
+import Review from '@/components/learner/course-detail/Review';
 import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
 import CourseCard from '@/components/learner/course-detail/CourseCard';
 import CourseGrid from '@/components/home/CourseGrid';
+import { IReview, ISection } from '@/types/course';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -73,17 +74,17 @@ export default function CourseDetailsPage() {
             <CourseDetail course={course} />
 
             {/* Course Content */}
-            <CourseContent sections={course.sections} />
+            <CourseContent sections={course.sections as ISection[]} />
 
             {/* Reviews */}
-            <Review reviews={course.reviews} />
+            <Review reviews={course.reviews as IReview[]} />
 
           </div>
 
           {/* RIGHT SIDEBAR */}
           <div className="w-full lg:w-[30%] space-y-15">
             <CourseCard course={course} />
-            <Rating rating={course.rating} />
+            <Rating rating={course.rating as number} />
             <PublisherCard author={course.publisher} updatedAt={course.publisher.updatedAt} />
             <OverView title={course.name} overview={course.overview} topics={course.topics} />
             <SuggestedCourse />
