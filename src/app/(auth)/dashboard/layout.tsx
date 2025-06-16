@@ -1,6 +1,6 @@
 'use client';
 
-import Sidebar from '@/components/instructor/Sidebar';
+import Sidebar from '@/components/dashboard/Sidebar';
 import React from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -13,8 +13,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Nội dung chiếm 5/6 */}
       <div className="w-5/6 bg-[#F7F8FA] p-6  overflow-y-auto">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="mt-4 text-gray-600">Nội dung chính hiển thị ở đây...</p>
         {children}
       </div>
     </div>
