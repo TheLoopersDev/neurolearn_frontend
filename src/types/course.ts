@@ -115,7 +115,7 @@ export interface IReview {
   user: {
     name: string;
     avatar?: {
-      thumnail?: string;
+      thumbnail?: string;
       url?: string;
     };
   };

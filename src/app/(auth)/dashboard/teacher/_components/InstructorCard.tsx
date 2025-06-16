@@ -52,7 +52,7 @@ const InstructorCard: React.FC<InstructorCardProps> = ({ instructor }) => {
       {/* Các nút hành động */}
       <div className="w-full flex items-center gap-3 mt-2">
         <Link
-          href={`/profile/${instructor._id}`} // Ví dụ đường dẫn đến trang profile
+          href={`/instructors/${instructor._id}`} // Ví dụ đường dẫn đến trang profile
           className="
             flex-1 w-full text-center px-4 py-2.5 rounded-3xl text-sm font-medium
             bg-gray-100 text-gray-700 hover:bg-gray-200

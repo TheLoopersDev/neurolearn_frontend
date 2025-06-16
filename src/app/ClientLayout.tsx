@@ -10,7 +10,7 @@ import '@/lib/fontawesome';
 export default function ClientLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <ModalProvider>
-      <div className="relative bg-gray-50 min-h-screen overflow-hidden z-10">
+      <div className="relative  bg-gray-50 min-h-screen overflow-hidden z-10">
         {/* Background Ellipse */}
         <div
           className="
@@ -22,13 +22,17 @@ export default function ClientLayout({ children }: { readonly children: React.Re
       rounded-b-[100%]
     "
           style={{
-            background:
-              'radial-gradient(58.94% 105.86% at 50% -5.86%, #5B78FF 0%, #F7F8FA 100%)',
+            background: 'radial-gradient(58.94% 105.86% at 50% -5.86%, #5B78FF 0%, #F7F8FA 100%)',
           }}
         />
         {/* Header */}
         <Header />
-        {children}
+        <div>
+          <div className="max-w-7xl mx-auto ">
+            {/* Main content area */}
+            {children}
+          </div>
+        </div>
         <Footer />
       </div>
       <ModalContainer />

@@ -22,19 +22,16 @@ const buttonVariants = cva(
         // - text-blue-600: Chữ màu xanh (blue-600).
         // - hover:bg-blue-600 hover:text-white: Khi hover, nền thành màu xanh và chữ thành màu trắng.
 
+        outline2:
+          'border border-blue-600 rounded-full bg-transparent text-blue-600 shadow-sm hover:bg-blue-600 hover:text-white cursor-pointer',
+
         secondary: 'bg-[#3b82f6] text-black shadow hover:bg-[#1e3a8a]', // Giữ nguyên
 
         // --- PHẦN GHOST ĐÃ ĐIỀU CHỈNH ---
         ghost:
           'text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
-        // Giải thích (ví dụ cho light mode):
-        // - text-blue-600: Chữ màu xanh (blue-600).
-        // - hover:bg-blue-100: Khi hover, có một lớp nền xanh rất nhạt (blue-100).
-        // - hover:text-blue-700: Chữ đậm hơn một chút khi hover.
-        //
-        // Nếu bạn muốn giữ lại ý tưởng dùng `accent-foreground` từ code gốc:
-        // 'text-slate-700 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-accent-foreground dark:hover:text-accent-foreground cursor-pointer',
-        // Ở đây, tôi đã sửa `hover:[#1e3a8a]` thành `hover:bg-gray-100` (hoặc bạn có thể dùng `hover:bg-accent` nếu `accent` là màu nền nhạt trong theme của bạn).
+        ghost2:
+          'text-blue-600 rounded-full hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
 
         ['active-tab']: 'bg-foreground text-black shadow', // Giữ nguyên
       },

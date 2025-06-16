@@ -5,7 +5,7 @@ import React from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen px-30">
+    <div className="flex min-h-screen ">
       {/* Sidebar chiếm 1/6 */}
       <div className="w-1/6 mt-6">
         <Sidebar />
