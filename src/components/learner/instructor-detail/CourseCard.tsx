@@ -21,9 +21,6 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const authorProfession = course.author?.profession || 'Instructional Expert';
   //   const reviewCount = course.reviews?.length || 0;
   //   const originalPrice = course.estimatedPrice || (course.price && course.price > 0 ? course.price * 1.5 : 0);
-  const thumbnailUrl =
-    (typeof course.thumbnail === 'string' ? course.thumbnail : course.thumbnail) ||
-    '/assets/images/default-course.png';
 
   // Hàm định dạng giá tiền
   const formatPrice = (price: number): string => {

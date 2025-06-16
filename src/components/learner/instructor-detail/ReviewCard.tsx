@@ -12,12 +12,20 @@ interface ReviewCardProps {
 
 const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   // Hàm để tạo timestamp tương đối (ví dụ: "2 weeks ago")
-  const timeAgo = (dateString: string) => {
+  const timeAgo = (dateValue?: string | Date): string => {
+    // 1. Trả về chuỗi mặc định nếu không có ngày tháng
+    if (!dateValue) {
+      return 'a while ago';
+    }
+
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+      // 2. Chuyển đổi thành object Date nếu nó là chuỗi, nếu đã là Date thì giữ nguyên
+      const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+      return formatDistanceToNow(date, { addSuffix: true });
     } catch (error) {
-      console.error('Invalid date for formatDistanceToNow:', dateString);
-      return dateString; // Trả về chuỗi gốc nếu có lỗi
+      console.error('Invalid date for formatDistanceToNow:', dateValue);
+      // 3. Trả về chuỗi rỗng hoặc một giá trị mặc định nếu có lỗi
+      return '';
     }
   };
 
@@ -28,7 +36,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10">
             <Image
-              src={review.user.avatar || '/assets/images/default-avatar.png'}
+              src={'/assets/images/default-avatar.png'}
               alt={review.user.name}
               fill
               sizes="40px"

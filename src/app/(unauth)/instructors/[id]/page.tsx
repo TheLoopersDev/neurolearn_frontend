@@ -75,23 +75,24 @@ const fetchCoursesByInstructorId = (instructorId: string): Course[] => {
 };
 
 const fetchReviewsByInstructorId = (instructorId: string): IReview[] => {
-  console.log(`Fetching reviews for instructor ID: ${instructorId}`);
   return Array.from({ length: 12 }, (_, i) => ({
+    _id: `review_${i + 1}_${instructorId}`, // Thêm _id cho review
     user: {
-      _id: `user${i}`,
+      _id: `user${i}`, // IReview không yêu cầu _id ở đây, nhưng user trong IReviewReply thì có, nên giữ lại để nhất quán
       name: `Student ${i + 1}`,
       email: `student${i}@example.com`,
       role: 'user',
-      avatar: '/assets/images/default-avatar.png',
+      avatar: {
+        // <<-- Sửa thành object
+        url: '/assets/images/default-avatar.png',
+      },
     },
     rating: 4 + (i % 2),
     comment:
       "An extensive and thorough course on ChatGPT, AI and many other API's. I will use the course as a reference in the future as there is a ton of great information. An impressive work.",
     commentReplies: [],
-    createdAt: new Date(
-      Date.now() - (i + 1) * 1000 * 60 * 60 * 24 * ((i % 4) + 1) * 3
-    ).toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - (i + 1) * 1000 * 60 * 60 * 24 * ((i % 4) + 1) * 3), // <<-- Giữ lại là Date object, không chuyển thành string
+    updatedAt: new Date().toISOString(), // updatedAt có thể vẫn là string
   }));
 };
 // ----------------------------
@@ -179,7 +180,7 @@ const InstructorDetailPage: React.FC<InstructorDetailPageProps> = ({ params }) =
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 md:p-8">
+      <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
         <InstructorTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
