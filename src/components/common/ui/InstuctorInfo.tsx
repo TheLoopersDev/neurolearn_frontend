@@ -3,7 +3,16 @@
 import Image from 'next/image';
 import { useState } from 'react';
 
-export default function InstructorInfo({ instructor, courseName }: { instructor: any, courseName: string }) {
+interface Instructor {
+  name?: string;
+  profession?: string;
+  avatar?: {
+    url: string;
+  };
+  likes?: number;
+}
+
+export default function InstructorInfo({ instructor, courseName }: { instructor: Instructor, courseName: string }) {
   const [imageError, setImageError] = useState(false);
 
   return (

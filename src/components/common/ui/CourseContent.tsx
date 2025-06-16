@@ -4,7 +4,17 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 
-export default function CourseContent({ sections }: { sections: any[] }) {
+interface Lesson {
+  title: string;
+  isFree?: boolean;
+}
+
+interface Section {
+  title: string;
+  lessons?: Lesson[];
+}
+
+export default function CourseContent({ sections }: { readonly sections: Section[] }) {
   const [openSections, setOpenSections] = useState<number[]>([]);
 
   const toggleSection = (index: number) => {
@@ -42,7 +52,7 @@ export default function CourseContent({ sections }: { sections: any[] }) {
 
             {openSections.includes(sectionKey) && (
               <div className="text-sm">
-                {section.lessons?.map((lesson: any, idx: number) => (
+                {section.lessons?.map((lesson, idx) => (
                   <div key={idx} className="flex justify-between items-center px-4 py-2">
                     <div className="flex items-center gap-2 h-[40px]">
                       <span className="p-2">
