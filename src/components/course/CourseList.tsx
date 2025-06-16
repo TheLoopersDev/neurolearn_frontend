@@ -9,7 +9,7 @@ import { Course } from '@/lib/redux/features/course/courseSlice';
 const CourseList: React.FC = () => {
   const dispatch = useDispatch();
   const { filters } = useSelector((state: RootState) => state.course);
-  
+
   const { data: courses, isLoading, error } = useGetCoursesQuery();
   const { data: searchResults } = useSearchCoursesQuery({
     search: filters.search,
@@ -19,7 +19,7 @@ const CourseList: React.FC = () => {
 
   useEffect(() => {
     if (courses) {
-      dispatch(setCourses(courses));
+      dispatch(setCourses(courses as any));
     }
   }, [courses, dispatch]);
 

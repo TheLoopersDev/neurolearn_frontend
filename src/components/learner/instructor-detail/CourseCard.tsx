@@ -4,22 +4,26 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Course } from '@/types/course'; // Đảm bảo đường dẫn đúng
-import { User } from '@/types/user'; // Import User type
 import { useState } from 'react';
 
 // Cập nhật Props để nhận thêm thông tin tác giả
 interface CourseCardProps {
   course: Course;
-  author?: User; // Thông tin tác giả được truyền riêng, là optional
 }
 
-const CourseCard = ({ course, author }: CourseCardProps) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const [imageError, setImageError] = useState(false);
 
   // Xử lý thông tin tác giả với giá trị mặc định
-  const authorName = author?.name || 'Instructor Name';
-  const authorAvatar = author?.avatar?.url || '/assets/images/default-avatar.png';
-  const authorProfession = author?.profession || 'Instructional Expert';
+  // Lấy thông tin từ object `course`
+  const authorName = course.author?.name || 'Instructor Name';
+  const authorAvatar = course.author?.avatar?.url || '/assets/images/default-avatar.png';
+  const authorProfession = course.author?.profession || 'Instructional Expert';
+  //   const reviewCount = course.reviews?.length || 0;
+  //   const originalPrice = course.estimatedPrice || (course.price && course.price > 0 ? course.price * 1.5 : 0);
+  const thumbnailUrl =
+    (typeof course.thumbnail === 'string' ? course.thumbnail : course.thumbnail) ||
+    '/assets/images/default-course.png';
 
   // Hàm định dạng giá tiền
   const formatPrice = (price: number): string => {
@@ -81,7 +85,7 @@ const CourseCard = ({ course, author }: CourseCardProps) => {
         {/* Phần ảnh thumbnail (giữ nguyên) */}
         <div className="relative h-48 w-full ">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail.url}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail}
             alt={course.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

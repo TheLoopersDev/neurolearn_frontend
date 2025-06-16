@@ -1,129 +1,87 @@
-// CourseCard.tsx
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { Course } from '@/types/course'; // Đảm bảo đường dẫn đúng
-import { User } from '@/types/user'; // Import User type
 import { useState } from 'react';
+import { Course } from '@/types/course';
 
-// Cập nhật Props để nhận thêm thông tin tác giả
 interface CourseCardProps {
   course: Course;
-  author?: User; // Thông tin tác giả được truyền riêng, là optional
 }
 
-const CourseCard = ({ course, author }: CourseCardProps) => {
+const CourseCard = ({ course }: CourseCardProps) => {
   const [imageError, setImageError] = useState(false);
 
-  // Xử lý thông tin tác giả với giá trị mặc định
-  const authorName = author?.name || 'Instructor Name';
-  const authorAvatar = author?.avatar?.url || '/assets/images/default-avatar.png';
-  const authorProfession = author?.profession || 'Instructional Expert';
-
-  // Hàm định dạng giá tiền
-  const formatPrice = (price: number): string => {
-    if (course.isFree) return 'Free';
-    // Sử dụng Intl.NumberFormat để định dạng tiền tệ
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      currencyDisplay: 'code', // Thay đổi từ 'symbol' (mặc định) thành 'code'
-    }).format(price);
-  };
-
-  const originalPrice =
-    course.estimatedPrice || (course.price && course.price > 0 ? course.price * 1.5 : 0);
-  const reviewCount = course.reviews?.length || 0;
-
   return (
-    <Link href={`/courses/${course._id}`} className="block h-full group">
-      <div className="bg-white rounded-xl  overflow-hidden  transition-all duration-300 h-full flex flex-col transform hover:-translate-y-1 border border-gray-100">
-        {/* PHẦN HEADER MỚI ĐƯỢC THÊM VÀO */}
-        <div className="p-3 flex items-center gap-3 border-b border-gray-100">
-          <div className="relative w-10 h-10 flex-shrink-0">
+    <Link href={`/courses/${course._id}`} className="relative block w-[311px]">
+      {/* Top Right Icons */}
+      <div className="absolute top-0 right-0 z-30 flex space-x-1 ">
+        <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
+          <Image src="/assets/home/Heart.svg" alt="Heart" width={20} height={20} />
+        </div>
+        <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl hover:brightness-110 transition">
+          <Image src="/assets/home/Notification.svg" alt="Heart" width={20} height={20} />
+        </div>
+      </div>
+      <div
+        className="relative z-10 h-[316px] rounded-[20px] bg-white shadow-10xl transition-all duration-300 overflow-hidden p-3 
+                      mask-[url('/assets/home/Subtract.svg')] mask-no-repeat mask-size-cover
+                      hover:shadow-xl hover:scale-[1.015]"
+      >
+        {/* Avatar + Instructor Info */}
+        <div className="absolute top-3 left-3 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300">
             <Image
-              src={authorAvatar}
-              alt={authorName}
-              fill
-              sizes="40px"
-              className="rounded-full object-cover"
+              src={
+                imageError
+                  ? '/assets/images/placeholder-teacher.jpg'
+                  : course.author?.avatar?.url || '/assets/images/teacher.jpg'
+              }
+              alt="Instructor"
+              width={32}
+              height={32}
+              className="object-cover"
+              onError={() => setImageError(true)}
             />
           </div>
-          <div className="min-w-0 flex-grow">
-            <h4 className="font-semibold text-sm text-gray-800 truncate">{authorName}</h4>
-            <p className="text-xs text-gray-500 truncate">{authorProfession}</p>
-          </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-              title="Add to wishlist"
-              onClick={e => {
-                e.preventDefault();
-                console.log('Wishlist clicked');
-              }}
-            >
-              <Image src="/assets/icons/heart-blue.svg" alt="Star icon" width={16} height={16} />
-            </button>
-            <button
-              className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
-              title="Add to cart"
-              onClick={e => {
-                e.preventDefault();
-                console.log('Cart clicked');
-              }}
-            >
-              <Image src="/assets/icons/Buy.svg" alt="Star icon" width={16} height={16} />
-            </button>
+          <div className="leading-tight text-sm">
+            <p className="text-gray-900 font-semibold">{course.author.name}</p>
+            <p className="text-xs text-gray-700">{course.author.profession || 'Instructor'}</p>
           </div>
         </div>
 
-        {/* Phần ảnh thumbnail (giữ nguyên) */}
-        <div className="relative h-48 w-full ">
+        {/* Thumbnail Image */}
+        <div className="absolute top-[50px] left-[3%] w-[94%] h-[38%] rounded-[16px] overflow-hidden">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail.url}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail}
             alt={course.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-2xl"
-            onError={() => setImageError(true)}
+            className="object-cover"
           />
         </div>
 
-        {/* Phần nội dung text (đã được cập nhật) */}
-        <div className="p-4 flex flex-col flex-grow">
-          {/* -- THÊM THÔNG TIN TÁC GIẢ VÀO ĐÂY -- */}
-
-          {/* Tên khóa học và mô tả */}
-          <h3 className="text-md font-semibold mb-1.5 leading-snug line-clamp-2  text-gray-800 group-hover:text-blue-600 transition-colors">
+        {/* Title & Description */}
+        <div className="absolute bottom-[80px] left-[3.5%] right-[3.5%]">
+          <h3 className="text-[16px] font-semibold text-[#0D0D0D] leading-[22px] line-clamp-2">
             {course.name}
           </h3>
-          <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-            {course.description || course.subTitle}
+          <p className="text-[12px] text-[#6B6B6B] leading-[15px] mt-1 line-clamp-2">
+            {course.description}
           </p>
-          {/* Rating và số lượng review */}
-          <div className="flex items-center gap-2 justify-between">
-            <div className="flex gap-2">
-              <span className="text-sm font-semibold text-gray-800 ">
-                {course.rating.toFixed(1)}
-              </span>
-              <Image src="/assets/icons/blue-star.svg" alt="Star icon" width={16} height={16} />
+        </div>
+
+        {/* Ratings & Pricing */}
+        <div className="absolute bottom-3 left-[3.5%] right-[3.5%] space-y-1">
+          <div className="flex justify-between text-xs text-[#0D0D0D]">
+            <div className="flex items-center gap-1">
+              <Image src="/assets/home/star.svg" alt="Star" width={12} height={12} />
+              <span>{course.rating.toFixed(1)}</span>
+              <span className="text-[#6B6B6B] ml-1">({course.purchased} reviews)</span>
             </div>
-
-            {originalPrice > (course.price || 0) && (
-              <span className="text-sm text-gray-500 line-through">
-                {formatPrice(originalPrice)}
-              </span>
-            )}
+            <span className="text-[#6B6B6B] line-through">{course.estimatedPrice}</span>
           </div>
-
-          {/* Giá tiền */}
-          <div className="flex items-baseline  gap-2   justify-between ">
-            <span className="text-sm text-gray-800">
-              {reviewCount.toLocaleString()} Review rating
-            </span>
-            <span className="text-lg font-bold text-blue-600">
-              {formatPrice(course.price || 0)}
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-[#0D0D0D]">200 Review rating</span>
+            <span className="text-[#3858F8] text-[16px] font-semibold">
+              {course.isFree ? 'Free' : `${course.price} $`}
             </span>
           </div>
         </div>

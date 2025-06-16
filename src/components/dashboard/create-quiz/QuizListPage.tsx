@@ -237,7 +237,7 @@ const QuizListPage: React.FC = () => {
   );
 
   return (
-    <div className="w-full bg-[#F7F8FA] p-6 sm:p-8 rounded-2xl">
+    <div className="w-full  p-6 sm:p-8 ">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
         <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
           <div className="relative w-full sm:flex-1 lg:min-w-[300px] xl:min-w-[400px]">

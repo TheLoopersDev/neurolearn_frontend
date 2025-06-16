@@ -13,11 +13,17 @@ import earning from '@/public/assets/icons/wallet.svg';
 import message from '@/public/assets/icons/message.svg';
 import setting from '@/public/assets/icons/setting.svg';
 import teacher from '@/public/assets/icons/teacher.svg';
+import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-  { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz' },
+  {
+    icon: createQuiz,
+    label: 'Create Quiz',
+    path: '/dashboard/create-quiz',
+    suffixIcon: magicPenIcon,
+  },
   { icon: earning, label: 'Earning', path: '/dashboard/earning' },
   { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
   { icon: message, label: 'Message', path: '/dashboard/message' },
@@ -28,28 +34,15 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <div className="w-full h-screen  bg-white flex flex-col items-start p-4 border-r">
-      {/* Logo */}
-      {/* <div className="flex items-center gap-3 mb-6 h-20">
-        <Image
-          src="/assets/images/avatar.png"
-          alt="Academix Logo"
-          width={60}
-          height={60}
-          className="rounded-full"
-        />
-        <h1 className="text-4xl font-bold text-black">Academix</h1>
-      </div> */}
-
-      {/* Menu */}
-      <nav className="flex flex-col gap-2 w-full">
+    <div className="w-full h-screen flex flex-col items-start p-4 border-r rounded-2xl bg-white">
+      <nav className="flex flex-col gap-4 w-full">
         {menuItems.map(item => {
           const isActive = pathname === item.path;
           return (
             <Link
               key={item.label}
               href={item.path}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-xl font-medium transition-all h-15 ${
                 isActive
                   ? 'bg-gray-100 text-[#3858F8]'
                   : 'text-black hover:text-[#3858F8] hover:bg-gray-50'
@@ -65,6 +58,15 @@ const Sidebar = () => {
                 }`}
               />
               {item.label}
+              {item.suffixIcon && (
+                <Image
+                  src={item.suffixIcon}
+                  alt={`${item.label} options`}
+                  width={24}
+                  height={24}
+                  className="transition-opacity font-bold opacity-70 group-hover:opacity-100"
+                />
+              )}
             </Link>
           );
         })}

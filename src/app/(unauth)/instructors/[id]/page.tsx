@@ -21,7 +21,7 @@ const fetchInstructorById = (id: string): User | undefined => {
     rating: 4.5,
     student: 500,
     introduce:
-      'One day Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case, and quit his job, or more like got himself fired from his own startup. He decided to work on his dream: be his own boss, travel the world, only do the work he enjoyed, and make a lot more money in the process...',
+      'One day Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case, and quit his job, or more like got himself fired from his own startup. He decided to work on his dream: be his own boss, travel the world, only do the work he enjoyed, and make a lot more money in the process...',
     socialLinks: { facebook: '#', twitter: '#', instagram: '#' },
     email: 'lexuanhuy@example.com',
     role: 'instructor',
@@ -34,21 +34,36 @@ const fetchCoursesByInstructorId = (instructorId: string): Course[] => {
   // Lấy lại thông tin instructor để gán vào khóa học nếu cần, hoặc bỏ qua nếu không cần thiết trong CourseCard
   const instructor = fetchInstructorById(instructorId);
 
+  if (!instructor) {
+    return [];
+  }
+
+  // Tạo dữ liệu khóa học khớp với Course type mới của bạn
   return Array.from({ length: 8 }, (_, i) => ({
     _id: `course_${i + 1}_${instructorId}`,
     name: 'USER INTERFACE DESIGN COURSE (APP/WEBSITE)',
     subTitle:
       'Quickly Master Adobe Photoshop: Beginner to Advanced Graphic Design, Photo Editing...',
-    thumbnail: { public_id: `thumb_${i}`, url: '/assets/create-quiz/thumbnail.png' },
+    thumbnail: '/assets/create-quiz/thumbnail.png', // <<-- Giờ là string
     authorId: instructorId,
-    author: instructor, // Vẫn gán instructor object vào đây
+    author: {
+      // <<-- Giờ là object lồng vào
+      _id: instructor._id || '',
+      name: instructor.name,
+      email: instructor.email,
+      avatar: {
+        public_id: '',
+        url: instructor.avatar?.url || '',
+      },
+      profession: instructor.profession || '',
+    },
     level: 'Beginner',
     rating: 4.5,
-    reviews: new Array(200 + i * 15).fill(null),
+    reviews: [], // Giữ rỗng cho đơn giản
     price: 400000,
     estimatedPrice: 800000,
     category: 'Grapic Design',
-    courseData: [],
+    sections: [], // <<-- Đã đổi từ courseData thành sections
     benefits: [{ title: 'Learn UI/UX fundamentals' }],
     prerequisites: [{ title: 'Basic computer skills' }],
     purchased: 123 + i * 20,
@@ -148,10 +163,10 @@ const InstructorDetailPage: React.FC<InstructorDetailPageProps> = ({ params }) =
   }
 
   return (
-    <div className="w-full space-y-8 bg-gray-50 mx-auto">
+    <div className="w-full space-y-8 ">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start pt-20">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-2xl pt-16 sm:pt-20 p-6 md:p-8 relative">
+          <div className="bg-white rounded-2xl pt-16 sm:pt-20 p-6 md:p-8 relative ">
             <InstructorInfoCard instructor={instructor} />
           </div>
           <InstructorAbout introductionText={instructor.introduce} />
@@ -164,7 +179,7 @@ const InstructorDetailPage: React.FC<InstructorDetailPageProps> = ({ params }) =
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+      <div className="bg-white rounded-2xl p-6 md:p-8">
         <InstructorTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -175,7 +190,7 @@ const InstructorDetailPage: React.FC<InstructorDetailPageProps> = ({ params }) =
           {activeTab === 'courses' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {courses.map(course => (
-                <CourseCard key={course._id} course={course} author={instructor} />
+                <CourseCard key={course._id} course={course} />
               ))}
             </div>
           )}

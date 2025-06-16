@@ -28,7 +28,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
     >
       {/* Phần nội dung của card giờ sẽ được chia bằng CSS Grid mới */}
       {/* Chúng ta cần một container chung cho cả ảnh và text để áp dụng grid chính */}
-      <div className="p-3 grid grid-cols-3 grid-rows-auto sm:grid-rows-5 gap-x-3 gap-y-1 min-h-[160px]">
+      <div className="p-3 grid grid-cols-3 grid-rows-auto  gap-x-3 gap-y-1 min-h-[160px]">
         {' '}
         {/* grid-rows-auto cho phép nội dung quyết định chiều cao hàng, gap-x, gap-y */}
         {/* 1. Ảnh (Cột 1, chiếm 2 hàng nếu có không gian, hoặc điều chỉnh) */}
@@ -126,7 +126,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
           </div>
         )}
         {/* 8. Creation Date (Cột 1 & 2, Hàng 5) */}
-        <div className="col-span-3 sm:col-span-2 row-start-5 flex items-end mt-1">
+        <div className="col-span-3 sm:col-span-2 row-start-5 flex items-start mt-1">
           {' '}
           {/* items-end để đẩy xuống cuối hàng nếu hàng cao hơn */}
           <p className="text-[11px] font-semibold sm:text-[11px] text-gray-400 flex gap-1">

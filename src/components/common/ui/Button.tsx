@@ -1,7 +1,9 @@
-"use client";
+'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import Arrow from '@/public/assets/home/Arrow - Right.svg';
 
 interface ButtonProps {
   href?: string;
@@ -12,43 +14,40 @@ interface ButtonProps {
   showArrow?: boolean;
 }
 
-const Button = ({ 
-  href, 
-  onClick, 
-  children, 
-  variant = 'primary', 
+const Button = ({
+  href,
+  onClick,
+  children,
+  variant = 'primary',
   className = '',
-  showArrow = true 
+  showArrow = true,
 }: ButtonProps) => {
-  const baseStyles = 'inline-flex items-center rounded-full text-center';
-  
+  const baseStyles = 'inline-flex items-center justify-between rounded-full text-center';
   const variantStyles = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
     secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-    outline: 'border border-blue-600 text-blue-600 hover:bg-blue-50'
+    outline: 'border border-blue-600 text-blue-600 hover:bg-blue-50',
   };
-  
   const buttonStyles = `${baseStyles} ${variantStyles[variant]} ${className}`;
-  
-  const arrowIcon = showArrow ? (
-    <svg width="24" height="10" viewBox="0 0 24 10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="ml-2">
-      <path d="M23 5L17 1V4H1V6H17V9L23 5Z" />
-    </svg>
+
+  // only render the <Image> if showArrow is true
+  const ArrowIcon = showArrow ? (
+    <Image src={Arrow} alt="arrow" width={14} height={14} className="ml-2" />
   ) : null;
-  
+
   if (href) {
     return (
-      <Link href={href} className={`${buttonStyles} px-6 py-2`}>
+      <Link href={href} className={`${buttonStyles} px-4 py-2 gap-2`}>
         <span>{children}</span>
-        {arrowIcon}
+        {ArrowIcon}
       </Link>
     );
   }
-  
+
   return (
-    <button onClick={onClick} className={`${buttonStyles} px-6 py-2`}>
+    <button onClick={onClick} className={`${buttonStyles} px-4 py-2`}>
       <span>{children}</span>
-      {arrowIcon}
+      {ArrowIcon}
     </button>
   );
 };
