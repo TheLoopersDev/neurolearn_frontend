@@ -28,7 +28,7 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <div className="w-full h-screen flex flex-col items-start p-4 border-r rounded-2xl bg-white">
+    <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
       <nav className="flex flex-col gap-4 w-full">
         {menuItems.map(item => {
           const isActive = pathname === item.path;

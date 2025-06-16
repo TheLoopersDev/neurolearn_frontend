@@ -52,17 +52,17 @@ const WithdrawDashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen">
-      <main className="max-w-7xl mx-auto">
-        <div className="flex flex-wrap gap-6 items-start w-full">
+    <div className="p-3 min-h-screen" >
+      <main className="max-w-6xl mx-auto">
+        <div className="flex flex-wrap gap-3 items-start w-full">
           {/* Left Section */}
-          <section className="flex-1 min-w-[558px]">
-            <WithdrawForm 
+          <section className="flex-1 min-w-[400px]">
+            <WithdrawForm
               totalRevenue="350.000 VND"
               onWithdraw={handleWithdraw}
             />
-            
-            <BalanceOverview 
+
+            <BalanceOverview
               totalWithdraw="84.900 VND"
               serviceFee="100.000 VND"
               currentBalance="200.000 VND"
@@ -70,7 +70,7 @@ const WithdrawDashboard: React.FC = () => {
           </section>
 
           {/* Right Section */}
-          <CardSection 
+          <CardSection
             cardData={cardData}
             onAddCard={handleAddCard}
           />

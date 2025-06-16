@@ -8,35 +8,35 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
   currentBalance
 }) => {
   return (
-    <section className="mt-6 w-full">
-      <h2 className="text-2xl font-semibold leading-none text-stone-950">Balance Overview</h2>
-      <div className="flex flex-wrap gap-6 items-center mt-6 w-full">
-        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+    <section className="mt-9 w-full">
+      <h2 className="text-lg font-semibold leading-none text-stone-950">Balance Overview</h2>
+      <div className="flex flex-wrap gap-3 items-center mt-5 w-full">
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[180px]">
           <div className="w-full">
             <TotalWithdrawIcon />
-            <div className="mt-2 w-full">
-              <p className="text-2xl font-semibold leading-none text-blue-600">{totalWithdraw}</p>
-              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Total Withdraw</p>
+            <div className="mt-3 w-full">
+              <p className="text-lg font-semibold leading-none text-blue-600">{totalWithdraw}</p>
+              <p className="mt-3 text-sm font-medium leading-none text-neutral-500">Total Withdraw</p>
             </div>
           </div>
         </article>
-        
-        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[180px]">
           <div className="w-full">
             <ServiceFeeIcon />
-            <div className="mt-2 w-full">
-              <p className="text-2xl font-semibold leading-none text-blue-600">{serviceFee}</p>
-              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Service Fee</p>
+            <div className="mt-3 w-full">
+              <p className="text-lg font-semibold leading-none text-blue-600">{serviceFee}</p>
+              <p className="mt-3 text-sm font-medium leading-none text-neutral-500">Service Fee</p>
             </div>
           </div>
         </article>
-        
-        <article className="flex flex-col justify-center py-2 px-3 min-h-32 w-[200px]">
+
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[180px]">
           <div className="w-full">
             <CurrentBalanceIcon />
-            <div className="mt-2 w-full">
-              <p className="text-2xl font-semibold leading-none text-blue-600">{currentBalance}</p>
-              <p className="mt-1 text-base font-medium leading-none text-neutral-500">Current Balance</p>
+            <div className="mt-3 w-full">
+              <p className="text-lg font-semibold leading-none text-blue-600">{currentBalance}</p>
+              <p className="mt-3 text-sm font-medium leading-none text-neutral-500">Current Balance</p>
             </div>
           </div>
         </article>

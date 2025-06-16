@@ -11,31 +11,31 @@ interface CardSectionProps {
 
 export const CardSection: React.FC<CardSectionProps> = ({ cardData, onAddCard }) => {
   return (
-    <aside className="bg-white rounded-3xl p-6 min-h-[592px] w-[430px]">
+    <aside className="bg-white rounded-2xl p-4 min-h-[480px] w-[360px]">
       <div className="w-full">
-        <header className="flex gap-10 justify-between items-center w-full">
-          <h2 className="text-2xl font-semibold leading-none text-stone-950">My Card</h2>
-          <button 
+        <header className="flex gap-6 justify-between items-center w-full">
+          <h2 className="text-lg font-semibold leading-none text-stone-950">My Card</h2>
+          <button
             onClick={onAddCard}
-            className="flex gap-2 justify-center items-center px-3 py-1 text-base font-medium leading-none text-center text-blue-600 bg-slate-50 min-h-7 rounded-[40px] hover:bg-slate-100 transition-colors"
+            className="flex gap-1 justify-center items-center px-2 py-1 text-sm font-medium leading-none text-center text-blue-600 bg-slate-50 min-h-6 rounded-[30px] hover:bg-slate-100 transition-colors"
           >
-            <Plus className="w-6 h-6 text-blue-600" />
+            <Plus className="w-4 h-4 text-blue-600" />
             <span>Add Card</span>
           </button>
         </header>
 
-        <div className="mt-3 w-full">
+        <div className="mt-2 w-full">
           <div className="relative w-full">
             <CreditCard {...cardData} />
           </div>
 
           {/* Card Pagination */}
-          <div className="flex justify-center mt-3">
-            <div className="flex gap-2 items-center">
-              <div className="w-16 h-2 bg-blue-600 rounded-2xl"></div>
-              <div className="w-2 h-2 bg-slate-50 rounded-2xl"></div>
-              <div className="w-2 h-2 bg-slate-50 rounded-2xl"></div>
-              <div className="w-2 h-2 bg-slate-50 rounded-2xl"></div>
+          <div className="flex justify-center mt-2">
+            <div className="flex gap-1 items-center">
+              <div className="w-8 h-1.5 bg-blue-600 rounded-xl"></div>
+              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
+              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
+              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
             </div>
           </div>
 

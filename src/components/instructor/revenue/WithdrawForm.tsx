@@ -24,30 +24,30 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
   };
 
   return (
-    <article className="bg-white rounded-3xl p-6">
+    <article className="bg-white rounded-2xl p-4">
       <div className="w-full">
-        <header className="flex flex-wrap gap-6 items-end w-full">
-          <div className="flex-1 min-w-[259px]">
-            <div className="flex gap-3 items-center w-full text-3xl font-medium leading-none text-stone-950">
+        <header className="flex flex-wrap gap-4 items-end w-full">
+          <div className="flex-1 min-w-[200px]">
+            <div className="flex gap-2 items-center w-full text-xl font-medium leading-none text-stone-950">
               <TotalRevenueIcon />
-              <h1 className="text-stone-950">Total Revenue</h1>
+              <h1 className="text-2xl font-semibold leading-none text-stone-950">Total Revenue</h1>
             </div>
-            <p className="mt-6 text-4xl font-semibold leading-tight text-blue-600">{totalRevenue}</p>
+            <p className="mt-3 text-2xl font-semibold leading-tight text-blue-600">{totalRevenue}</p>
           </div>
-          <button 
+          <button
             onClick={handleSubmit}
-            className="flex justify-center items-center py-3.5 px-14 text-2xl leading-none bg-slate-50 min-h-[60px] rounded-[40px] text-stone-950 hover:bg-slate-100 transition-colors"
+            className="flex justify-center items-center py-2 px-8 text-lg leading-none bg-slate-50 min-h-[40px] rounded-[30px] text-stone-950 hover:bg-slate-100 transition-colors"
           >
-            <div className="flex gap-3 items-center">
-              <FiUpload className="w-8 h-8" />
+            <div className="flex gap-2 items-center">
+              <FiUpload className="w-5 h-5" />
               <span>Withdraw</span>
             </div>
           </button>
         </header>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-4 space-y-4">
           <div className="w-full">
-            <label className="text-base font-semibold leading-none text-stone-950" htmlFor="amount">
+            <label className="text-sm font-semibold leading-none text-stone-950" htmlFor="amount">
               Amount (VND)
             </label>
             <input
@@ -56,11 +56,11 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-full py-3 px-3 mt-2 text-xs font-medium leading-none rounded-xl bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="w-full">
-            <label className="text-base font-semibold leading-none text-stone-950" htmlFor="reason">
+            <label className="text-sm font-semibold leading-none text-stone-950" htmlFor="reason">
               Reason (Optional)
             </label>
             <input
@@ -69,7 +69,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter reason"
-              className="w-full py-3 px-3 mt-2 text-xs font-medium leading-none rounded-xl bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
