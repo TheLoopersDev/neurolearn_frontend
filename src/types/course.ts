@@ -11,7 +11,7 @@ interface IReviewReply {
   updatedAt: string;
 }
 
-interface IReview {
+export interface IReview {
   user: {
     _id: string;
     name: string;

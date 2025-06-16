@@ -1,71 +1,113 @@
+// src/components/course/CourseCard.tsx
 'use client';
-
+import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Star, Heart, ShoppingCart } from 'lucide-react';
+import { Course } from '@/types/course';
+import { User } from '@/types/user'; // Import User type
 
-export default function CourseCard() {
+// <<-- SỬA Ở ĐÂY: Thêm 'author' vào interface -->>
+interface CourseCardProps {
+  course: Course;
+  author?: User; // Thêm prop 'author', có thể là optional
+}
+
+const CourseCard: React.FC<CourseCardProps> = ({ course, author }) => {
+  // Hàm định dạng giá tiền
+  const formatPrice = (price: number): string => {
+    if (course.isFree) return 'Free';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
+
+  const originalPrice =
+    course.estimatedPrice || (course.price && course.price > 0 ? course.price * 1.5 : 0);
+  const reviewCount = course.reviews?.length || 0;
+
+  // Giờ đây chúng ta có thể sử dụng prop 'author' một cách an toàn
+  const authorName = author?.name || 'Instructor Name';
+  const authorAvatar = author?.avatar?.url || '/assets/images/avatar.png';
+  const authorProfession = author?.profession || 'Instructional Expert';
+
   return (
-    <div className="w-[395px] bg-white rounded-2xl max-w-full mx-auto">
-      <div className="flex justify-between items-start">
-        {/* LEFT: Phần giá */}
-        <div className="bg-white rounded-t-2xl pl-4 pt-4">
-          <div className="w-[250px] h-[50px] space-y-2">
-            <p className="text-xl text-black">Full course</p>
-            <div className="text-xl text-gray-400 line-through">800.000 VNĐ</div>
-          </div>
+    <div className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100 flex flex-col h-full">
+      {/* Phần Header của Card: Sử dụng dữ liệu từ prop 'author' */}
+      <div className="p-3 flex items-center gap-3 border-b border-gray-100">
+        <div className="relative w-10 h-10 flex-shrink-0">
+          <Image
+            src={authorAvatar}
+            alt={authorName}
+            fill
+            sizes="40px"
+            className="rounded-full object-cover"
+          />
         </div>
-        {/* RIGHT: Tag giảm giá */}
-        <div className="w-[145px] h-[75px] bg-[#F7F8FA] flex items-center justify-center  rounded-bl-2xl">
-          <span className="bg-[#3858F8] text-white text-base font-medium rounded-full w-[86px] h-[30px] flex items-center justify-center">
-            50% OFF
+        <div className="min-w-0 flex-grow">
+          <h4 className="font-semibold text-sm text-gray-800 truncate">{authorName}</h4>
+          <p className="text-xs text-gray-500 truncate">{authorProfession}</p>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+            title="Add to wishlist"
+          >
+            <Heart size={18} />
+          </button>
+          <button
+            className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+            title="Add to cart"
+          >
+            <ShoppingCart size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* ẢNH BÌA KHÓA HỌC */}
+      <div className="relative w-full aspect-video bg-gray-200">
+        <Link href={`/courses/${course._id}`} className="block w-full h-full">
+          <Image
+            src={course.thumbnail?.url || '/assets/create-quiz/thumbnail.png'}
+            alt={course.name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            style={{ objectFit: 'cover' }}
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
+        </Link>
+      </div>
+
+      {/* PHẦN NỘI DUNG TEXT CỦA CARD */}
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="font-bold text-lg text-gray-900 leading-tight h-14 line-clamp-2 mb-1.5">
+          <Link href={`/courses/${course._id}`} className="hover:text-blue-600 transition-colors">
+            {course.name}
+          </Link>
+        </h3>
+        <p className="text-sm text-gray-600 h-10 line-clamp-2 mb-3">
+          {course.subTitle || course.description}
+        </p>
+
+        <div className="flex items-center gap-2 text-sm">
+          <span className="font-bold text-gray-800">{course.rating.toFixed(1)}</span>
+          <Star size={16} className="text-yellow-400 fill-yellow-400" />
+          <span className="text-gray-400 text-xs">
+            ({reviewCount.toLocaleString()} Review rating)
           </span>
         </div>
-      </div>
-      {/* Course includes */}
-      <div className="text-black pb-4">
-        <div className="text-sm space-y-4 px-4 ">
-          <div className="text-4xl text-[#3858F8] mt-2">400.000 VNĐ</div>
-          <div className="text-black text-2xl">Course includes</div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/play.svg" alt="Play" width={20} height={20} />
-            61 hours on-demand video
-          </div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/article.svg" alt="Article" width={20} height={20} />6 Articles
-          </div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/download-file.svg" alt="Download" width={20} height={20} />8
-            Downloadable resources
-          </div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/document.svg" alt="Document" width={20} height={20} />
-            Practice test
-          </div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/upload-file.svg" alt="Upload" width={20} height={20} />
-            Practical sharing article
-          </div>
-          <div className="flex items-center gap-3">
-            <Image src="/assets/icons/completion.svg" alt="Certificate" width={20} height={20} />
-            Certificate of Completion
-          </div>
+
+        <div className="flex-grow"></div>
+
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+          {originalPrice > (course.price || 0) && (
+            <span className="text-base text-gray-400 line-through">
+              {formatPrice(originalPrice)}
+            </span>
+          )}
+          <span className="text-xl font-bold text-blue-600">{formatPrice(course.price || 0)}</span>
         </div>
       </div>
-      {/* Buttons */}
-      <div className="flex items-center gap-2 px-4 h-[60px]">
-        <button className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition">
-          Add to cart
-        </button>
-        <Image
-          src="/assets/icons/bookmark.svg"
-          alt="Bookmark"
-          className="bg-[#ECECEC] h-14 w-14 rounded-md p-2"
-          width={30}
-          height={30}
-        />
-      </div>
-      <button className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition">
-        Buy now
-      </button>
     </div>
   );
-}
+};
+
+export default CourseCard;
