@@ -95,18 +95,18 @@
 //   subCategory?: string;
 // }
 
-interface IReviewReply {
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    avatar?: string;
-  };
-  comment: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// interface IReviewReply {
+//   user: {
+//     _id: string;
+//     name: string;
+//     email: string;
+//     role: string;
+//     avatar?: string;
+//   };
+//   comment: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export interface IReview {
   _id: string;
