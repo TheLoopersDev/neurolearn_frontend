@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, JSX } from 'react';
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
+import { ILesson, ISection } from '@/types/course';
 
-export default function CourseContent({ sections }: { sections: any[] }) {
+export default function CourseContent({ sections }: { sections: ISection[] }) {
   const [openSections, setOpenSections] = useState<number[]>([]);
 
   const toggleSection = (index: number) => {
@@ -42,7 +43,7 @@ export default function CourseContent({ sections }: { sections: any[] }) {
 
             {openSections.includes(sectionKey) && (
               <div className="text-sm">
-                {section.lessons?.map((lesson: any, idx: number) => (
+                {section.lessons?.map((lesson: ILesson, idx: number) => (
                   <div key={idx} className="flex justify-between items-center px-4 py-2">
                     <div className="flex items-center gap-2 h-[40px]">
                       <span className="p-2">

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React from 'react';
 
-export default function Rating({ rating }: { rating: any }) {
+export default function Rating({ rating }: { rating: number }) {
   // number of full stars
   const fullStars = Math.floor(rating);
   // build an array of booleans length 5

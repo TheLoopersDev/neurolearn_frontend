@@ -14,6 +14,7 @@ import Review from '@/components/learner/course-detail/Review';
 import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
 import CourseCard from '@/components/learner/course-detail/CourseCard';
 import CourseGrid from '@/components/home/CourseGrid';
+import { ISection } from '@/types/course';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -73,7 +74,7 @@ export default function CourseDetailsPage() {
             <CourseDetail course={course} />
 
             {/* Course Content */}
-            <CourseContent sections={course.sections} />
+            <CourseContent sections={course.sections as ISection[]} />
 
             {/* Reviews */}
             <Review reviews={course.reviews} />
@@ -83,7 +84,7 @@ export default function CourseDetailsPage() {
           {/* RIGHT SIDEBAR */}
           <div className="w-full lg:w-[30%] space-y-15">
             <CourseCard course={course} />
-            <Rating rating={course.rating} />
+            <Rating rating={course.rating as number} />
             <PublisherCard author={course.publisher} updatedAt={course.publisher.updatedAt} />
             <OverView title={course.name} overview={course.overview} topics={course.topics} />
             <SuggestedCourse />

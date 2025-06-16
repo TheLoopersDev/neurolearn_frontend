@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import { Star, ThumbsUp, ThumbsDown } from 'lucide-react';
+import type { IReview } from '@/types/course';
 
-export default function Review({ reviews }: { reviews: any[] }) {
+export default function Review({ reviews }: { reviews: IReview[] }) {
   return (
     <div className="max-w-full mx-auto">
       <h2 className="text-3xl font-semibold mb-6 text-black">Review and rating</h2>
@@ -28,7 +29,9 @@ export default function Review({ reviews }: { reviews: any[] }) {
                     {review.user?.name || 'Anonymous'}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {review.createdAt
+                      ? new Date(review.createdAt).toLocaleDateString()
+                      : 'Unknown date'}
                   </p>
                 </div>
               </div>

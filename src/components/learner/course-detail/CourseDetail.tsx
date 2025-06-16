@@ -1,8 +1,9 @@
 'use client';
 
+import type { CourseDetail } from '@/types/course';
 import Image from 'next/image';
 
-export default function CourseDetail({ course }: { course: any }) {
+export default function CourseDetail({ course }: { course: CourseDetail }) {
   return (
     <div className="text-3xl font-bold text-black max-w-full mx-auto bg-[#F7F8FA] rounded-xl">
       <div className="pb-4">Course detail</div>
@@ -25,7 +26,7 @@ export default function CourseDetail({ course }: { course: any }) {
           Skill level
           <div className="flex items-center gap-2 text-black mt-2">
             <Image src="/assets/icons/sort.svg" alt="Sort Icon" width={24} height={24} />
-            <span>{course?.level ?? 'All levels'}</span>
+            <span>{course?.level?.name ?? 'All levels'}</span>
           </div>
         </div>
         <div className="flex-1 text-base h-[116px] bg-[#FFFFFF] text-[#6B6B6B] rounded-lg p-6">
