@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, JSX } from 'react';
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 

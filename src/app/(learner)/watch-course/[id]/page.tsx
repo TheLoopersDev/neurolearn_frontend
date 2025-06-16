@@ -1,6 +1,6 @@
 'use client';
 
-import Rating from '@/components/common/ui/Rating';
+import Rating from '@/components/learner/course-detail/Rating';
 import CourseDetail from '@/components/instructor/CourseDetail';
 import TabMenu from '@/components/instructor/TabMenu';
 import Image from 'next/image';

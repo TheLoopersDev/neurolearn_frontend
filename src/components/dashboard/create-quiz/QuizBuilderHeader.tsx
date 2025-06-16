@@ -16,7 +16,7 @@ const QuizBuilderHeader: React.FC<QuizBuilderHeaderProps> = ({
   // onCreateQuizWithAI,
 }) => {
   return (
-    <header className="bg-white rounded-t-xl sm:rounded-none md:rounded-t-xl p-3 sm:p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-gray-200">
+    <header className="  p-3 sm:p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-gray-200">
       <h1 className="text-lg sm:text-xl font-semibold text-gray-800 truncate pr-2">{title}</h1>
       <div className="flex items-center space-x-3 sm:space-x-4">
         <button

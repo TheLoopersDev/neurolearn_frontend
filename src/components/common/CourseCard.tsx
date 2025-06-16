@@ -21,10 +21,11 @@ const CourseCard = ({ course }: CourseCardProps) => {
           <Image src="/assets/home/Notification.svg" alt="Heart" width={20} height={20} />
         </div>
       </div>
-      <div className="relative z-10 h-[316px] rounded-[20px] bg-white shadow-10xl transition-all duration-300 overflow-hidden p-3 
+      <div
+        className="relative z-10 h-[316px] rounded-[20px] bg-white shadow-10xl transition-all duration-300 overflow-hidden p-3 
                       mask-[url('/assets/home/Subtract.svg')] mask-no-repeat mask-size-cover
-                      hover:shadow-xl hover:scale-[1.015]">
-
+                      hover:shadow-xl hover:scale-[1.015]"
+      >
         {/* Avatar + Instructor Info */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300">

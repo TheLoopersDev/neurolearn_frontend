@@ -1,5 +1,5 @@
 // app/(auth)/dashboard/create-quiz/builder/[quizId]/page.tsx
-import QuizBuilderPage from '../../_components/QuizBuilderPage'; // Điều chỉnh đường dẫn
+import QuizBuilderPage from '@/components/dashboard/create-quiz/QuizBuilderPage'; // Điều chỉnh đường dẫn
 import React from 'react';
 
 interface EditQuizPageProps {

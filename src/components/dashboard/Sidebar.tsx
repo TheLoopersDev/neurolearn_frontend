@@ -13,11 +13,17 @@ import earning from '@/public/assets/icons/wallet.svg';
 import message from '@/public/assets/icons/message.svg';
 import setting from '@/public/assets/icons/setting.svg';
 import teacher from '@/public/assets/icons/teacher.svg';
+import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-  { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz' },
+  {
+    icon: createQuiz,
+    label: 'Create Quiz',
+    path: '/dashboard/create-quiz',
+    suffixIcon: magicPenIcon,
+  },
   { icon: earning, label: 'Earning', path: '/dashboard/earning' },
   { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
   { icon: message, label: 'Message', path: '/dashboard/message' },
@@ -52,6 +58,15 @@ const Sidebar = () => {
                 }`}
               />
               {item.label}
+              {item.suffixIcon && (
+                <Image
+                  src={item.suffixIcon}
+                  alt={`${item.label} options`}
+                  width={24}
+                  height={24}
+                  className="transition-opacity font-bold opacity-70 group-hover:opacity-100"
+                />
+              )}
             </Link>
           );
         })}
