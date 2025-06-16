@@ -4,7 +4,7 @@ import InstructorInfoCard from '@/components/learner/instructor-detail/Instructo
 import InstructorAbout from '@/components/learner/instructor-detail/InstructorAbout';
 import InstructorStats from '@/components/learner/instructor-detail/InstructorStats';
 import InstructorTabs from '@/components/learner/instructor-detail/InstructorTabs';
-import CourseCard from '@/components/common/CourseCard';
+import CourseCard from '@/components/learner/instructor-detail/CourseCard';
 import ReviewList from '@/components/learner/instructor-detail/ReviewList';
 import { Course, IReview } from '@/types/course'; // Import tất cả types cần thiết từ một nơi
 import { User } from '@/types/user'; // Import tất cả types cần thiết từ một nơi
