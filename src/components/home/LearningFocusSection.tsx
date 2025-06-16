@@ -66,7 +66,7 @@ const LearningFocusSection = () => {
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
           >
-            {focusList.map((item, idx) => (
+            {focusList.map((item) => (
               <FocusCard key={item.title} {...item} />
             ))}
           </motion.div>

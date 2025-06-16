@@ -1,6 +1,37 @@
+'use client';
+
 import Image from 'next/image';
 
-export default function PublisherCard() {
+interface PublisherCardProps {
+  author: {
+    name: string;
+    email?: string;
+    avatar?: {
+      public_id?: string;
+      url?: string;
+    };
+    profession?: string;
+    description?: string;
+    rating?: number;
+    reviews?: number;
+    students?: number;
+    courses?: number;
+  };
+  updatedAt?: Date;
+}
+
+export default function PublisherCard({ author, updatedAt }: PublisherCardProps) {
+  const {
+    name,
+    avatar,
+    profession = 'Instructor',
+    description = 'No bio available.',
+    rating = 4.8,
+    reviews = 889,
+    students = 4886,
+    courses = 8,
+  } = author || {};
+
   return (
     <div className="max-w-full w-[395px] p-4 bg-white rounded-2xl shadow-md border border-gray-200 mx-auto">
       <div className="flex justify-between items-start mb-3">
@@ -12,39 +43,41 @@ export default function PublisherCard() {
       <div className="flex items-center gap-3 mb-3">
         <div className="w-12 h-12 relative">
           <Image
-            src="/assets/images/avatar.png"
+            src={avatar?.url || '/assets/images/avatar.png'}
             alt="Avatar"
             fill
             className="rounded-full border border-gray-300 object-cover"
           />
         </div>
         <div>
-          <p className="font-semibold text-gray-800 leading-tight">Đào Tuấn Kiệt</p>
-          <p className="text-xs text-gray-500">Instructional Expert</p>
+          <p className="font-semibold text-gray-800 leading-tight">{name}</p>
+          <p className="text-xs text-gray-500">{profession}</p>
         </div>
       </div>
-      <p className="text-sm text-gray-700 mb-4">
-        Hey! My name is Kiet, I’m 26 and I’m a freelance 2D Artist with around four years of
-        experience
-      </p>
-      <div className="space-y-2 ">
+      <p className="text-sm text-gray-700 mb-4 line-clamp-3">{description}</p>
+      <div className="space-y-2">
         <div className="flex items-center text-sm text-black gap-3">
           <Image src="/assets/icons/blue-star.svg" alt="Star Icon" width={20} height={20} />
-          4.8 Instructor rating
+          {rating} Instructor rating
         </div>
         <div className="flex items-center text-sm text-black gap-3">
-          <Image src="/assets/icons/blue-completion.svg" alt="Star Icon" width={20} height={20} />{' '}
-          889 Reviews
+          <Image src="/assets/icons/blue-completion.svg" alt="Review Icon" width={20} height={20} />
+          {reviews} Reviews
         </div>
         <div className="flex items-center text-sm text-black gap-3">
-          <Image src="/assets/icons/people.svg" alt="Star Icon" width={20} height={20} /> 4,886
-          Students
+          <Image src="/assets/icons/people.svg" alt="Students Icon" width={20} height={20} />
+          {students} Students
         </div>
         <div className="flex items-center text-sm text-black gap-3">
-          <Image src="/assets/icons/blue-play.svg" alt="Star Icon" width={20} height={20} /> 8
-          Courses
+          <Image src="/assets/icons/blue-play.svg" alt="Courses Icon" width={20} height={20} />
+          {courses} Courses
         </div>
       </div>
+      {updatedAt && (
+        <div className="text-xs text-gray-400 mt-3 text-right">
+          Updated: {new Date(updatedAt).toLocaleDateString()}
+        </div>
+      )}
     </div>
   );
 }
