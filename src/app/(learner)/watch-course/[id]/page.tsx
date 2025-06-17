@@ -21,7 +21,7 @@ function page() {
           {/* RIGHT: Sidebar */}
           <div className="w-full lg:w-[30%] space-y-6">
             <CourseDetail />
-            <Rating />
+            <Rating rating={4.5} />
           </div>
         </div>
       </div>

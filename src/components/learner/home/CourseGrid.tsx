@@ -18,19 +18,15 @@ const CourseGrid = ({ title, courses }: CourseGridProps) => {
         <AnimatedSection variants={fadeIn}>
           <h2 className="text-xl font-medium mb-6">{title}</h2>
         </AnimatedSection>
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: true, margin: '-50px' }}
         >
           {courses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              variants={fadeIn}
-              transition={{ delay: index * 0.1 }}
-            >
+            <motion.div key={course._id} variants={fadeIn} transition={{ delay: index * 0.1 }}>
               <CourseCard course={course} />
             </motion.div>
           ))}
