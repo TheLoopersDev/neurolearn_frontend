@@ -27,7 +27,7 @@ const CourseGrid = ({ title, courses }: CourseGridProps) => {
         >
           {courses.map((course, index) => (
             <motion.div
-              key={course.id}
+              key={course._id}
               variants={fadeIn}
               transition={{ delay: index * 0.1 }}
             >

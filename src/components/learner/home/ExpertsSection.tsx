@@ -59,7 +59,8 @@ const ExpertsSection = ({ experts }: ExpertsProps) => {
             >
               <ExpertCard
                 name={expert.name}
-                role={expert.role}
+                profession={expert.role}
+                description=""
                 imageUrl={expert.imageUrl}
                 profileUrl={`/experts/${expert.id}`}
               />
