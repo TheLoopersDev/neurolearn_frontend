@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useModal } from '@/context/ModalContext';
 import { useSelector } from 'react-redux';
-import { UserDropdown } from '../learner/auth/UserDropDown';
+import { UserDropdown } from '../auth/UserDropDown';
 
 // Import các icon SVG của bạn
 import SearchIcon from '@/public/assets/home/Search.svg';

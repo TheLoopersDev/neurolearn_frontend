@@ -3,7 +3,7 @@
 
 import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
-import ModalContainer from '@/components/learner/auth/ModalContainer';
+import ModalContainer from '@/components/auth/ModalContainer';
 import { ModalProvider } from '@/context/ModalContext';
 import '@/lib/fontawesome';
 
