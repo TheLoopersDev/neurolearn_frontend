@@ -1,11 +1,11 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import InstructorInfoCard from '@/components/learner/instructor-detail/InstructorInfoCard';
-import InstructorAbout from '@/components/learner/instructor-detail/InstructorAbout';
-import InstructorStats from '@/components/learner/instructor-detail/InstructorStats';
-import InstructorTabs from '@/components/learner/instructor-detail/InstructorTabs';
-import CourseCard from '@/components/learner/instructor-detail/CourseCard';
-import ReviewList from '@/components/learner/instructor-detail/ReviewList';
+import InstructorInfoCard from '@/components/instructor-detail/InstructorInfoCard';
+import InstructorAbout from '@/components/instructor-detail/InstructorAbout';
+import InstructorStats from '@/components/instructor-detail/InstructorStats';
+import InstructorTabs from '@/components/instructor-detail/InstructorTabs';
+import CourseCard from '@/components/instructor-detail/CourseCard';
+import ReviewList from '@/components/instructor-detail/ReviewList';
 import { Course, IReview } from '@/types/course';
 import { User } from '@/types/user';
 import Link from 'next/link';

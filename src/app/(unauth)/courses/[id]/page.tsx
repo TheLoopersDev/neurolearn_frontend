@@ -4,15 +4,15 @@ import { useGetCourseByIdQuery } from '@/lib/redux/features/course/courseApi';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 
-import CourseContent from '@/components/learner/course-detail/CourseContent';
-import CourseDetail from '@/components/learner/course-detail/CourseDetail';
+import CourseContent from '@/components/course-detail/CourseContent';
+import CourseDetail from '@/components/course-detail/CourseDetail';
 import InstructorInfo from '@/components/common/ui/InstuctorInfo';
-import OverView from '@/components/learner/course-detail/OverView';
-import PublisherCard from '@/components/learner/course-detail/PublisherCard';
-import Rating from '@/components/learner/course-detail/Rating';
-import Review from '@/components/learner/course-detail/Review';
+import OverView from '@/components/course-detail/OverView';
+import PublisherCard from '@/components/course-detail/PublisherCard';
+import Rating from '@/components/course-detail/Rating';
+import Review from '@/components/course-detail/Review';
 import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
-import CourseCard from '@/components/learner/course-detail/CourseCard';
+import CourseCard from '@/components/course-detail/CourseCard';
 import CourseGrid from '@/components/home/CourseGrid';
 import { IReview, ISection } from '@/types/course';
 
