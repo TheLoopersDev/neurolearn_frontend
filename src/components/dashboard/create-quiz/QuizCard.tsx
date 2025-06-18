@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MoreHorizontal } from 'lucide-react';
-import { Quiz } from './types';
+import { Quiz } from '../../../types/quiz';
 
 interface QuizCardProps {
   quiz: Quiz;

@@ -64,7 +64,7 @@ export default function CourseContent() {
   };
 
   return (
-    <div className="max-w-full mx-auto text-[#F7F8FA] text-black">
+    <div className="max-w-full mx-auto text-black">
       {sections.map((section, sectionKey) => (
         <div
           key={sectionKey}

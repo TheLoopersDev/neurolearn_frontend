@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { PlusCircle, Search, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Quiz, QuestionData, ManualCreationDetails, AICreationDetails } from './types';
+import { Quiz, QuestionData, ManualCreationDetails, AICreationDetails } from '../../../types/quiz';
 import QuizCard from './QuizCard';
 import CreateQuizModal from './CreateQuizModal';
 import {

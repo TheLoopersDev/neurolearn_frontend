@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import QuestionListSidebar from './QuestionListSidebar';
 import InstructorQuestionEditor from './InstructorQuestionEditor';
 import QuizBuilderHeader from './QuizBuilderHeader';
-import { QuestionData, QuestionSummary, Quiz } from './types'; // Đảm bảo đường dẫn đúng
+import { QuestionData, QuestionSummary, Quiz } from '../../../types/quiz'; // Đảm bảo đường dẫn đúng
 
 // --- Mockup hàm lưu trữ và tải quiz ---
 const QUIZZES_STORAGE_KEY = 'quizzes_v2_main'; // Đổi key để tránh xung đột với list page nếu cần

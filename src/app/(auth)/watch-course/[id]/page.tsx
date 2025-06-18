@@ -5,6 +5,7 @@ import CourseDetail from '@/components/instructor/CourseDetail';
 import TabMenu from '@/components/instructor/TabMenu';
 import Image from 'next/image';
 import React from 'react';
+import KnowledgeCheckAssignment from './quiz/KnowledgeCheckAssignment';
 
 function page() {
   return (
@@ -24,6 +25,7 @@ function page() {
             <Rating rating={4.5} />
           </div>
         </div>
+        <KnowledgeCheckAssignment />
       </div>
     </div>
   );
