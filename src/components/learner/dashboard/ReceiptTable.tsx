@@ -1,7 +1,21 @@
 'use client';
 
+import { useState } from 'react';
+import ReceiptModal from './ReceiptModal';
+
+interface ReceiptItem {
+  id: string;
+  name: string;
+  payment: string;
+  price: string;
+  date: string;
+}
+
 export default function ReceiptTable() {
-    const data = [
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null);
+
+  const receiptData: ReceiptItem[] = [
         {
             id: '1',
             name: 'Graphic Design Mastercla–Learn GREAT Design',
@@ -25,6 +39,10 @@ export default function ReceiptTable() {
         },
     ];
 
+  const handleReceiptClick = (item: ReceiptItem) => {
+    setSelectedReceipt(item);
+    setIsModalOpen(true);
+  };
 
     return (
         <div className="bg-white pt-6 px-6 rounded-2xl shadow-sm">
@@ -39,10 +57,10 @@ export default function ReceiptTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((item, idx) => (
+            {receiptData.map((item, idx) => (
                         <tr
                             key={item.id}
-                            className={`text-sm text-black ${idx !== data.length - 1 ? 'border-b border-gray-200' : ''
+                className={`text-sm text-black ${idx !== receiptData.length - 1 ? 'border-b border-gray-200' : ''
                                 }`}
                         >
                             <td className="py-6">{item.name}</td>
@@ -50,7 +68,10 @@ export default function ReceiptTable() {
                             <td className="py-6">{item.price}</td>
                             <td className="py-6 font-medium">{item.date}</td>
                             <td className="py-6 text-center">
-                                <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-full">
+                  <button
+                    onClick={() => handleReceiptClick(item)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-full"
+                  >
                                     Receipt
                                 </button>
                             </td>
@@ -58,6 +79,8 @@ export default function ReceiptTable() {
                     ))}
                 </tbody>
             </table>
+
+        <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedReceipt} />
         </div>
     );
 }
