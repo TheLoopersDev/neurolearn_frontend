@@ -12,33 +12,33 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
       <div className="bg-white rounded-lg p-4 mt-3">
         <div className="w-full">
           {/* Table Header */}
-          <div className="flex items-center text-sm font-medium text-neutral-500 pb-3 border-b border-zinc-300">
-            <div className="flex-1">Transaction Note</div>
-            <div className="w-20">Transaction</div>
-            <div className="w-20">Total Price</div>
-            <div className="w-20">Date</div>
-            <div className="w-24">Status</div>
+          <div className="grid grid-cols-12 gap-4 items-center text-sm font-medium text-neutral-500 pb-3 border-b border-zinc-300">
+            <div className="col-span-4">Transaction Note</div>
+            <div className="col-span-2 text-center">Transaction</div>
+            <div className="col-span-2 text-center">Total Price</div>
+            <div className="col-span-2 text-center">Date</div>
+            <div className="col-span-2 text-center">Status</div>
           </div>
-
+           
           {/* Transaction Rows */}
-          <div className="space-y-2 mt-2">
+          <div className="space-y-0 mt-2">
             {transactions.map((transaction, index) => (
               <div key={transaction.id}>
-                <div className="flex items-center w-full text-sm py-2">
-                  <div className="flex-1 font-semibold text-stone-950 pr-3">
+                <div className="grid grid-cols-12 gap-4 items-center w-full text-sm py-4">
+                  <div className="col-span-4 font-semibold text-stone-950">
                     {transaction.note}
                   </div>
-                  <div className="w-20 font-semibold text-stone-950">
+                  <div className="col-span-2 font-semibold text-stone-950 text-center">
                     {transaction.bank}
                   </div>
-                  <div className="w-20 font-semibold text-stone-950">
+                  <div className="col-span-2 font-semibold text-stone-950 text-center">
                     {transaction.amount}
                   </div>
-                  <div className="w-20 font-semibold text-stone-950">
+                  <div className="col-span-2 font-semibold text-stone-950 text-center">
                     {transaction.date}
                   </div>
-                  <div className="w-24">
-                    <span className={`inline-block py-1.5 px-3 font-medium text-white text-center rounded-[30px] text-xs ${transaction.status === 'Pending'
+                  <div className="col-span-2 flex justify-center">
+                    <span className={`inline-block py-2 px-4 font-medium text-white text-center rounded-full text-xs min-w-[80px] ${transaction.status === 'Pending'
                       ? 'bg-orange-500'
                         : 'bg-teal-500'
                     }`}>
@@ -47,7 +47,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
                   </div>
                 </div>
                 {index < transactions.length - 1 && (
-                  <hr className="border-t border-zinc-300" />
+                  <hr className="border-t border-zinc-200" />
                 )}
               </div>
             ))}
