@@ -1,7 +1,12 @@
+"use client"
+
 import React from 'react';
 import Image from 'next/image';
+import ShareModal from "./ShareModal";
 
 const CertificateDetail: React.FC = () => {
+    const [showModal, setShowModal] = React.useState(false);
+
     return (
         <div className="relative">
             {/* Nền trắng phủ full ngang, cao đúng bằng component */}
@@ -54,7 +59,7 @@ const CertificateDetail: React.FC = () => {
                         className="rounded-2xl shadow border"
                     />
                     <div className="flex gap-20 mt-6 w-full justify-between">
-                        <button className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold shadow hover:bg-blue-700 transition w-1/2">
+                        <button onClick={() => setShowModal(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold shadow hover:bg-blue-700 transition w-1/2">
                             <Image src="/assets/icons/share.svg" alt='Share' width={30} height={30} /> Share certificate
                         </button>
                         <button className="flex items-center justify-center gap-2 bg-gray-200 text-blue-700 px-5 py-2 rounded-xl font-semibold shadow hover:bg-gray-200 transition w-1/2">
@@ -63,6 +68,9 @@ const CertificateDetail: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {showModal && (
+                <ShareModal open={showModal} onClose={() => setShowModal(false)} />
+            )}
         </div>
     );
 };
