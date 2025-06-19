@@ -1,14 +1,24 @@
 "use client"
 
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 
 interface ShareModalProps {
     open: boolean;
     onClose: () => void;
 }
 
+const SHARE_LINK = "https://www.Academix.com";
+
 const ShareModal: React.FC<ShareModalProps> = ({ open, onClose }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(SHARE_LINK);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
     if (!open) return null;
     return (
         <div
@@ -31,10 +41,15 @@ const ShareModal: React.FC<ShareModalProps> = ({ open, onClose }) => {
                 <div className="flex items-center h-13 bg-gray-100 rounded-full pl-4 py-1 mb-4">
                     <input
                         className="bg-transparent flex-1 outline-none text-gray-700 text-sm"
-                        value="https://www.Academix.com"
+                        value={SHARE_LINK}
                         readOnly
                     />
-                    <button className="bg-blue-600 h-13 text-white px-4 py-1 rounded-full text-sm font-semibold ml-2">Copy</button>
+                    <button
+                        className="bg-blue-600 h-13 text-white px-4 py-1 rounded-full text-sm font-semibold ml-2"
+                        onClick={handleCopy}
+                    >
+                        {copied ? "Copied!" : "Copy"}
+                    </button>
                 </div>
                 {/* Social icons */}
                 <div className="flex justify-between items-center mt-2">
