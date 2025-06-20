@@ -5,7 +5,7 @@ import ForgotPasswordForm from './ForgotPassword';
 import VerifyCodeForm from './VerifyCodeForm';
 import NewPasswordForm from './NewPasswordForm';
 import VerifyResetCodeForm from './VerifyResetCode';
-import { AddBankCardModal } from '../instructor/revenue/AddBankCardModal';
+import AddBankCardModal from '../instructor/revenue/AddBankCardModal';
 
 
 export default function ModalContainer() {

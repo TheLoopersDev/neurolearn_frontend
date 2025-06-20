@@ -56,7 +56,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-[60px] py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="w-full">
@@ -69,7 +69,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter reason"
-              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-[60px] py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>

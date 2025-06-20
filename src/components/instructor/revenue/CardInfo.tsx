@@ -15,7 +15,7 @@ export const CardInfo: React.FC<CardInfoProps> = ({
   return (
     <section className="mt-6 w-full">
       <h3 className="text-2xl font-semibold leading-none text-stone-950">Card Information</h3>
-      <div className="bg-white rounded-xl shadow-sm p-5 mt-3 border">
+      <div className="bg-white rounded-xl shadow-md p-5 mt-3">
         <div className="w-full space-y-6">
           <div className="flex gap-6 items-start">
             <div className="flex-1">

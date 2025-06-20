@@ -1,53 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
+import Image from 'next/image';
 
 interface AddBankCardModalProps {
     onClose: () => void;
 }
 
-const BANKS = [
-    'Vietcombank',
-    'Techcombank',
-    'VietinBank',
-    'BIDV',
-    'ACB',
-    'Sacombank',
-    'MB Bank',
-    'TPBank',
-    'VPBank',
-];
-
-export const AddBankCardModal: React.FC<AddBankCardModalProps> = ({ onClose }) => {
-    const [cardNumber, setCardNumber] = useState('');
-    const [bankName, setBankName] = useState('');
-    const [nameCard, setNameCard] = useState('');
+const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
     const [isVisible, setIsVisible] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [cardNumber, setCardNumber] = useState('');
+    const [bankCode, setBankCode] = useState('');
+    const [nameCard, setNameCard] = useState('');
+    
+    const { data: banks, isLoading, error } = useGetBankInfoQuery();
 
     useEffect(() => {
-        // Trigger animation after component mounts
-        const timer = setTimeout(() => {
-            setIsVisible(true);
-        }, 10);
-        return () => clearTimeout(timer);
+        setIsVisible(true);
     }, []);
 
-    const handleClose = () => {
+    const handleClose = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            closeModal();
+        }
+    };
+
+    const closeModal = () => {
         setIsClosing(true);
-        setIsVisible(false);
-        // Delay the actual close to allow animation to complete
         setTimeout(() => {
+            setIsVisible(false);
             onClose();
         }, 300);
     };
 
     const handleSubmit = () => {
-        if (!cardNumber || !bankName || !nameCard) {
+        if (!cardNumber || !bankCode || !nameCard) {
             alert('Please fill in all fields');
             return;
         }
-        console.log({ cardNumber, bankName, nameCard });
+        console.log({ cardNumber, bankCode, nameCard });
         // TODO: call API
+        closeModal();
     };
 
     return (
@@ -61,19 +55,12 @@ export const AddBankCardModal: React.FC<AddBankCardModalProps> = ({ onClose }) =
                 visibility: isVisible || isClosing ? 'visible' : 'hidden'
             }}
         >
-            <div
-                className={`relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-auto transition-all duration-300 transform ${
-                    isVisible && !isClosing
-                        ? 'scale-100 translate-y-0 opacity-100' 
-                        : 'scale-95 translate-y-4 opacity-0'
-                }`}
-                onClick={(e) => e.stopPropagation()}
+            <div 
+                className="bg-white rounded-3xl w-full max-w-md p-6 shadow-xl transform transition-all duration-300"
+                onClick={e => e.stopPropagation()}
             >
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold mb-2 text-black">Add Bank Account</h2>
-                    <p className="text-gray-500 text-base">Link your bank account to proceed</p>
-                </div>
-
+                <h2 className="text-2xl font-bold mb-6 text-center">Add Bank Card</h2>
+                
                 <div className="space-y-6">
                     <div className={`transition-all duration-500 delay-100 transform ${
                         isVisible && !isClosing ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
@@ -81,8 +68,8 @@ export const AddBankCardModal: React.FC<AddBankCardModalProps> = ({ onClose }) =
                         <label className="block text-sm font-medium mb-3 text-gray-700">Card Number</label>
                         <input
                             type="text"
-                            className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base outline-none border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 placeholder-gray-400 transition-all duration-200"
-                            placeholder="Enter your bank card number"
+                            className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base outline-none border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                            placeholder="Enter your card number"
                             value={cardNumber}
                             onChange={e => setCardNumber(e.target.value)}
                             required
@@ -96,55 +83,71 @@ export const AddBankCardModal: React.FC<AddBankCardModalProps> = ({ onClose }) =
                         <div className="relative">
                             <select
                                 className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base outline-none border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer transition-all duration-200"
-                                value={bankName}
-                                onChange={e => setBankName(e.target.value)}
+                                value={bankCode}
+                                onChange={e => setBankCode(e.target.value)}
                                 required
                             >
                                 <option value="" disabled>Select your bank name</option>
-                                {BANKS.map(bank => (
-                                    <option key={bank} value={bank}>{bank}</option>
+                                {isLoading ? (
+                                    <option value="" disabled>Loading banks...</option>
+                                ) : error ? (
+                                    <option value="" disabled>Error loading banks</option>
+                                ) : banks && Object.entries(banks).map(([code, bank]) => (
+                                    <option key={code} value={code}>{bank.name}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200" />
+                            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
                         </div>
+                        
+                        {bankCode && banks && (
+                            <div className="mt-3 flex items-center p-3 bg-gray-50 rounded-xl">
+                                <div className="w-10 h-10 relative mr-3">
+                                    <Image 
+                                        src={banks[bankCode].bankLogoUrl} 
+                                        alt={banks[bankCode].name}
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
+                                <span className="font-medium">{banks[bankCode].name}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className={`transition-all duration-500 delay-300 transform ${
                         isVisible && !isClosing ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
                     }`}>
-                        <label className="block text-sm font-medium mb-3 text-gray-700">Name Card</label>
+                        <label className="block text-sm font-medium mb-3 text-gray-700">Card Holder Name</label>
                         <input
                             type="text"
-                            className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base outline-none border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 placeholder-gray-400 transition-all duration-200"
-                            placeholder="Enter the name on the card in uppercase"
+                            className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base outline-none border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                            placeholder="Enter card holder name"
                             value={nameCard}
                             onChange={e => setNameCard(e.target.value)}
                             required
                         />
                     </div>
-                </div>
 
-                <div className={`flex gap-4 mt-10 transition-all duration-500 delay-400 transform ${
-                    isVisible && !isClosing ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                }`}>
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex-1 py-4 rounded-2xl bg-gray-100 text-gray-800 font-semibold text-base hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 active:scale-95"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            handleSubmit();
-                        }}
-                        className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-base hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 active:scale-95"
-                    >
-                        Add Bank
-                    </button>
+                    <div className={`flex justify-end space-x-3 mt-8 transition-all duration-500 delay-400 transform ${
+                        isVisible && !isClosing ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                    }`}>
+                        <button
+                            onClick={closeModal}
+                            className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            className="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        >
+                            Add Card
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
+
+export default AddBankCardModal;
