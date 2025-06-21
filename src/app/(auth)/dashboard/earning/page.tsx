@@ -6,6 +6,7 @@ import { BalanceOverview } from '@/components/instructor/revenue/BalanceOverview
 import { CardSection } from '@/components/instructor/revenue/CardSection';
 import { TransactionHistory } from '@/components/instructor/revenue/TransactionHistory';
 import { Transaction, CardInfoProps } from '@/types/income';
+import { useModal } from '@/context/ModalContext';
 
 const WithdrawDashboard: React.FC = () => {
   const transactions: Transaction[] = [
@@ -43,12 +44,15 @@ const WithdrawDashboard: React.FC = () => {
     expiryDate: '12/28'
   };
 
+  const { showModal } = useModal();
+
   const handleWithdraw = (amount: string, reason: string) => {
     console.log('Withdraw:', { amount, reason });
   };
 
   const handleAddCard = () => {
     console.log('Add new card');
+    showModal('addBankCard');
   };
 
   return (
