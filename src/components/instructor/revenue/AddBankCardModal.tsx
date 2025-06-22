@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
+import { useGetBankInfoQuery, useAddCreditCardMutation } from '@/lib/redux/features/bank/bankApi';
 import { BankInfo as ApiBankInfo } from '@/types/creditCard';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/redux/store';
 
 interface BankInfo {
     id: string;
@@ -13,6 +15,16 @@ interface BankInfo {
     short_name: string;
 }
 
+// Define a type for API errors
+interface ApiError {
+  data?: {
+    message?: string;
+    // other error data fields
+  };
+  status?: number;
+  // other error fields
+}
+
 interface AddBankCardModalProps {
   onClose: () => void;
 }
@@ -21,16 +33,18 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
-  const [bankCode, setBankCode] = useState('');
   const [bankName, setBankName] = useState('');
   const [nameCard, setNameCard] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredBanks, setFilteredBanks] = useState<BankInfo[]>([]);
+  const [submitError, setSubmitError] = useState<string>('');
+
+  // Get auth state to check if user is logged in
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const { data: bankApiData, isLoading, error } = useGetBankInfoQuery();
+  const [addCreditCard, { isLoading: isAddingCard }] = useAddCreditCardMutation();
   const bankList = useMemo<BankInfo[]>(() => {
-    console.log('Bank API Data:', bankApiData); // Debug log
-
       if (!bankApiData?.data) return [];
 
       // Map API data to component's expected format
@@ -63,13 +77,45 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!cardNumber || !bankName || !nameCard) {
       alert('Please fill in all fields');
       return;
     }
-    console.log({ cardNumber, bankCode, bankName, nameCard });
-    closeModal();
+
+    // Check if user is authenticated (for session-based auth, check user object)
+    if (!user || (typeof user === 'object' && !(user as { _id?: string })?._id)) {
+      setSubmitError('Please login to add a credit card.');
+      alert('Please login to add a credit card.');
+      return;
+    }
+
+    setSubmitError('');
+
+    try {
+      await addCreditCard({
+        name: nameCard,
+        accountNumber: cardNumber,
+        cardType: bankName
+      }).unwrap();
+
+      alert('Card added successfully!');
+      closeModal();
+    } catch (e: unknown) {
+      console.error('Error adding card:', e);
+
+      // Type check and cast the error object
+      let errorMessage = 'Failed to add card. Please try again.';
+      if (typeof e === 'object' && e !== null) {
+        const error = e as ApiError;
+        if (error.data && typeof error.data.message === 'string') {
+          errorMessage = error.data.message;
+        }
+      }
+
+      setSubmitError(errorMessage);
+      alert(errorMessage);
+    }
   };
 
   const handleBankNameChange = (value: string) => {
@@ -78,7 +124,6 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
     if (value.trim() === '') {
       setFilteredBanks([]);
       setShowSuggestions(false);
-      setBankCode('');
       return;
     }
 
@@ -98,7 +143,6 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
 
   const handleBankSelect = (bank: BankInfo) => {
     setBankName(bank.name);
-    setBankCode(bank.code);
     setShowSuggestions(false);
   };
 
@@ -146,6 +190,15 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
         <h2 id="modal-title" className="text-xl font-bold mb-6 text-center">
           Add Bank Card
         </h2>
+
+
+
+        {/* Authentication status indicator */}
+        {(!user || (typeof user === 'object' && !(user as { _id?: string })?._id)) && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-600">⚠️ Please login to add a credit card.</p>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
@@ -237,20 +290,34 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
             />
           </div>
 
+          {submitError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{submitError}</p>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 mt-6">
             <button
               type="button"
               onClick={closeModal}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-50"
+              disabled={isAddingCard}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+              disabled={isAddingCard}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
-              Add Card
+              {isAddingCard && (
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {isAddingCard ? 'Adding...' : 'Add Card'}
             </button>
           </div>
         </div>

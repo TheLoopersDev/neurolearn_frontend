@@ -1,17 +1,33 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { 
+import {
   CreditCard,
-  BankInfo, 
-  BankInfoApiResponse, 
-  BankInfoResponse, 
-  AlternativeBankResponse, 
-  BanksArrayResponse 
+  BankInfo,
+  BankInfoApiResponse,
+  BankInfoResponse,
+  AlternativeBankResponse,
+  BanksArrayResponse
 } from '@/types/creditCard';
+
+interface RootState {
+  auth: {
+    token: string;
+    user: string;
+    isLoggingOut: boolean;
+  };
+}
 
 export const bankApi = createApi({
   reducerPath: 'bankApi',
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_SERVER_URI,
+    credentials: 'include' as const,
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth?.token;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
   endpoints: (builder) => ({
     getBankInfo: builder.query<BankInfoResponse, void>({
@@ -69,7 +85,10 @@ export const bankApi = createApi({
     }),
     
     // Thêm credit card
-    addCreditCard: builder.mutation<CreditCard, Omit<CreditCard, '_id' | 'createdAt' | 'updatedAt'>>({
+    addCreditCard: builder.mutation<
+      { success: boolean; message: string; data: CreditCard },
+      { name: string; accountNumber: string; cardType: string }
+    >({
       query: (creditCard) => ({
         url: '/credit-cards',
         method: 'POST',
