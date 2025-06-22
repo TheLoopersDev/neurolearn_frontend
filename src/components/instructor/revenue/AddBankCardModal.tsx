@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
+import { BankInfo as ApiBankInfo } from '@/types/creditCard';
 import Image from 'next/image';
 
 interface BankInfo {
-  id: number;
+    id: string;
   name: string;
   code: string;
   bin: string;
   shortName: string;
-  logo: string;
-  transferSupported: number;
-  lookupSupported: number;
-  short_name: string;
-  support: number;
-  isTransfer: number;
-  swift_code: string;
+    logo: string;
+    short_name: string;
 }
 
 interface AddBankCardModalProps {
@@ -34,8 +30,19 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   const { data: bankApiData, isLoading, error } = useGetBankInfoQuery();
   const bankList = useMemo<BankInfo[]>(() => {
     console.log('Bank API Data:', bankApiData); // Debug log
-    // Try different possible data structures
-    return bankApiData?.data?.data ?? bankApiData?.data ?? [];
+
+      if (!bankApiData?.data) return [];
+
+      // Map API data to component's expected format
+      return bankApiData.data.map((apiBank: ApiBankInfo) => ({
+          id: apiBank.bin, // Use bin as id
+          name: apiBank.name,
+          code: apiBank.bin, // Use bin as code since API doesn't have code
+          bin: apiBank.bin,
+          shortName: apiBank.shortName,
+          logo: apiBank.bankLogoUrl,
+          short_name: apiBank.shortName,
+      }));
   }, [bankApiData]);
 
   useEffect(() => {
@@ -75,9 +82,6 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
       return;
     }
 
-    console.log('Bank list:', bankList); // Debug log
-    console.log('Search value:', value); // Debug log
-
     const searchValue = value.toLowerCase();
     const filtered = bankList.filter(bank => {
       const matchName = bank.name?.toLowerCase().includes(searchValue);
@@ -87,8 +91,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
       
       return matchName || matchShortName || matchShortName2 || matchCode;
     });
-    
-    console.log('Filtered banks:', filtered); // Debug log
+
     setFilteredBanks(filtered);
     setShowSuggestions(true);
   };
@@ -195,7 +198,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-gray-900 truncate">
-                        {bank.shortName} ({bank.code})
+                                {bank.shortName}
                       </div>
                       <div className="text-xs text-gray-500 truncate mt-1">
                         {bank.name}
