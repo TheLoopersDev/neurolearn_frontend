@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
 import Image from 'next/image';
-import { ChevronDown } from 'lucide-react';
 
 interface BankInfo {
+  id: number;
   name: string;
-  bankLogoUrl: string;
   code: string;
+  bin: string;
+  shortName: string;
+  logo: string;
+  transferSupported: number;
+  lookupSupported: number;
+  short_name: string;
+  support: number;
+  isTransfer: number;
+  swift_code: string;
 }
 
 interface AddBankCardModalProps {
@@ -18,10 +26,17 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [bankCode, setBankCode] = useState('');
+  const [bankName, setBankName] = useState('');
   const [nameCard, setNameCard] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredBanks, setFilteredBanks] = useState<BankInfo[]>([]);
 
   const { data: bankApiData, isLoading, error } = useGetBankInfoQuery();
-  const bankList = useMemo<BankInfo[]>(() => bankApiData?.data ?? [], [bankApiData]);
+  const bankList = useMemo<BankInfo[]>(() => {
+    console.log('Bank API Data:', bankApiData); // Debug log
+    // Try different possible data structures
+    return bankApiData?.data?.data ?? bankApiData?.data ?? [];
+  }, [bankApiData]);
 
   useEffect(() => {
     setIsVisible(true);
@@ -42,25 +57,58 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   };
 
   const handleSubmit = () => {
-    if (!cardNumber || !bankCode || !nameCard) {
+    if (!cardNumber || !bankName || !nameCard) {
       alert('Please fill in all fields');
       return;
     }
-    console.log({ cardNumber, bankCode, nameCard });
+    console.log({ cardNumber, bankCode, bankName, nameCard });
     closeModal();
   };
 
-  const renderBankOptions = () => {
-    if (isLoading) return <option disabled>Loading banks...</option>;
-    if (error) return <option disabled>Error loading banks</option>;
-    return bankList.map((bank: BankInfo) => (
-      <option key={bank.code} value={bank.code}>
-        {bank.name}
-      </option>
-    ));
+  const handleBankNameChange = (value: string) => {
+    setBankName(value);
+    
+    if (value.trim() === '') {
+      setFilteredBanks([]);
+      setShowSuggestions(false);
+      setBankCode('');
+      return;
+    }
+
+    console.log('Bank list:', bankList); // Debug log
+    console.log('Search value:', value); // Debug log
+
+    const searchValue = value.toLowerCase();
+    const filtered = bankList.filter(bank => {
+      const matchName = bank.name?.toLowerCase().includes(searchValue);
+      const matchShortName = bank.shortName?.toLowerCase().includes(searchValue);
+      const matchShortName2 = bank.short_name?.toLowerCase().includes(searchValue);
+      const matchCode = bank.code?.toLowerCase().includes(searchValue);
+      
+      return matchName || matchShortName || matchShortName2 || matchCode;
+    });
+    
+    console.log('Filtered banks:', filtered); // Debug log
+    setFilteredBanks(filtered);
+    setShowSuggestions(true);
   };
 
-  const selectedBank = bankList.find((b: BankInfo) => b.code === bankCode);
+  const handleBankSelect = (bank: BankInfo) => {
+    setBankName(bank.name);
+    setBankCode(bank.code);
+    setShowSuggestions(false);
+  };
+
+  const handleBankInputFocus = () => {
+    if (bankName && filteredBanks.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleBankInputBlur = () => {
+    // Delay hiding suggestions to allow for clicks
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
 
   return (
     <div
@@ -113,36 +161,60 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
           </div>
 
           <div className="relative">
-            <label htmlFor="bankCode" className="block text-sm font-medium mb-3 text-gray-700">
+            <label htmlFor="bankName" className="block text-sm font-medium mb-1">
               Bank Name
             </label>
-            <div className="relative">
-              <select
-                id="bankCode"
-                className="w-full rounded-2xl bg-gray-50 px-4 py-4 text-base border-0 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer transition-all duration-200"
-                value={bankCode}
-                onChange={(e) => setBankCode(e.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  Select your bank name
-                </option>
-                {renderBankOptions()}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-            </div>
+            <input
+              id="bankName"
+              type="text"
+              className="w-full rounded-lg bg-gray-50 px-4 py-3 text-sm border border-gray-200 focus:border-blue-500 outline-none"
+              placeholder="Enter or select bank name"
+              value={bankName}
+              onChange={(e) => handleBankNameChange(e.target.value)}
+              onFocus={handleBankInputFocus}
+              onBlur={handleBankInputBlur}
+              required
+            />
+            
+            {showSuggestions && filteredBanks.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1 max-h-60 overflow-y-auto">
+                {filteredBanks.map((bank) => (
+                  <button
+                    key={bank.id}
+                    type="button"
+                    className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 w-full text-left"
+                    onClick={() => handleBankSelect(bank)}
+                  >
+                    <div className="w-12 h-12 relative mr-4 flex-shrink-0">
+                      <Image
+                        src={bank.logo}
+                        alt={bank.shortName}
+                        fill
+                        className="object-contain rounded"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-900 truncate">
+                        {bank.shortName} ({bank.code})
+                      </div>
+                      <div className="text-xs text-gray-500 truncate mt-1">
+                        {bank.name}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {selectedBank && (
-              <div className="mt-3 flex items-center p-3 bg-gray-50 rounded-xl w-full">
-                <div className="w-10 h-10 relative mr-3">
-                  <Image
-                    src={selectedBank.bankLogoUrl}
-                    alt={selectedBank.name}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="font-medium">{selectedBank.name}</span>
+            {isLoading && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1 p-3">
+                <span className="text-sm text-gray-500">Loading banks...</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1 p-3">
+                <span className="text-sm text-red-500">Error loading banks</span>
               </div>
             )}
           </div>
