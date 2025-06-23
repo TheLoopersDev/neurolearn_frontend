@@ -2,15 +2,13 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { CreditCard } from '@/components/instructor/revenue/CreditCard';
 import { CardInfo } from '@/components/instructor/revenue/CardInfo';
-import { CardInfoProps } from '@/types/income';
 import { useModal } from '@/context/ModalContext';
 
 interface CardSectionProps {
-  cardData: CardInfoProps;
   onAddCard?: () => void;
 }
 
-export const CardSection: React.FC<CardSectionProps> = ({ cardData, onAddCard }) => {
+export const CardSection: React.FC<CardSectionProps> = ({ onAddCard }) => {
   const { showModal } = useModal();
   return (
     <aside className="bg-white rounded-2xl p-4 min-h-[480px] w-[360px]">
@@ -28,7 +26,7 @@ export const CardSection: React.FC<CardSectionProps> = ({ cardData, onAddCard })
 
         <div className="mt-2 w-full">
           <div className="relative w-full">
-            <CreditCard {...cardData} />
+            <CreditCard />
           </div>
 
           {/* Card Pagination */}
@@ -41,7 +39,7 @@ export const CardSection: React.FC<CardSectionProps> = ({ cardData, onAddCard })
             </div>
           </div>
 
-          <CardInfo {...cardData} />
+          <CardInfo />
         </div>
       </div>
     </aside>

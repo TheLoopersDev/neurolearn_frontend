@@ -1,11 +1,12 @@
 export interface CreditCard {
-  _id: string; 
+  _id: string;
   name: string;
   accountNumber: string;
   cardType: string;
-  user: string; 
-  createdAt: string; 
-  updatedAt: string; 
+  user: string;
+  logo?: string; // Bank logo URL from API
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BankInfo {

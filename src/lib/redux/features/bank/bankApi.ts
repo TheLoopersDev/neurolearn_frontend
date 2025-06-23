@@ -83,6 +83,14 @@ export const bankApi = createApi({
     getCreditCards: builder.query<CreditCard[], void>({
       query: () => '/credit-cards',
     }),
+
+    // Lấy thông tin credit card của user hiện tại
+    getMyCreditCard: builder.query<
+      { success: boolean; data: CreditCard },
+      void
+    >({
+      query: () => '/credit-cards/me',
+    }),
     
     // Thêm credit card
     addCreditCard: builder.mutation<
@@ -115,9 +123,10 @@ export const bankApi = createApi({
   }),
 });
 
-export const { 
+export const {
   useGetBankInfoQuery,
   useGetCreditCardsQuery,
+  useGetMyCreditCardQuery,
   useAddCreditCardMutation,
   useUpdateCreditCardMutation,
   useDeleteCreditCardMutation,

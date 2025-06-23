@@ -1,12 +1,16 @@
 import React from 'react';
 import Image from 'next/image';
 import { CardInfoProps } from '@/types/income';
+import { useGetMyCreditCardQuery } from '@/lib/redux/features/bank/bankApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/redux/store';
 
 interface CreditCardProps extends CardInfoProps {
   bankLogo?: string;
 }
 
-export const CreditCard: React.FC<CreditCardProps> = ({
+// UI Component - keeps the existing beautiful design
+const CreditCardUI: React.FC<CreditCardProps> = ({
   bankName = 'MB Bank',
   bankLogo,
   cardHolder = 'DAO TUAN K',
@@ -35,23 +39,34 @@ export const CreditCard: React.FC<CreditCardProps> = ({
       <div className="relative z-10 h-full flex flex-col p-4 text-white">
         {/* Bank logo/name top row */}
         <div className="flex justify-between items-start">
-          {bankLogo ? (
-            <div className="relative h-6 w-20">
-              <Image
-                src={bankLogo}
-                alt={bankName}
-                fill
-                className="object-contain"
-                sizes="(max-width: 80px) 100vw, 80px"
-              />
-            </div>
-          ) : (
-              <div className="text-lg font-bold drop-shadow-md">{bankName}</div>
-          )}
+          <div className="flex flex-col gap-2">
+            {/* Bank name text */}
+            <div className="text-lg font-bold drop-shadow-md">{bankName}</div>
 
-          {/* EMV Chip */}
-          <div className="w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm flex items-center justify-center">
-            <div className="w-5 h-2.5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-xs border border-yellow-700"></div>
+            {/* Bank logo */}
+            {bankLogo && (
+              <div className="relative h-8 w-16">
+                <Image
+                  src={bankLogo}
+                  alt={bankName}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 64px) 100vw, 64px"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Contactless payment icon */}
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+            <div className="flex flex-col gap-[1px]">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-[1.5px] bg-white rounded-full ${i === 0 ? 'w-2' : i === 1 ? 'w-3' : i === 2 ? 'w-4' : 'w-5'}`}
+                ></div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -80,26 +95,61 @@ export const CreditCard: React.FC<CreditCardProps> = ({
             </div>
           </div>
 
-          {/* Payment network - centered below */}
-          <div className="col-span-2 text-center mt-1">
-            <div className="text-sm font-bold inline-block px-3 py-1 rounded-md bg-white/10 backdrop-blur-sm">
-              NAPAS
+          {/* Payment network - Mastercard logo */}
+          <div className="col-span-2 flex justify-end mt-1">
+            <div className="flex gap-1">
+              <div className="w-6 h-6 rounded-full bg-red-500"></div>
+              <div className="w-6 h-6 rounded-full bg-yellow-500 -ml-3"></div>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Contactless payment icon */}
-      <div className="absolute bottom-8 right-4 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-        <div className="flex flex-col gap-[2px]">
-          {[...Array(4)].map((_, i) => (
-            <div 
-              key={i}
-              className={`h-[2px] bg-white rounded-full ${i === 0 ? 'w-2' : i === 1 ? 'w-3' : i === 2 ? 'w-4' : 'w-5'}`}
-            ></div>
-          ))}
-        </div>
-      </div>
     </div>
+  );
+};
+
+// Data-connected component that fetches from API
+export const CreditCard: React.FC = () => {
+  // Get auth state to check if user is logged in
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  // Fetch user's credit card info
+  const {
+    data: creditCardData,
+    isLoading,
+    error
+  } = useGetMyCreditCardQuery(undefined, {
+    // Only fetch if user is authenticated
+    skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
+  });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-[340px] h-[200px] rounded-2xl bg-gray-200 animate-pulse flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show no card state (both error and no data should show the same friendly UI)
+  if (error || !creditCardData?.data) {
+    return null; // Don't show anything when no card exists
+  }
+
+  const card = creditCardData.data;
+
+  // Format card number for display (show all digits as provided by API)
+  const formattedCardNumber = card.accountNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+
+  // Use the UI component with real data
+  return (
+    <CreditCardUI
+      bankName={card.cardType}
+      cardHolder={card.name}
+      cardNumber={formattedCardNumber}
+      cvv="***" 
+      expiryDate="12/28" 
+    />
   );
 };
