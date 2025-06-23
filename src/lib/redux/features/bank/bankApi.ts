@@ -29,6 +29,7 @@ export const bankApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ['CreditCard'],
   endpoints: (builder) => ({
     getBankInfo: builder.query<BankInfoResponse, void>({
       query: () => '/credit-cards/bank-info',
@@ -90,6 +91,7 @@ export const bankApi = createApi({
       void
     >({
       query: () => '/credit-cards/me',
+      providesTags: ['CreditCard'],
     }),
     
     // Thêm credit card
@@ -102,6 +104,7 @@ export const bankApi = createApi({
         method: 'POST',
         body: creditCard,
       }),
+      invalidatesTags: ['CreditCard'],
     }),
     
     // Cập nhật credit card
@@ -113,12 +116,13 @@ export const bankApi = createApi({
       }),
     }),
     
-    // Xóa credit card
-    deleteCreditCard: builder.mutation<{ success: boolean }, string>({
-      query: (id) => ({
-        url: `/credit-cards/${id}`,
+    // Xóa credit card - sử dụng token trong header thay vì ID
+    deleteCreditCard: builder.mutation<{ success: boolean }, void>({
+      query: () => ({
+        url: '/credit-cards',
         method: 'DELETE',
       }),
+      invalidatesTags: ['CreditCard'],
     }),
   }),
 });
