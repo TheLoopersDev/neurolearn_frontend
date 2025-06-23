@@ -34,6 +34,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [bankName, setBankName] = useState('');
+  const [bankShortName, setBankShortName] = useState(''); // Thêm state để lưu shortName
   const [nameCard, setNameCard] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredBanks, setFilteredBanks] = useState<BankInfo[]>([]);
@@ -46,12 +47,10 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   const [addCreditCard, { isLoading: isAddingCard }] = useAddCreditCardMutation();
   const bankList = useMemo<BankInfo[]>(() => {
       if (!bankApiData?.data) return [];
-
-      // Map API data to component's expected format
       return bankApiData.data.map((apiBank: ApiBankInfo) => ({
-          id: apiBank.bin, // Use bin as id
+          id: apiBank.bin, 
           name: apiBank.name,
-          code: apiBank.bin, // Use bin as code since API doesn't have code
+          code: apiBank.bin, 
           bin: apiBank.bin,
           shortName: apiBank.shortName,
           logo: apiBank.bankLogoUrl,
@@ -96,7 +95,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
       await addCreditCard({
         name: nameCard,
         accountNumber: cardNumber,
-        cardType: bankName
+        cardType: bankShortName || bankName
       }).unwrap();
 
       alert('Card added successfully!');
@@ -120,7 +119,8 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
 
   const handleBankNameChange = (value: string) => {
     setBankName(value);
-    
+    setBankShortName(''); // Reset shortName khi user nhập tay
+
     if (value.trim() === '') {
       setFilteredBanks([]);
       setShowSuggestions(false);
@@ -142,7 +142,8 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   };
 
   const handleBankSelect = (bank: BankInfo) => {
-    setBankName(bank.name);
+    setBankName(bank.name); // Hiển thị tên đầy đủ trong UI
+    setBankShortName(bank.shortName); // Lưu shortName để gửi lên server
     setShowSuggestions(false);
   };
 

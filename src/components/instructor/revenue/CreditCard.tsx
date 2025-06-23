@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { CardInfoProps } from '@/types/income';
-import { useGetMyCreditCardQuery } from '@/lib/redux/features/bank/bankApi';
+import { useGetMyCreditCardQuery, useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 
@@ -9,98 +9,82 @@ interface CreditCardProps extends CardInfoProps {
   bankLogo?: string;
 }
 
-// UI Component - keeps the existing beautiful design
 const CreditCardUI: React.FC<CreditCardProps> = ({
-  bankName = 'MB Bank',
+  bankName,
   bankLogo,
-  cardHolder = 'DAO TUAN K',
-  cardNumber = '1231 2312 3123 456',
-  expiryDate = '12/28'
+  cardHolder,
+  cardNumber,
+  expiryDate 
 }) => {
   return (
     <div className="w-full max-w-[340px] h-[200px] rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-500 hover:shadow-3xl hover:-translate-y-1">
-      {/* Background image with overlay */}
-      <div 
-        className="absolute inset-0 bg-[url('/assets/revenue/custom-card.png')] bg-cover bg-center"
-        style={{
-          filter: 'brightness(0.9) contrast(1.1)'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-blue-900/30"></div>
+      {/* Background - Blue gradient like MB Bank card */}
+      <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
       </div>
-      
-      {/* Glossy reflection effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent pointer-events-none"></div>
-      
-      {/* Holographic security strip */}
-      <div className="absolute top-5 w-full h-8 bg-gradient-to-r from-transparent via-white/40 to-transparent transform rotate-3"></div>
-      
+
       {/* Content container */}
-      <div className="relative z-10 h-full flex flex-col p-4 text-white">
-        {/* Bank logo/name top row */}
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-2">
-            {/* Bank name text */}
-            <div className="text-lg font-bold drop-shadow-md">{bankName}</div>
+      <div className="relative z-10 h-full flex flex-col p-5 text-white">
+        {/* Top row: Bank name on left, contactless icon on right */}
+        <div className="flex justify-between items-start mb-4">
+          {/* Bank name */}
+          <div className="text-xl font-bold drop-shadow-sm">{bankName}</div>
 
-            {/* Bank logo */}
-            {bankLogo && (
-              <div className="relative h-8 w-16">
-                <Image
-                  src={bankLogo}
-                  alt={bankName}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 64px) 100vw, 64px"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Contactless payment icon */}
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+          {/* Contactless payment icon - positioned at top right */}
+          <div className="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center">
             <div className="flex flex-col gap-[1px]">
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-[1.5px] bg-white rounded-full ${i === 0 ? 'w-2' : i === 1 ? 'w-3' : i === 2 ? 'w-4' : 'w-5'}`}
-                ></div>
-              ))}
+              <div className="h-[1px] bg-white/80 rounded-full w-2"></div>
+              <div className="h-[1px] bg-white/80 rounded-full w-3"></div>
+              <div className="h-[1px] bg-white/80 rounded-full w-4"></div>
             </div>
           </div>
         </div>
 
-        {/* Centered card number */}
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-xl font-mono tracking-widest text-center font-medium drop-shadow-lg">
+        {/* Bank logo - positioned below bank name */}
+        {bankLogo && (
+          <div className="mb-6">
+            <div className="relative h-10 w-20">
+              <Image
+                src={bankLogo}
+                alt={bankName}
+                fill
+                className="object-contain object-left"
+                sizes="(max-width: 80px) 100vw, 80px"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Card number - positioned in middle */}
+        <div className="flex-grow flex items-center">
+          <div className="text-lg font-mono tracking-[0.2em] font-medium drop-shadow-sm">
             {cardNumber}
           </div>
         </div>
-        
+
         {/* Bottom section */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex justify-between items-end">
           {/* Card holder */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider opacity-85 mb-1">CARD HOLDER</div>
-            <div className="text-xs font-bold uppercase tracking-wider truncate">
+          <div className="flex-1">
+            <div className="text-xs uppercase tracking-wider opacity-90 mb-1 font-medium">
               {cardHolder}
             </div>
           </div>
 
           {/* Expiry date */}
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider opacity-85 mb-1">VALID THRU</div>
-            <div className="text-xs font-mono font-medium">
+            <div className="text-sm font-mono font-medium">
               {expiryDate}
             </div>
           </div>
+        </div>
 
-          {/* Payment network - Mastercard logo */}
-          <div className="col-span-2 flex justify-end mt-1">
-            <div className="flex gap-1">
-              <div className="w-6 h-6 rounded-full bg-red-500"></div>
-              <div className="w-6 h-6 rounded-full bg-yellow-500 -ml-3"></div>
-            </div>
+        {/* Payment network - Mastercard logo positioned at bottom right */}
+        <div className="absolute bottom-4 right-5">
+          <div className="flex">
+            <div className="w-7 h-7 rounded-full bg-red-500"></div>
+            <div className="w-7 h-7 rounded-full bg-orange-400 -ml-3"></div>
           </div>
         </div>
       </div>
@@ -123,6 +107,9 @@ export const CreditCard: React.FC = () => {
     skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
   });
 
+  // Fetch bank info để map shortName thành fullName và lấy logo
+  const { data: bankInfoData } = useGetBankInfoQuery();
+
   // Show loading state
   if (isLoading) {
     return (
@@ -132,9 +119,23 @@ export const CreditCard: React.FC = () => {
     );
   }
 
-  // Show no card state (both error and no data should show the same friendly UI)
+  // Show no card state - hiển thị UI thân thiện khi chưa có card
   if (error || !creditCardData?.data) {
-    return null; // Don't show anything when no card exists
+    return (
+      <div className="w-full max-w-[340px] h-[200px] rounded-2xl overflow-hidden shadow-lg relative bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-300">
+        <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 text-gray-500">
+          <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-600 mb-1">No Card Added</p>
+            <p className="text-xs text-gray-500">Add your first card to get started</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const card = creditCardData.data;
@@ -142,14 +143,23 @@ export const CreditCard: React.FC = () => {
   // Format card number for display (show all digits as provided by API)
   const formattedCardNumber = card.accountNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
 
-  // Use the UI component with real data
+  // Lấy logo từ bank info nếu có
+  const getBankLogo = (shortName: string): string | undefined => {
+    if (!bankInfoData?.data) return undefined;
+
+    const bank = bankInfoData.data.find(b => b.shortName === shortName);
+    return bank ? bank.bankLogoUrl : undefined;
+  };
+
+  // Use the UI component with real data - hiển thị shortName trực tiếp
   return (
     <CreditCardUI
-      bankName={card.cardType}
+      bankName={card.cardType} // Hiển thị shortName trực tiếp
+      bankLogo={getBankLogo(card.cardType)}
       cardHolder={card.name}
       cardNumber={formattedCardNumber}
-      cvv="***" 
-      expiryDate="12/28" 
+      cvv="***"
+      expiryDate="12/28"
     />
   );
 };

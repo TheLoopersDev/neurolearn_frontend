@@ -28,17 +28,6 @@ export const CardSection: React.FC<CardSectionProps> = ({ onAddCard }) => {
           <div className="relative w-full">
             <CreditCard />
           </div>
-
-          {/* Card Pagination */}
-          <div className="flex justify-center mt-2">
-            <div className="flex gap-1 items-center">
-              <div className="w-8 h-1.5 bg-blue-600 rounded-xl"></div>
-              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
-              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
-              <div className="w-1.5 h-1.5 bg-slate-50 rounded-xl"></div>
-            </div>
-          </div>
-
           <CardInfo />
         </div>
       </div>

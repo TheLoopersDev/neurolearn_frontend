@@ -67,6 +67,8 @@ export const CardInfo: React.FC = () => {
     skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
   });
 
+
+
   // Show loading state
   if (isLoading) {
     return (
@@ -100,21 +102,39 @@ export const CardInfo: React.FC = () => {
     );
   }
 
-  // Don't show anything if no card or error
+  // Show no card state - hiển thị UI thân thiện khi chưa có card
   if (error || !creditCardData?.data) {
-    return null;
+    return (
+      <section className="mt-6 w-full">
+        <h3 className="text-2xl font-semibold leading-none text-stone-950">Card Information</h3>
+        <div className="bg-white rounded-xl shadow-md p-5 mt-3 border-2 border-dashed border-gray-200">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <h4 className="text-lg font-semibold text-gray-700 mb-2">No Card Information</h4>
+            <p className="text-sm text-gray-500 mb-4">Add your first credit card to view details here</p>
+            <div className="text-xs text-gray-400">
+              Click &quot;Add Card&quot; button above to get started
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   const card = creditCardData.data;
 
-  // Use the UI component with real data
+  // Use the UI component with real data - hiển thị shortName trực tiếp
   return (
     <CardInfoUI
-      bankName={card.cardType}
+      bankName={card.cardType} // Hiển thị shortName trực tiếp
       cardHolder={card.name}
       cardNumber={card.accountNumber}
       cvv="***" // API doesn't provide CVV for security
-      expiryDate="12/28" 
+      expiryDate="12/28"
     />
   );
 };
