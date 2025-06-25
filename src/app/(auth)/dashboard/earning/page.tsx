@@ -52,7 +52,7 @@ const WithdrawDashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-3 min-h-screen" >
+    <div className="min-h-screen" >
       <main className="max-w-6xl mx-auto">
         <div className="flex flex-wrap gap-3 items-start w-full">
           {/* Left Section */}

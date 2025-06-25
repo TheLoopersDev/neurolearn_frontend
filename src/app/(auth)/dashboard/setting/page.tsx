@@ -121,7 +121,7 @@ const SettingPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 p-4 sm:p-6 md:p-8 min-h-screen">
+    <div className="min-h-screen">
       {/* Container này sử dụng `lg:flex-row`, là điều kiện để `align-items: stretch` hoạt động */}
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
         <ProfileSidebar user={user} onPhotoEditClick={handlePhotoEdit} />
