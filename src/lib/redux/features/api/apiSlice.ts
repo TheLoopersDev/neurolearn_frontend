@@ -28,7 +28,7 @@ export const apiSlice = createApi({
 
           // For session-based auth, we don't get accessToken from loadUser
           // Just update the user info
-          const user = result.data?.user ?? result.user;
+          const user = result.data?.user;
 
           if (user) {
             dispatch(

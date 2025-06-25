@@ -7,10 +7,9 @@ import { useWithDrawApiMutation } from '@/lib/redux/features/bank/bankApi';
 
 interface WithdrawFormProps {
   totalRevenue: string;
-  onWithdraw: (amount: string, reason: string) => void;
 }
 
-export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWithdraw }) => {
+export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [withdraw, { isLoading }] = useWithDrawApiMutation();
@@ -29,8 +28,12 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
       } else {
         alert(result.message || 'Withdrawal failed.');
       }
-    } catch (error: any) {
-      alert(error?.data || 'Withdrawal failed.');
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error && 'data' in error) {
+        alert((error as { data?: string }).data || 'Withdrawal failed.');
+      } else {
+        alert('Withdrawal failed.');
+      }
     }
   };
 

@@ -55,8 +55,8 @@ export const authApi = apiSlice.injectEndpoints({
           const result = await queryFulfilled;
 
           // Try different ways to access the token
-          const accessToken = result.data?.accessToken ?? result.accessToken;
-          const user = result.data?.user ?? result.user;
+          const accessToken = result.data?.accessToken;
+          const user = result.data?.user;
 
           dispatch(
             userLoggerIn({

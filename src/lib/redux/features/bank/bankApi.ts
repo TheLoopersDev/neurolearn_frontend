@@ -137,7 +137,7 @@ export const bankApi = createApi({
         }
         const creditCard = creditCardResult.data.data;
         const { amount, reason } = arg;
-        const body: any = {
+        const body: Record<string, unknown> = {
           bankName: creditCard.cardType,
           bankAccountNumber: creditCard.accountNumber,
           bankAccountName: creditCard.name,

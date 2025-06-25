@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { User } from '@/types/user';
 
 // Helper functions for localStorage
 const loadFromLocalStorage = () => {
@@ -35,7 +36,7 @@ const loadFromLocalStorage = () => {
     };
 };
 
-const saveToLocalStorage = (token: string, user: any) => {
+const saveToLocalStorage = (token: string, user: User | string) => {
     if (typeof window !== 'undefined') {
         try {
             if (token) {
@@ -57,7 +58,7 @@ const saveToLocalStorage = (token: string, user: any) => {
     }
 };
 
-const initialState = loadFromLocalStorage();
+const initialState: { token: string; user: User | string; isLoggingOut: boolean } = loadFromLocalStorage();
 
 const authSlice = createSlice({
     name: 'auth',
@@ -67,7 +68,7 @@ const authSlice = createSlice({
             state.token = action.payload.token;
             saveToLocalStorage(action.payload.token, state.user);
         },
-        userLoggerIn: (state, action: PayloadAction<{ accessToken: string; user: any }>) => {
+        userLoggerIn: (state, action: PayloadAction<{ accessToken: string; user: User }>) => {
             state.token = action.payload.accessToken;
             state.user = action.payload.user;
             state.isLoggingOut = false;
