@@ -124,6 +124,54 @@ export const bankApi = createApi({
       }),
       invalidatesTags: ['CreditCard'],
     }),
+
+    // Rút tiền từ tài khoản ngân hàng
+    withDrawApi: builder.mutation<
+      { success: boolean; message: string },
+      { amount: number; reason?: string }
+    >({
+      async queryFn(arg, api, extraOptions, baseQuery) {
+        const creditCardResult = await baseQuery({ url: '/credit-cards/me', method: 'GET' }) as { data?: { success: boolean; data: CreditCard } };
+        if (!creditCardResult.data || !creditCardResult.data.success) {
+          return { error: { status: 400, data: 'Cannot get bank card info' } };
+        }
+        const creditCard = creditCardResult.data.data;
+        const { amount, reason } = arg;
+        const body: any = {
+          bankName: creditCard.cardType,
+          bankAccountNumber: creditCard.accountNumber,
+          bankAccountName: creditCard.name,
+          amount,
+        };
+        if (reason) body.reason = reason;
+        const withdrawResult = await baseQuery({
+          url: '/withdraw',
+          method: 'POST',
+          body,
+        }) as { data?: { success: boolean; message: string } };
+        if (withdrawResult.data) {
+          return { data: withdrawResult.data };
+        } else {
+          return { error: { status: 400, data: 'Withdraw failed' } };
+        }
+      },
+    }),
+
+    // Lấy lịch sử rút tiền
+    getWithdrawHistory: builder.query<
+      { success: boolean; data: Array<{
+        bankName: string;
+        bankAccountNumber: string;
+        bankAccountName: string;
+        amount: number;
+        status: string;
+        reason?: string;
+        requestedAt: string;
+      }> },
+      void
+    >({
+      query: () => '/withdraw',
+    }),
   }),
 });
 
@@ -134,4 +182,6 @@ export const {
   useAddCreditCardMutation,
   useUpdateCreditCardMutation,
   useDeleteCreditCardMutation,
+  useWithDrawApiMutation,
+  useGetWithdrawHistoryQuery,
 } = bankApi;

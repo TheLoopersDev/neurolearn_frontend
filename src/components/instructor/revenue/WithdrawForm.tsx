@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { TotalRevenueIcon } from '@/components/instructor/revenue/RevenueIcons';   
 import { FiUpload } from "react-icons/fi";
+import { useWithDrawApiMutation } from '@/lib/redux/features/bank/bankApi';
 
 interface WithdrawFormProps {
   totalRevenue: string;
@@ -12,15 +13,25 @@ interface WithdrawFormProps {
 export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWithdraw }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
+  const [withdraw, { isLoading }] = useWithDrawApiMutation();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!amount) {
       alert('Please enter an amount');
       return;
     }
-    onWithdraw(amount, reason);
-    setAmount('');
-    setReason('');
+    try {
+      const result = await withdraw({ amount: Number(amount), reason: reason || undefined }).unwrap();
+      if (result.success) {
+        alert('Withdrawal request sent successfully!');
+        setAmount('');
+        setReason('');
+      } else {
+        alert(result.message || 'Withdrawal failed.');
+      }
+    } catch (error: any) {
+      alert(error?.data || 'Withdrawal failed.');
+    }
   };
 
   return (
@@ -37,6 +48,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWith
           <button
             onClick={handleSubmit}
             className="flex justify-center items-center py-2 px-8 text-lg leading-none bg-slate-50 min-h-[40px] rounded-[30px] text-stone-950 hover:bg-slate-100 transition-colors"
+            disabled={isLoading}
           >
             <div className="flex gap-2 items-center">
               <FiUpload className="w-5 h-5" />
