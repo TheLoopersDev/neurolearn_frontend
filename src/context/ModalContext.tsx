@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 // 1. Định nghĩa loại hợp lệ cho modal
-export type ModalType = 'login' | 'signup' | 'forgotPassword' | 'verifyCode' | 'newPassword' | 'verifyResetCode' | null;
+export type ModalType = 'login' | 'signup' | 'forgotPassword' | 'verifyCode' | 'newPassword' | 'verifyResetCode' | 'addBankCard' | null;
 
 // 2. Interface context
 interface ModalContextType {

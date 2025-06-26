@@ -5,6 +5,8 @@ import ForgotPasswordForm from './ForgotPassword';
 import VerifyCodeForm from './VerifyCodeForm';
 import NewPasswordForm from './NewPasswordForm';
 import VerifyResetCodeForm from './VerifyResetCode';
+import AddBankCardModal from '../instructor/revenue/AddBankCardModal';
+
 
 export default function ModalContainer() {
   const { modalType, hideModal } = useModal();
@@ -27,6 +29,7 @@ export default function ModalContainer() {
         {modalType === 'verifyCode' && <VerifyCodeForm onClose={hideModal} />}
         {modalType === 'newPassword' && <NewPasswordForm onClose={hideModal} />}
         {modalType === 'verifyResetCode' && <VerifyResetCodeForm onClose={hideModal} />}
+        {modalType === 'addBankCard' && <AddBankCardModal onClose={hideModal} />}
       </div>
     </div>
   );
