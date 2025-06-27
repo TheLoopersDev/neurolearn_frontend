@@ -25,14 +25,21 @@ export const apiSlice = createApi({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-          dispatch(
-            userLoggerIn({
-              accessToken: result.data.accessToken,
-              user: result.data.user,
-            })
-          );
+
+          // For session-based auth, we don't get accessToken from loadUser
+          // Just update the user info
+          const user = result.data?.user;
+
+          if (user) {
+            dispatch(
+              userLoggerIn({
+                accessToken: 'session-based', // Placeholder for session auth
+                user: user,
+              })
+            );
+          }
         } catch (error) {
-          console.log(error);
+          console.log('LoadUser error:', error);
         }
       },
     }),
