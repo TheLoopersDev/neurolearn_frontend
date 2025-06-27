@@ -110,57 +110,62 @@ export function UserDropdown() {
 
   const commonNavbarItems = [
     {
-      title: 'Order',
-      href: '/dashboard/orders',
+      title: 'Order History',
+      href: '/dashboard/purchase-history',
       icon: <PiBagBold className="text-[20px]" />,
     },
     {
       title: 'Settings',
-      href: '/dashboard/settings',
+      href: '/dashboard/setting',
       icon: <IoSettingsOutline className="text-[20px]" />,
     },
   ];
 
   const instructorNavbarItems = [
     {
-      title: 'Dashboard',
-      href: '/dashboard/instructor',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-    },
-    {
-      title: 'My Course',
-      href: '/dashboard/instructor/my-course',
+      title: 'Courses',
+      href: '/dashboard/courses', // from: /dashboard/instructor/my-course
       icon: <MdOutlineSlowMotionVideo className="text-[20px]" />,
     },
     {
-      title: 'Reviews',
-      href: '/dashboard/instructor/reviews',
+      title: 'Messages',
+      href: '/dashboard/message',
       icon: <TbMessageDots className="text-[20px]" />,
     },
     {
-      title: 'Wishlist',
-      href: '/dashboard/instructor/wishlist',
-      icon: <FaRegHeart className="text-[20px]" />,
+      title: 'Quizzes',
+      href: '/dashboard/create-quiz',
+      icon: <FaRegCircleQuestion className="text-[20px]" />,
     },
     {
-      title: 'Quizzes',
-      href: '/dashboard/quizzes',
-      icon: <FaRegCircleQuestion className="text-[20px]" />,
+      title: 'Earnings',
+      href: '/dashboard/earning',
+      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
     },
   ];
 
   const userNavbarItems = [
     {
-      title: 'Dashboard',
-      href: '/dashboard/user',
+      title: 'Watch Course',
+      href: '/dashboard/watch-course',
       icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
     },
   ];
 
   const dropdownList =
     user.role === 'instructor'
-      ? [...instructorNavbarItems, ...commonNavbarItems]
-      : [...userNavbarItems, ...commonNavbarItems];
+      ? [
+        { title: 'Courses', href: '/dashboard/courses', icon: <MdOutlineSlowMotionVideo className="text-[20px]" /> },
+        { title: 'Messages', href: '/dashboard/message', icon: <TbMessageDots className="text-[20px]" /> },
+        { title: 'Quizzes', href: '/dashboard/create-quiz', icon: <FaRegCircleQuestion className="text-[20px]" /> },
+        { title: 'Earnings', href: '/dashboard/earning', icon: <MdOutlineDashboardCustomize className="text-[20px]" /> },
+        ...commonNavbarItems
+      ]
+      : [
+        { title: 'Watch Course', href: '/dashboard/watch-course', icon: <MdOutlineDashboardCustomize className="text-[20px]" /> },
+        ...commonNavbarItems
+      ];
+
 
   return (
     <DropdownMenu>
