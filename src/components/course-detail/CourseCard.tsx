@@ -1,9 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-
+import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { redirect } from 'next/navigation';
 interface CourseCardProps {
   course: {
+    _id: string;
     price?: number;
     estimatedPrice?: number;
     isFree?: boolean;
@@ -14,10 +18,77 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
+  const { toast } = useToast();
+  const { user } = useSelector((state: any) => state.auth);
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
+
+  const checkCourseExistInCart = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/cart-items`, {
+        withCredentials: true,
+      });
+      const cartItems = response.data.cart.items;
+      const exists = cartItems.some((item: any) => item?.courseId._id === course._id);
+      return exists;
+    } catch (error) {
+      console.error('Error checking cart:', error);
+      return false;
+    }
+  };
+  const addToCart = async () => {
+    if (!user) {
+      toast({
+        variant: 'success',
+        title: 'You are not login now!',
+        description: 'Please login to continue.',
+        duration: 3000,
+      });
+      redirect('/');
+      return;
+    }
+
+    if (!course._id) {
+      toast({
+        variant: 'destructive',
+        title: 'CourseId not found!',
+      });
+      return;
+    }
+
+    try {
+      const alreadyExists = await checkCourseExistInCart();
+
+      if (alreadyExists) {
+        toast({
+          variant: 'success',
+          title: 'This course is already in your cart',
+          description: 'You can check it in your cart.',
+          duration: 3000,
+        });
+        return;
+      }
+
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/add-to-cart`,
+        { courseId: course._id },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        toast({
+          variant: 'success',
+          title: 'Course added to your cart!',
+          description: 'You can check it in your cart.',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
 
   return (
     <div className="w-[395px] bg-white rounded-2xl max-w-full mx-auto">
@@ -48,10 +119,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       <div className="text-black pb-4">
         <div className="text-sm space-y-4 px-4">
           <div className="text-4xl text-[#3858F8] mt-2">
-            {course.isFree
-              ? 'Free'
-              : `$${(course.price ?? 0).toLocaleString()}`}
-
+            {course.isFree ? 'Free' : `$${(course.price ?? 0).toLocaleString()}`}
           </div>
 
           <div className="text-black text-2xl">Course includes</div>
@@ -90,7 +158,10 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
 
       {/* Buttons */}
       <div className="flex items-center gap-2 px-4 h-[60px]">
-        <button className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition">
+        <button
+          onClick={addToCart}
+          className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition"
+        >
           Add to cart
         </button>
         <Image
