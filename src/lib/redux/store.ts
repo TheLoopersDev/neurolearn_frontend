@@ -5,23 +5,34 @@ import authSlice from './features/auth/authSlice';
 import { courseApi } from './features/course/courseApi';
 import courseReducer from './features/course/courseSlice';
 import { expertApi } from './features/expert/expertApi';
+import { bankApi } from './features/bank/bankApi';
 import { chatApi } from './features/chat/chatApi';
 import chatReducer from './features/chat/chatSlice';
 // import orderSlice from './features/order/orderSlice';
+
+// Create an array of all API middlewares
+const apiMiddlewares = [
+  apiSlice.middleware,
+  courseApi.middleware,
+  expertApi.middleware,
+  bankApi.middleware
+];
 
 export const store = configureStore({
     reducer: {
         [apiSlice.reducerPath]: apiSlice.reducer,
         [courseApi.reducerPath]: courseApi.reducer,
         [expertApi.reducerPath]: expertApi.reducer,
+        [bankApi.reducerPath]: bankApi.reducer,
         [chatApi.reducerPath]: chatApi.reducer,
         auth: authSlice,
         course: courseReducer,
         chat: chatReducer,
         // order: orderSlice
     },
-    devTools: true,
+    devTools: process.env.NODE_ENV !== 'production',
     middleware: (getDefaultMiddleware) => 
+        getDefaultMiddleware().concat(...apiMiddlewares)
         getDefaultMiddleware()
             .concat(apiSlice.middleware)
             .concat(courseApi.middleware)
