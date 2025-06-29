@@ -103,7 +103,7 @@ const LessonItem: React.FC<LessonItemProps> = ({
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className="bg-background border border-input rounded-lg overflow-hidden mb-3"
+                    className="bg-background border-y border-gray-200 rounded-lg overflow-hidden mb-3"
                 >
                     <div className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-3 flex-1">

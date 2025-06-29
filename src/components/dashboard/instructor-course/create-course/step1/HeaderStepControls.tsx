@@ -67,14 +67,14 @@ export default function HeaderStepControls({
 
                     <button
                         onClick={onSaveDraft}
-                        className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm transition-colors"
+                        className="px-4 py-2 rounded-4xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm transition-colors"
                     >
                         Save Draft
                     </button>
 
                     <button
                         onClick={step === 1 ? onContinue : onPublish}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${step === 1 ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}`}
+                        className={`px-4 py-2 rounded-4xl font-medium text-sm transition-colors ${step === 1 ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}`}
                     >
                         {step === 1 ? "Continue" : "Publish"}
                     </button>

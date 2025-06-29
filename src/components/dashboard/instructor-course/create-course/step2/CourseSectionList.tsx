@@ -216,7 +216,7 @@ export default function CourseSectionList({ courseId }: Props) {
                             {sections.map((section: any, index: number) => (
                                 <div
                                     key={section._id}
-                                    className="border border-input rounded-lg overflow-hidden shadow-sm"
+                                    className="rounded-lg overflow-hidden shadow-sm"
                                 >
                                     <SectionItem
                                         section={section}
@@ -233,7 +233,7 @@ export default function CourseSectionList({ courseId }: Props) {
                                     />
 
                                     {expandedSection === section._id && (
-                                        <div className="bg-secondary p-4 border-t border-input">
+                                        <div className="bg-secondary p-4">
                                             <LessonList sectionId={section._id} />
                                         </div>
                                     )}
