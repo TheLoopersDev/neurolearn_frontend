@@ -17,7 +17,7 @@ import {
   PaginationPrevious,
 } from '@/components/common/ui/pagination'; // Đảm bảo đường dẫn đúng
 
-const QUIZZES_STORAGE_KEY = 'quizzes_v2_final';
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main';
 
 const fetchQuizzesFromStorage = (): Quiz[] => {
   if (typeof window !== 'undefined') {

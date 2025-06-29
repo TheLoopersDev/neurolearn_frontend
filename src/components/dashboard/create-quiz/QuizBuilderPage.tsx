@@ -9,7 +9,7 @@ import QuizBuilderHeader from './QuizBuilderHeader';
 import { QuestionData, QuestionSummary, Quiz } from '../../../types/quiz'; // Đảm bảo đường dẫn đúng
 
 // --- Mockup hàm lưu trữ và tải quiz ---
-const QUIZZES_STORAGE_KEY = 'quizzes_v2_main'; // Đổi key để tránh xung đột với list page nếu cần
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main'; // Đổi key để tránh xung đột với list page nếu cần
 
 const fetchQuizzesFromStorage = (): Quiz[] => {
   if (typeof window !== 'undefined') {
