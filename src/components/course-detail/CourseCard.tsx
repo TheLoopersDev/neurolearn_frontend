@@ -5,9 +5,14 @@ import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { redirect } from 'next/navigation';
+import { Dialog } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+
 interface CourseCardProps {
   course: {
     _id: string;
+    name?: string;
+    description?: string;
     price?: number;
     estimatedPrice?: number;
     isFree?: boolean;
@@ -20,10 +25,16 @@ interface CourseCardProps {
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
+  const [isOpen, setIsOpen] = useState(false);
+
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
+
+  const isPurchased = (): boolean => {
+    return user?.purchasedCourses?.some((item: any) => item._id === course._id);
+  };
 
   const checkCourseExistInCart = async () => {
     try {
@@ -31,13 +42,13 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         withCredentials: true,
       });
       const cartItems = response.data.cart.items;
-      const exists = cartItems.some((item: any) => item?.courseId._id === course._id);
-      return exists;
+      return cartItems.some((item: any) => item?.courseId._id === course._id);
     } catch (error) {
       console.error('Error checking cart:', error);
       return false;
     }
   };
+
   const addToCart = async () => {
     if (!user) {
       toast({
@@ -60,7 +71,6 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
 
     try {
       const alreadyExists = await checkCourseExistInCart();
-
       if (alreadyExists) {
         toast({
           variant: 'success',
@@ -87,6 +97,48 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'You are not logged in!',
+        description: 'Please login to buy the course.',
+        duration: 3000,
+      });
+      redirect('/');
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/payment/create-payment-link`,
+        {
+          amount: course.price,
+          description: `Buy course from Academix`,
+          courseIds: [course._id],
+          userId: user._id,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.checkoutUrl) {
+        window.location.href = res.data.checkoutUrl;
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to initiate payment.',
+        });
+      }
+    } catch (error) {
+      console.error('Buy now error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Something went wrong.',
+        description: 'Unable to create payment link.',
+      });
     }
   };
 
@@ -156,26 +208,67 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex items-center gap-2 px-4 h-[60px]">
+      {isPurchased() ? (
         <button
-          onClick={addToCart}
-          className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition"
+          className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-white font-bold rounded-lg bg-green-600 hover:bg-green-700 transition"
+          onClick={() => redirect(`/courses/${course._id}`)}
         >
-          Add to cart
+          Go to course
         </button>
-        <Image
-          src="/assets/icons/bookmark.svg"
-          alt="Bookmark"
-          className="bg-[#ECECEC] h-14 w-14 rounded-md p-2"
-          width={30}
-          height={30}
-        />
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 px-4 h-[60px]">
+            <button
+              onClick={addToCart}
+              className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition"
+            >
+              Add to cart
+            </button>
+            <Image
+              src="/assets/icons/bookmark.svg"
+              alt="Bookmark"
+              className="bg-[#ECECEC] h-14 w-14 rounded-md p-2"
+              width={30}
+              height={30}
+            />
+          </div>
 
-      <button className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition">
-        Buy now
-      </button>
+            <button
+              onClick={() => setIsOpen(true)}
+              className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition"
+            >
+              Buy now
+            </button>
+        </>
+      )}
+
+      <Dialog as={Fragment} open={isOpen} onClose={() => setIsOpen(false)}>
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-opacity-50 flex items-center justify-center">
+          <Dialog.Panel className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <Dialog.Title className="text-xl font-bold text-gray-800 mb-4">
+              Do you want to buy this course?
+            </Dialog.Title>
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleBuyNow();
+                }}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }
