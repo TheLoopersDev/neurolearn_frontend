@@ -2,13 +2,6 @@
 
 import Image from 'next/image';
 
-interface ReceiptItem {
-  id: string;
-  name: string;
-  payment: string;
-  price: string;
-  date: string;
-}
 
 export default function ReceiptModal() {
 
