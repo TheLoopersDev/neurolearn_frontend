@@ -26,15 +26,15 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
-
+  console.log(user)
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
 
-  const isPurchased = (): boolean => {
-    return user?.purchasedCourses?.some((item: any) => item._id === course._id);
-  };
+  const isPurchased = user.purchasedCourses
+    .map((id: any) => id.toString())
+    .includes(course._id.toString());
 
   const checkCourseExistInCart = async () => {
     try {
@@ -120,6 +120,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
           description: `Buy course from Academix`,
           courseIds: [course._id],
           userId: user._id,
+          webhookUrl: 'https://b340-2405-4803-d372-2630-4d53-126c-f4cf-8cfb.ngrok-free.app/api/payment/webhook'
         },
         { withCredentials: true }
       );
@@ -208,7 +209,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         </div>
       </div>
 
-      {isPurchased() ? (
+      {isPurchased ? (
         <button
           className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-white font-bold rounded-lg bg-green-600 hover:bg-green-700 transition"
           onClick={() => redirect(`/courses/${course._id}`)}
