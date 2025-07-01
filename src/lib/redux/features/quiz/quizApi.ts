@@ -11,6 +11,8 @@ interface ApiResponse<T> {
   questions?: QuestionData[];
   score?: number;
   isPassed?: boolean;
+  name?: string;
+  id?: string;
 }
 
 
@@ -19,7 +21,7 @@ interface RootState {
     token?: string;
   };
 }
-  
+
 export const quizApi = createApi({
   reducerPath: 'quizApi',
   baseQuery: fetchBaseQuery({

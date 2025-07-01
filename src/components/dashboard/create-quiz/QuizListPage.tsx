@@ -39,7 +39,8 @@ const QuizListPage: React.FC = () => {
     () =>
       allQuizzes.filter(
         quiz => typeof quiz.name === 'string' && quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      ),
+    [allQuizzes, searchTerm]
   );
 
   const totalPages = Math.ceil(searchedQuizzes.length / ITEMS_PER_PAGE);
@@ -91,15 +92,8 @@ const QuizListPage: React.FC = () => {
         const response = await createQuiz({
           name: details.examTitle || 'Untitled Quiz',
           duration: '30',
-          category: details.topic || 'General',
-          description: 'New quiz',
-          difficulty: details.difficultyLevel || 'easy',
-          passingScore: 50,
-          maxAttempts: 3,
-          isPublished: false,
-          questions: [], // Nếu bạn có câu hỏi mẫu thì đẩy vào đây
-          courseId: '000000000000000000000000', // Có thể là null hoặc lấy từ context
-          instructorId: '000000000000000000000000', // Nếu có
+          category: 'Uncategorized',
+          questions: [],
         }).unwrap();
 
         toast({
@@ -108,7 +102,7 @@ const QuizListPage: React.FC = () => {
           variant: 'success',
         });
 
-        router.push(`/dashboard/create-quiz/builder/${response._id}`);
+        router.push(`/dashboard/create-quiz/builder/${response.id}`);
       } catch (err) {
         toast({
           title: 'Failed to create quiz',
@@ -168,11 +162,11 @@ const QuizListPage: React.FC = () => {
       ) : quizzesForCurrentPage.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {quizzesForCurrentPage.map(quiz => (
-            <QuizCard key={quiz.id} quiz={quiz} />
+            <QuizCard key={quiz._id} quiz={quiz} />
           ))}
         </div>
       ) : (
-            <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
+        <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
           <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>
           <p className="mt-1 text-sm text-gray-500">
             {searchTerm ? 'Try adjusting your search.' : 'Get started by creating a new quiz.'}
@@ -180,7 +174,7 @@ const QuizListPage: React.FC = () => {
           <div className="mt-6">
             <button
               onClick={handleOpenCreateModal}
-                  className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
               <PlusCircle size={18} className="-ml-1 mr-2" />
               New Quiz
