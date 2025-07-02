@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
-import CourseContent from './CourseContent';
 import ChatAI from './ChatAI';
 import QnA from './QnA';
 import NotificationPanel from './NotificationPanel';
