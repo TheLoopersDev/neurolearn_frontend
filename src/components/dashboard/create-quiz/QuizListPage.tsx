@@ -29,19 +29,25 @@ const QuizListPage: React.FC = () => {
   const { toast } = useToast();
 
   const { data, isLoading, } = useGetAllQuizzesQuery({});
-  const [createQuiz, { isLoading: isCreating }] = useCreateQuizMutation();
+  const [createQuiz] = useCreateQuizMutation();
 
   useEffect(() => {
-    if (data?.quizzes) setAllQuizzes(data.quizzes);
+    if (Array.isArray(data)) {
+      setAllQuizzes(data);
+    } else if (data?.quizzes) {
+      setAllQuizzes(data.quizzes);
+    }
   }, [data]);
 
-  const searchedQuizzes = useMemo(
-    () =>
-      allQuizzes.filter(
-        quiz => typeof quiz.name === 'string' && quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [allQuizzes, searchTerm]
-  );
+
+  const searchedQuizzes = useMemo(() => {
+    if (!searchTerm) return allQuizzes; // không lọc
+    return allQuizzes.filter(quiz =>
+      typeof quiz.name === 'string' &&
+      quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allQuizzes, searchTerm]);
+
 
   const totalPages = Math.ceil(searchedQuizzes.length / ITEMS_PER_PAGE);
 
@@ -94,15 +100,18 @@ const QuizListPage: React.FC = () => {
           duration: '30',
           category: 'Uncategorized',
           questions: [],
+          passingScore: 50,
+          maxAttempts: 3,
         }).unwrap();
 
         toast({
           title: 'Quiz created!',
-          description: `Quiz "${response.name}" has been created.`,
+          description: `Quiz "${response.quiz.name}" has been created.`,
           variant: 'success',
         });
 
-        router.push(`/dashboard/create-quiz/builder/${response.id}`);
+        // ✅ Fix undefined
+        router.push(`/dashboard/create-quiz/builder/${response.quiz._id}`);
       } catch (err) {
         toast({
           title: 'Failed to create quiz',
@@ -113,6 +122,7 @@ const QuizListPage: React.FC = () => {
     },
     [createQuiz, router, toast]
   );
+
 
   return (
     <div className="w-full">
