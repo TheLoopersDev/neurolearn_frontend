@@ -10,7 +10,6 @@ import NotificationPanel from './NotificationPanel';
 import EvaluatePanel from './EvaluatePanel';
 
 const tabs = [
-  { id: 'lesson', label: 'Lesson', icon: '/assets/icons/lesson.svg' },
   { id: 'chat', label: 'Chat.AI', icon: '/assets/icons/chat.svg' },
   { id: 'qa', label: 'Q&A', icon: '/assets/icons/qa.svg' },
   { id: 'notification', label: 'Notification', icon: '/assets/icons/notification.svg' },
@@ -18,7 +17,7 @@ const tabs = [
 ];
 
 export default function TabMenu() {
-  const [activeTab, setActiveTab] = useState('lesson');
+  const [activeTab, setActiveTab] = useState('chat');
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -43,7 +42,6 @@ export default function TabMenu() {
 
       {/* Tab content area */}
       <div className="mt-4 h-[524px] overflow-y-auto pr-2">
-        {activeTab === 'lesson' && <CourseContent />}
         {activeTab === 'chat' && <ChatAI />}
         {activeTab === 'qa' && <QnA />}
         {activeTab === 'notification' && <NotificationPanel />}

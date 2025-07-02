@@ -15,15 +15,14 @@ const CourseCard = ({ course }: CourseCardProps) => {
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
   const [imageError, setImageError] = useState(false);
-  const [isInCart, setIsInCart] = useState(false);
+
   const checkCourseExistInCart = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/cart-items`, {
         withCredentials: true,
       });
       const cartItems = response.data.cart.items;
-      const exists = cartItems.some((item: any) => item?.courseId._id === course._id);
-      setIsInCart(exists);
+      return cartItems.some((item: any) => item?.courseId._id === course._id);
     } catch (error) {
       console.error('Error checking cart:', error);
       return false;
@@ -53,12 +52,23 @@ const CourseCard = ({ course }: CourseCardProps) => {
       const alreadyExists = await checkCourseExistInCart();
 
       if (alreadyExists) {
-        toast({
-          variant: 'success',
-          title: 'This course is already in your cart',
-          description: 'You can check it in your cart.',
-          duration: 3000,
-        });
+        const res = await axios.delete(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/remove-item`,
+          {
+            data: { courseId: course._id },
+            withCredentials: true,
+          }
+        );
+
+        if (res.data.success) {
+          toast({
+            variant: 'success',
+            title: 'Course removed from your cart!',
+            description: 'You can check it in your cart.',
+            duration: 3000,
+          });
+        }
+
         return;
       }
 
@@ -80,9 +90,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
       console.error('Error adding to cart:', error);
     }
   };
-  useEffect(() => {
-    checkCourseExistInCart();
-  }, [course._id]);
+
 
   return (
     <Link href={`/courses/${course._id}`} className="relative block w-[311px]">
@@ -93,7 +101,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         </div>
         <div
           className={`w-9 h-9 rounded-full flex items-center justify-center shadow-2xl hover:brightness-110 transition 
-    ${isInCart ? 'bg-blue-100' : 'bg-white'}`}
+    'bg-white'}`}
         >
           <Image
             onClick={e => {
