@@ -59,7 +59,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const [currentQuizIdInternal, setCurrentQuizIdInternal] = useState<string | null>(null);
   const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined); // State để lưu ngày tạo của quiz đang sửa
   const [hasInitialized, setHasInitialized] = useState(false);
-  const { data: fetchedQuiz, isLoading, isError, refetch } = useGetQuizByIdQuery(quizIdToLoad!, {
+  const { data: fetchedQuiz, isLoading, isError } = useGetQuizByIdQuery(quizIdToLoad!, {
     skip: !quizIdToLoad,
   });
 

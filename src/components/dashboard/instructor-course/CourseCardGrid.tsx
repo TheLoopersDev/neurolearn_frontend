@@ -5,7 +5,6 @@ import { CourseCard } from "./CourseCard";
 import { Course } from "@/types/course";
 import { useGetUserCoursesQuery } from "@/lib/redux/features/course/courseApi";
 import Loading from "@/components/common/Loading";
-import Link from "next/link";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -28,21 +27,7 @@ const CourseCardGrid: React.FC = () => {
     <section>
       <div className="flex flex-wrap gap-3 items-center w-full">
         {currentCourses.map((course) => (
-          <CourseCard
-            courseId={course._id.toString()}
-            thumbnailUrl={course.thumbnail?.url || ""}
-            category={
-              typeof course.category === "string"
-                ? { title: course.category }
-                : course.category || { title: "Uncategorized" }
-            }
-            name={course.name}
-            purchased={course.purchased || 0}
-            createdAt={new Date(course.createdAt).toLocaleDateString("vi-VN")}
-            estimatedPrice={course.estimatedPrice || 0}
-            price={course.price as number}
-            isPublished={course.isPublished}
-          />
+          <CourseCard key={course._id} course={course} />
         ))}
       </div>
 

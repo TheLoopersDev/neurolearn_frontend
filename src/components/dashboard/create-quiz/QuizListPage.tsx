@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { PlusCircle, Search, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Quiz, QuestionData, ManualCreationDetails, AICreationDetails } from './types';
+import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
 import CreateQuizModal from './CreateQuizModal';
 import {
@@ -106,12 +106,12 @@ const QuizListPage: React.FC = () => {
 
         toast({
           title: 'Quiz created!',
-          description: `Quiz "${response.quiz.name}" has been created.`,
+          description: `Quiz "${response.quiz!.name}" has been created.`,
           variant: 'success',
         });
 
         // ✅ Fix undefined
-        router.push(`/dashboard/create-quiz/builder/${response.quiz._id}`);
+        router.push(`/dashboard/create-quiz/builder/${response.quiz?._id}`);
       } catch (err) {
         toast({
           title: 'Failed to create quiz',

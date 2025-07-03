@@ -11,17 +11,24 @@ export default function EditCoursePage() {
     const [formData, setFormData] = useState<Partial<Course>>({});
     const [courseId, setCourseId] = useState<string | null>(id || null);
 
-    const { data, isLoading } = useGetCourseByIdQuery(id!, { skip: !id });
+    const {
+        data: response,
+        isLoading: loading,
+        error,
+    } = useGetCourseByIdQuery(id as string);
+
+    const course = response?.courses;
+
 
     useEffect(() => {
-        if (data?.data) {
-            setFormData(data.data);
-            setCourseId(data.data._id);
+        if (course) {
+            setFormData(course);
+            setCourseId(course._id);
         }
-    }, [data]);
+    }, [course]);
 
-    if (isLoading && id) return <div>Loading...</div>;
-
+    if (loading && id) return <div>Loading...</div>;
+    if (error) return <div className="text-red-500">Error loading course</div>;
     return (
         <CourseCreationForm
             formData={formData}

@@ -23,7 +23,6 @@ interface AddEditSectionProps {
 }
 
 const AddEditSection: React.FC<AddEditSectionProps> = ({
-    courseId,
     onSubmit,
     mode = "add",
     initialData,

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { Course, CourseDetail } from '@/types/course';
+import { Course } from '@/types/course';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -33,13 +33,13 @@ export const courseApi = createApi({
       query: () => '/courses',
       providesTags: ['Course'],
     }),
-    getCourseById: builder.query<ApiResponse<CourseDetail>, string>({
+    getCourseById: builder.query<ApiResponse<Course>, string>({
       query: id => `/courses/${id}`,
       providesTags: (result, error, id) => [{ type: 'Course', id }],
     }),
     getCourseByDetail: builder.query<ApiResponse<Course>, string>({
-      query: (id) => `/courses/course/${id}`,
-      providesTags: (result, error, id) => [{ type: "Course", id }],
+      query: id => `/courses/course/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Course', id }],
     }),
     getTopCourses: builder.query<ApiResponse<{ courses: Course[] }>, void>({
       query: () => '/courses/top-courses',
@@ -47,12 +47,12 @@ export const courseApi = createApi({
     }),
     getUserCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '/courses/user-courses',
-      providesTags: (result) =>
+      providesTags: result =>
         result?.data
           ? [
-            ...result.data.map((course) => ({ type: 'Course' as const, id: course._id })),
-            { type: 'Course' },
-          ]
+              ...result.data.map(course => ({ type: 'Course' as const, id: course._id })),
+              { type: 'Course' },
+            ]
           : [{ type: 'Course' }],
       transformResponse: (response: { success: boolean; data: Course[] }) => {
         return {
@@ -68,12 +68,9 @@ export const courseApi = createApi({
         method: 'POST',
         body: course,
       }),
-      invalidatesTags: (result) =>
+      invalidatesTags: result =>
         result?.data?._id
-          ? [
-            { type: 'Course' },
-            { type: 'Course', id: result.data._id },
-          ]
+          ? [{ type: 'Course' }, { type: 'Course', id: result.data._id }]
           : [{ type: 'Course' }],
     }),
     updateCourse: builder.mutation<ApiResponse<Course>, { id: string; course: Partial<Course> }>({
@@ -102,7 +99,10 @@ export const courseApi = createApi({
       }),
       invalidatesTags: ['Course'],
     }),
-    searchCourses: builder.query<ApiResponse<Course[]>, { search: string; category?: string; level?: string }>({
+    searchCourses: builder.query<
+      ApiResponse<Course[]>,
+      { search: string; category?: string; level?: string }
+    >({
       query: ({ search, category, level }) => ({
         url: '/courses/search',
         method: 'GET',
