@@ -192,6 +192,7 @@ export interface Course {
   name: string;
   subTitle?: string;
   description?: string;
+  overview?: string;
   author: {
     _id: string;
     name: string;
@@ -204,9 +205,9 @@ export interface Course {
   };
   price?: number;
   estimatedPrice?: number;
-  thumbnail: string;
-  tags?: string;
-  level: string; // Level ID
+  thumbnail: { url: string };
+  tags?: string[];
+  level?: string | { _id: string; name: string } | null;
   demoUrl?: {
     public_id: string;
     url: string;
@@ -219,9 +220,10 @@ export interface Course {
   purchased: number;
   isPublished: boolean;
   isFree: boolean;
-  category: string; // Category ID
-  subCategory?: string;
+  category?: string | { _id: string; title: string } | null;
+  subCategory?: string | { _id: string; title: string } | null;
   duration?: number;
+  isDraft?: boolean;
   createdAt: string;
   updatedAt: string;
 }

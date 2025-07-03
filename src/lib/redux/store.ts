@@ -9,18 +9,13 @@ import { bankApi } from './features/bank/bankApi';
 import { chatApi } from './features/chat/chatApi';
 import chatReducer from './features/chat/chatSlice';
 import { quizApi } from './features/quiz/quizApi';
+import { categoryApi } from './features/course/category/categoryApi';
+import { levelApi } from './features/course/level/levelApi';
+import { sectionApi } from './features/course/section/sectionApi';
+import { lessonApi } from './features/course/section/lesson/lessonApi';
 // import orderSlice from './features/order/orderSlice';
 
 // Create an array of all API middlewares
-const apiMiddlewares = [
-  apiSlice.middleware,
-  courseApi.middleware,
-  expertApi.middleware,
-  bankApi.middleware,
-  chatApi.middleware,
-  quizApi.middleware,
-  
-];
 
 export const store = configureStore({
   reducer: {
@@ -29,14 +24,34 @@ export const store = configureStore({
     [expertApi.reducerPath]: expertApi.reducer,
     [bankApi.reducerPath]: bankApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
+    [sectionApi.reducerPath]: sectionApi.reducer,
+    [lessonApi.reducerPath]: lessonApi.reducer,
+    [categoryApi.reducerPath]: categoryApi.reducer,
+    [levelApi.reducerPath]: levelApi.reducer,
     [quizApi.reducerPath]: quizApi.reducer,
+
     auth: authSlice,
     course: courseReducer,
     chat: chatReducer,
   },
+
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware().concat(
+      apiSlice.middleware,
+      courseApi.middleware,
+      expertApi.middleware,
+      bankApi.middleware,
+      chatApi.middleware,
+      sectionApi.middleware,
+      lessonApi.middleware,
+      categoryApi.middleware,
+      levelApi.middleware,
+      quizApi.middleware
+    ),
+
   devTools: process.env.NODE_ENV !== 'production',
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(...apiMiddlewares),
 });
+
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
