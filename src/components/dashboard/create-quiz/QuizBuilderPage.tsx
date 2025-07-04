@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import QuestionListSidebar from './QuestionListSidebar';
 import InstructorQuestionEditor from './InstructorQuestionEditor';
 import QuizBuilderHeader from './QuizBuilderHeader';
-import { QuestionData, QuestionSummary, Quiz } from './types'; // Đảm bảo đường dẫn đúng
+import { QuestionData, QuestionSummary } from './types'; // Đảm bảo đường dẫn đúng
 import {
   useGetQuizByIdQuery,
   useUpdateQuizMutation,
@@ -379,6 +379,11 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           placeholder="Enter quiz name"
           className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
         />
+        {currentQuizCreatedAt && (
+          <div className="mt-2 text-xs text-gray-500">
+            Created at: {new Date(currentQuizCreatedAt).toLocaleString()}
+          </div>
+        )}
       </div>
       <div className="flex flex-grow overflow-hidden pt-2 sm:pt-4 px-4 sm:px-6 gap-4 sm:gap-6">
         {!isSidebarOpen && (

@@ -9,7 +9,6 @@ interface PriceDisplayProps {
 export const PriceDisplay: React.FC<PriceDisplayProps> = ({
     originalPrice,
     salePrice,
-    currency = 'VND',
 }) => {
     return (
         <div className="flex flex-col items-start gap-1 w-[134px]">

@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical } from "lucide-react";
-import { Button } from "@/components/common/ui/Button2";
 
 interface CardOptionProps {
     courseId: string;
@@ -11,7 +10,7 @@ interface CardOptionProps {
     onDelete?: () => void;
 }
 
-const CardOption: React.FC<CardOptionProps> = ({ courseId, onEdit, onDelete }) => {
+const CardOption: React.FC<CardOptionProps> = ({ courseId, onDelete }) => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
