@@ -11,12 +11,12 @@ import chatReducer from './features/chat/chatSlice';
 // import orderSlice from './features/order/orderSlice';
 
 // Create an array of all API middlewares
-const apiMiddlewares = [
-  apiSlice.middleware,
-  courseApi.middleware,
-  expertApi.middleware,
-  bankApi.middleware
-];
+// const apiMiddlewares = [
+//   apiSlice.middleware,
+//   courseApi.middleware,
+//   expertApi.middleware,
+//   bankApi.middleware
+// ];
 
 export const store = configureStore({
   reducer: {
