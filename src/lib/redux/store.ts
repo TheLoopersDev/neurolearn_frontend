@@ -17,6 +17,13 @@ import { lessonApi } from './features/course/section/lesson/lessonApi';
 
 // Create an array of all API middlewares
 
+// const apiMiddlewares = [
+//   apiSlice.middleware,
+//   courseApi.middleware,
+//   expertApi.middleware,
+//   bankApi.middleware
+// ];
+
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
@@ -34,13 +41,15 @@ export const store = configureStore({
     course: courseReducer,
     chat: chatReducer,
   },
-
+  devTools: process.env.NODE_ENV !== 'production',
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
       apiSlice.middleware,
       courseApi.middleware,
       expertApi.middleware,
       bankApi.middleware,
+      chatApi.middleware
+    ),
       chatApi.middleware,
       sectionApi.middleware,
       lessonApi.middleware,
@@ -48,7 +57,6 @@ export const store = configureStore({
       levelApi.middleware,
       quizApi.middleware
     ),
-
   devTools: process.env.NODE_ENV !== 'production',
 });
 

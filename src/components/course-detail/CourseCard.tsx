@@ -212,7 +212,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       {isPurchased ? (
         <button
           className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-white font-bold rounded-lg bg-green-600 hover:bg-green-700 transition"
-          onClick={() => redirect(`/courses/${course._id}`)}
+          onClick={() => redirect(`/watch-course/${course._id}`)}
         >
           Go to course
         </button>
