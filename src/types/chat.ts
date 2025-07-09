@@ -73,22 +73,4 @@ export interface UsersResponse {
 export interface UserInfoResponse {
   success: boolean;
   user: UserInfo;
-}
-
-// Socket events
-export interface SocketMessage {
-  chatId: string;
-  message: ChatMessage;
-}
-
-export interface TypingEvent {
-  chatId: string;
-  userId: string;
-  isTyping: boolean;
-}
-
-export interface OnlineStatusEvent {
-  userId: string;
-  isOnline: boolean;
-  lastSeen?: string;
 } 

@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { X, Search, Users } from 'lucide-react';
-import { useGetAllUsersQuery, useCreateChatMutation } from '@/lib/redux/features/chat/chatApi';
+import { getOrCreateChatRoom } from '@/lib/firestore/chat';
 import { useDispatch } from 'react-redux';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { Chat } from '@/types/chat';
+
+interface UserInfo {
+    _id: string;
+    name: string;
+    email: string;
+    avatar?: { url?: string };
+}
 
 interface CreateChatModalProps {
     open: boolean;
     onClose: () => void;
     currentUserId: string;
-    onChatCreated?: () => void; // Callback to refresh chat list
+    onChatCreated?: (chatRoomId: string) => void; // Callback to refresh chat list
 }
 
 const CreateChatModal: React.FC<CreateChatModalProps> = ({
@@ -23,10 +30,20 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [groupName, setGroupName] = useState('');
     const [isGroup, setIsGroup] = useState(false);
+    const [users, setUsers] = useState<UserInfo[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
 
-    const { data: users = [], isLoading } = useGetAllUsersQuery();
-    const [createChat, { isLoading: isCreating }] = useCreateChatMutation();
+    // Fetch users from backend
+    useEffect(() => {
+        if (!open || !currentUserId) return;
+        setIsLoading(true);
+        fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/chats/users`)
+            .then(res => res.json())
+            .then(data => setUsers((data.users || []).filter((u: any) => u._id !== currentUserId)))
+            .catch(() => setUsers([]))
+            .finally(() => setIsLoading(false));
+    }, [open, currentUserId]);
 
     // Filter out current user and apply search
     const filteredUsers = users.filter(
@@ -43,61 +60,50 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
         );
     };
 
+    // Group chat UI: Hiện input groupName nếu chọn nhiều hơn 1 user
+    const showGroupNameInput = selectedUsers.length > 1;
+
     const handleCreateChat = async () => {
         if (selectedUsers.length === 0) return;
-
         try {
-            const chatData = {
-                members: [currentUserId, ...selectedUsers],
-                isGroup: isGroup,
-                groupName: isGroup ? groupName : undefined,
-            };
-
-            // Try to create chat via API
-            let result;
-            try {
-                result = await createChat(chatData).unwrap();
-            } catch (apiError) {
-                // Create a mock chat for testing
-                const mockChat: Chat = {
-                    _id: `mock-${Date.now()}`,
-                    members: users.filter(u => selectedUsers.includes(u._id) || u._id === currentUserId).map(u => ({
-                        _id: u._id,
-                        name: u.name,
-                        email: u.email,
-                        avatar: u.avatar,
-                        role: 'user' as const,
-                    })),
-                    isGroup: isGroup,
-                    groupName: isGroup ? groupName : undefined,
-                    messages: [],
-                    lastMessage: undefined,
-                    unreadCount: 0,
+            let chatRoomId: string;
+            if (selectedUsers.length === 1) {
+                // 1-1 chat
+                const otherUserId = selectedUsers[0];
+                // Đảm bảo otherUserId có trong users
+                const validUser = users.find(u => u._id === otherUserId);
+                if (!validUser) return; // Không tạo chat nếu user không hợp lệ
+                chatRoomId = await getOrCreateChatRoom(currentUserId, otherUserId);
+            } else {
+                // Group chat
+                const participants = [currentUserId, ...selectedUsers];
+                // Đảm bảo tất cả participants đều hợp lệ
+                const allValid = participants.every(id => id === currentUserId || users.find(u => u._id === id));
+                if (!allValid) return;
+                // Tạo chat room mới với groupName
+                const chatRoomsRef = (await import('firebase/firestore')).collection;
+                const { db } = await import('@/lib/firebase');
+                const { serverTimestamp, addDoc } = await import('firebase/firestore');
+                const newChatRoom = {
+                    participants,
+                    groupName: groupName || 'New Group',
+                    createdAt: serverTimestamp(),
+                    isGroup: true,
+                    lastMessageTime: serverTimestamp()
                 };
-                // Store mock chat in localStorage for persistence
-                const existingChats = JSON.parse(localStorage.getItem('mockChats') || '[]');
-                existingChats.push(mockChat);
-                localStorage.setItem('mockChats', JSON.stringify(existingChats));
-                result = mockChat;
+                const docRef = await addDoc(chatRoomsRef(db, 'chatRooms'), newChatRoom);
+                chatRoomId = docRef.id;
             }
-            // Auto-select the newly created chat
-            if (result && result._id) {
-                dispatch(setActiveChat(result._id));
-            }
-
-            // Reset form
+            dispatch(setActiveChat(chatRoomId));
             setSelectedUsers([]);
             setGroupName('');
             setIsGroup(false);
             setSearchQuery('');
-
-            // Notify parent component to refresh chat list
             if (onChatCreated) {
                 setTimeout(() => {
-                    onChatCreated();
+                    onChatCreated(chatRoomId);
                 }, 100);
             }
-
             onClose();
         } catch (error) {
             // Do nothing
@@ -152,31 +158,16 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                     </div>
                 </div>
 
-                {/* Group Options */}
-                {selectedUsers.length > 1 && (
+                {/* Group Name Input */}
+                {showGroupNameInput && (
                     <div className="p-6 border-b border-gray-200">
-                        <div className="flex items-center gap-3 mb-3">
-                            <input
-                                type="checkbox"
-                                id="isGroup"
-                                checked={isGroup}
-                                onChange={(e) => setIsGroup(e.target.checked)}
-                                className="rounded"
-                            />
-                            <label htmlFor="isGroup" className="text-sm font-medium text-gray-700">
-                                Create as group chat
-                            </label>
-                        </div>
-
-                        {isGroup && (
-                            <input
-                                type="text"
-                                placeholder="Enter group name..."
-                                value={groupName}
-                                onChange={(e) => setGroupName(e.target.value)}
-                                className="w-full text-black rounded-lg bg-gray-100 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            />
-                        )}
+                        <input
+                            type="text"
+                            placeholder="Enter group name..."
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                            className="w-full text-black rounded-lg bg-gray-100 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
                     </div>
                 )}
 
@@ -198,38 +189,19 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                             {filteredUsers.map((user) => (
                                 <div
                                     key={user._id}
+                                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${selectedUsers.includes(user._id) ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
                                     onClick={() => handleUserToggle(user._id)}
-                                    className={`
-                    flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors
-                    ${selectedUsers.includes(user._id)
-                                            ? 'bg-blue-50 border border-blue-200'
-                                            : 'hover:bg-gray-50'
-                                        }
-                  `}
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedUsers.includes(user._id)}
-                                        onChange={() => handleUserToggle(user._id)}
-                                        className="rounded"
-                                    />
-
                                     <Image
                                         src={user.avatar?.url || '/assets/images/avatar-default.png'}
                                         alt={user.name}
-                                        width={40}
-                                        height={40}
-                                        className="rounded-full"
+                                        width={32}
+                                        height={32}
+                                        className="rounded-full object-cover"
+                                        unoptimized
                                     />
-
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-medium text-gray-900 text-sm truncate">
-                                            {user.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 truncate">
-                                            {user.email}
-                                        </p>
-                                    </div>
+                                    <span className="flex-1 text-sm text-gray-900">{user.name}</span>
+                                    {selectedUsers.includes(user._id) && <span className="text-xs text-blue-600">Selected</span>}
                                 </div>
                             ))}
                         </div>
@@ -237,22 +209,20 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200">
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleClose}
-                            className="flex-1 py-2 px-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleCreateChat}
-                            disabled={selectedUsers.length === 0 || (isGroup && !groupName.trim()) || isCreating}
-                            className="flex-1 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isCreating ? 'Creating...' : 'Create Chat'}
-                        </button>
-                    </div>
+                <div className="p-6 border-t border-gray-200 flex justify-end gap-2">
+                    <button
+                        onClick={handleClose}
+                        className="px-4 py-2 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleCreateChat}
+                        className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                        disabled={selectedUsers.length === 0 || isLoading}
+                    >
+                        Create Chat
+                    </button>
                 </div>
             </div>
         </div>

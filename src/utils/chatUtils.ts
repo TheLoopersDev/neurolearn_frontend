@@ -16,8 +16,15 @@ export const formatMessageTime = (timestamp: string): string => {
   }
 };
 
-export const formatChatTime = (timestamp: string): string => {
-  const date = new Date(timestamp);
+export const formatChatTime = (timestamp: any): string => {
+  if (!timestamp) return '';
+  let date: Date;
+  if (timestamp && typeof timestamp === 'object' && typeof timestamp.toDate === 'function') {
+    date = timestamp.toDate();
+  } else {
+    date = new Date(timestamp);
+  }
+  if (isNaN(date.getTime())) return '';
   const now = new Date();
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
@@ -36,9 +43,9 @@ export const getChatDisplayName = (chat: Chat, currentUserId: string): string =>
   if (chat.isGroup) {
     return chat.groupName || 'Group Chat';
   }
-  
   const otherMember = chat.members.find((member: ChatMember) => member._id !== currentUserId);
-  return otherMember?.name || 'Unknown User';
+  if (!otherMember) return 'Loading...';
+  return otherMember.name && otherMember.name !== 'Loading...' ? otherMember.name : 'Loading...';
 };
 
 export const getChatAvatar = (chat: Chat, currentUserId: string): string => {

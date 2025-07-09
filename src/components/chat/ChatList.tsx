@@ -69,6 +69,13 @@ const ChatList: React.FC<ChatListProps> = ({
         onCreateChat();
     };
 
+    const handleSelectChat = (chatId: string) => {
+        onSelectChat(chatId);
+        // Scroll to top of chat list (nếu cần)
+        const chatListDiv = document.querySelector('.flex-1.overflow-y-auto');
+        if (chatListDiv) chatListDiv.scrollTop = 0;
+    };
+
     return (
         <div className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white rounded-2xl flex flex-col h-full border-r border-gray-200">
             {/* Header */}
@@ -149,7 +156,7 @@ const ChatList: React.FC<ChatListProps> = ({
                                 chat={chat}
                                 currentUserId={currentUserId}
                                 active={activeChatId === chat._id}
-                                onSelect={onSelectChat}
+                                onSelect={handleSelectChat}
                                 unreadCount={unreadCounts[chat._id] || 0}
                                 onlineUsers={onlineUsers}
                             />

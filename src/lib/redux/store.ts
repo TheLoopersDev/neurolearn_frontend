@@ -6,7 +6,6 @@ import { courseApi } from './features/course/courseApi';
 import courseReducer from './features/course/courseSlice';
 import { expertApi } from './features/expert/expertApi';
 import { bankApi } from './features/bank/bankApi';
-import { chatApi } from './features/chat/chatApi';
 import chatReducer from './features/chat/chatSlice';
 import { quizApi } from './features/quiz/quizApi';
 import { categoryApi } from './features/course/category/categoryApi';
@@ -30,7 +29,6 @@ export const store = configureStore({
     [courseApi.reducerPath]: courseApi.reducer,
     [expertApi.reducerPath]: expertApi.reducer,
     [bankApi.reducerPath]: bankApi.reducer,
-    [chatApi.reducerPath]: chatApi.reducer,
     [sectionApi.reducerPath]: sectionApi.reducer,
     [lessonApi.reducerPath]: lessonApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
@@ -48,16 +46,12 @@ export const store = configureStore({
       courseApi.middleware,
       expertApi.middleware,
       bankApi.middleware,
-      chatApi.middleware
-    ),
-      chatApi.middleware,
       sectionApi.middleware,
       lessonApi.middleware,
       categoryApi.middleware,
       levelApi.middleware,
-      quizApi.middleware
+      quizApi.middleware,
     ),
-  devTools: process.env.NODE_ENV !== 'production',
 });
 
 

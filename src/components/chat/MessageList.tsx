@@ -15,9 +15,9 @@ const MessageList: React.FC<MessageListProps> = ({
 }) => {
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom when new messages arrive (không dùng behavior: 'smooth')
+    // Auto-scroll to bottom when new messages arrive (chỉ cuộn phần chat, không cuộn cả trang)
     useEffect(() => {
-        endOfMessagesRef.current?.scrollIntoView();
+        endOfMessagesRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }, [messages]);
 
     if (messages.length === 0) {
@@ -37,7 +37,7 @@ const MessageList: React.FC<MessageListProps> = ({
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-full" style={{ minHeight: 0 }}>
             {messages.map((message) => {
                 const sender = chatMembers.find(member => member._id === message.sender);
                 const isMe = message.sender === currentUserId;
