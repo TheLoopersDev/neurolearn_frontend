@@ -9,9 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-black text-white shadow hover:bg-[#1e3a8a] cursor-pointer', // Giữ nguyên
-        primary: 'bg-foreground text-black shadow hover:bg-gray-100 cursor-pointer', // Giữ nguyên
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-[#1e3a8a]', // Giữ nguyên, nhưng lưu ý hover:bg-[#1e3a8a] có thể không phải là màu destructive đậm hơn.
+        default: 'bg-[#3858F8] text-white shadow hover:bg-[#2C48E0] cursor-pointer',
+
+        // --- PHẦN PRIMARY ĐÃ ĐIỀU CHỈNH ---
+        primary: 'bg-white text-[#3858F8] shadow-sm hover:bg-[#F7F8FA] cursor-pointer',
+
+        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-[#D4405E]', // Đổi hover sang màu đỏ đậm hơn cho destructive
 
         // --- PHẦN OUTLINE ĐÃ ĐIỀU CHỈNH ---
         outline:
@@ -28,8 +31,7 @@ const buttonVariants = cva(
         secondary: 'bg-[#3b82f6] text-black shadow hover:bg-[#1e3a8a]', // Giữ nguyên
 
         // --- PHẦN GHOST ĐÃ ĐIỀU CHỈNH ---
-        ghost:
-          'text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
+        ghost: 'text-[#3858F8] hover:bg-[#F7F8FA] hover:text-[#2C48E0] cursor-pointer shadow-sm',
         ghost2:
           'text-blue-600 rounded-full hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
 
