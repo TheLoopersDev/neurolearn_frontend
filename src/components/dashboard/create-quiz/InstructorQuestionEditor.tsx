@@ -7,10 +7,12 @@ import { QuestionData, AnswerOptionData } from '../../../types/quiz';
 
 import { debounce } from 'lodash'; // Thêm lodash để sử dụng debounce
 import Image from 'next/image';
+import QuestionOptionsMenu from './QuestionOptionsMenu';
 
 interface InstructorQuestionEditorProps {
   questionToLoad?: QuestionData | null;
   onQuestionDataChange?: (updatedData: QuestionData) => void;
+  onDeleteQuestion?: (questionId: string) => void;
 }
 
 const initialOptionsDataForEditor: AnswerOptionData[] = [
@@ -21,6 +23,7 @@ const initialOptionsDataForEditor: AnswerOptionData[] = [
 const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   questionToLoad,
   onQuestionDataChange,
+  onDeleteQuestion,
 }) => {
   const [internalId, setInternalId] = useState<string | null>(null);
   const [questionText, setQuestionText] = useState<string>('New Question');
@@ -37,6 +40,8 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   const [isAnswerWithImage, setIsAnswerWithImage] = useState<boolean>(false);
   const [points, setPoints] = useState<string>('01');
 
+
+  const [menuOpenQuestionId, setMenuOpenQuestionId] = useState<string | null>(null);
   // Effect để tải dữ liệu câu hỏi mới khi `questionToLoad` (từ props) thay đổi
   useEffect(() => {
     if (questionToLoad) {
@@ -214,7 +219,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
             {questionTypeLocal.replace('-', ' ')}
           </span>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex relative items-center space-x-3">
           <span className="text-xs sm:text-sm text-gray-600">Required</span>
           <ToggleSwitch
             id={`req-${internalId}`}
@@ -222,7 +227,15 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
             onChange={handleSetIsQuestionRequired}
             activeColor="bg-green-500"
           />
-          <button className="text-gray-400 hover:text-gray-600 p-1" title="More options">
+          <button
+            className="text-gray-400 hover:text-gray-600 p-1"
+            onClick={e => {
+              e.stopPropagation();
+              setMenuOpenQuestionId(prev =>
+                prev === questionToLoad?.id ? null : questionToLoad?.id ?? null
+              );
+            }}
+            title="More options">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -231,6 +244,20 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
             >
               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
             </svg>
+            {menuOpenQuestionId === questionToLoad?.id && (
+              <QuestionOptionsMenu
+                onDuplicate={() => {
+                  console.log('Duplicate', questionToLoad?.id);
+                  setMenuOpenQuestionId(null);
+                }}
+                onDelete={() => {
+                  if (questionToLoad?.id && onDeleteQuestion) {
+                    onDeleteQuestion(questionToLoad.id);
+                  }
+                  setMenuOpenQuestionId(null);
+                }}
+              />
+            )}
           </button>
         </div>
       </div>

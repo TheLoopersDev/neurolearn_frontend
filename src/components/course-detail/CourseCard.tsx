@@ -1,9 +1,18 @@
 'use client';
 
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { redirect } from 'next/navigation';
+import { Dialog } from '@headlessui/react';
+import { Fragment, useState } from 'react';
 
 interface CourseCardProps {
   course: {
+    _id: string;
+    name?: string;
+    description?: string;
     price?: number;
     estimatedPrice?: number;
     isFree?: boolean;
@@ -14,10 +23,125 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
+  const { toast } = useToast();
+  const { user } = useSelector((state: any) => state.auth);
+  const [isOpen, setIsOpen] = useState(false);
+  console.log(user)
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
+
+  const isPurchased = user.purchasedCourses
+    .map((id: any) => id.toString())
+    .includes(course._id.toString());
+
+  const checkCourseExistInCart = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/cart-items`, {
+        withCredentials: true,
+      });
+      const cartItems = response.data.cart.items;
+      return cartItems.some((item: any) => item?.courseId._id === course._id);
+    } catch (error) {
+      console.error('Error checking cart:', error);
+      return false;
+    }
+  };
+
+  const addToCart = async () => {
+    if (!user) {
+      toast({
+        variant: 'success',
+        title: 'You are not login now!',
+        description: 'Please login to continue.',
+        duration: 3000,
+      });
+      redirect('/');
+      return;
+    }
+
+    if (!course._id) {
+      toast({
+        variant: 'destructive',
+        title: 'CourseId not found!',
+      });
+      return;
+    }
+
+    try {
+      const alreadyExists = await checkCourseExistInCart();
+      if (alreadyExists) {
+        toast({
+          variant: 'success',
+          title: 'This course is already in your cart',
+          description: 'You can check it in your cart.',
+          duration: 3000,
+        });
+        return;
+      }
+
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/add-to-cart`,
+        { courseId: course._id },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        toast({
+          variant: 'success',
+          title: 'Course added to your cart!',
+          description: 'You can check it in your cart.',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'You are not logged in!',
+        description: 'Please login to buy the course.',
+        duration: 3000,
+      });
+      redirect('/');
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/payment/create-payment-link`,
+        {
+          amount: course.price,
+          description: `Buy course from Academix`,
+          courseIds: [course._id],
+          userId: user._id,
+          webhookUrl: 'https://b340-2405-4803-d372-2630-4d53-126c-f4cf-8cfb.ngrok-free.app/api/payment/webhook'
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.checkoutUrl) {
+        window.location.href = res.data.checkoutUrl;
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to initiate payment.',
+        });
+      }
+    } catch (error) {
+      console.error('Buy now error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Something went wrong.',
+        description: 'Unable to create payment link.',
+      });
+    }
+  };
 
   return (
     <div className="w-[395px] bg-white rounded-2xl max-w-full mx-auto">
@@ -48,10 +172,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       <div className="text-black pb-4">
         <div className="text-sm space-y-4 px-4">
           <div className="text-4xl text-[#3858F8] mt-2">
-            {course.isFree
-              ? 'Free'
-              : `$${(course.price ?? 0).toLocaleString()}`}
-
+            {course.isFree ? 'Free' : `$${(course.price ?? 0).toLocaleString()}`}
           </div>
 
           <div className="text-black text-2xl">Course includes</div>
@@ -88,23 +209,67 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex items-center gap-2 px-4 h-[60px]">
-        <button className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition">
-          Add to cart
+      {isPurchased ? (
+        <button
+          className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-white font-bold rounded-lg bg-green-600 hover:bg-green-700 transition"
+          onClick={() => redirect(`/watch-course/${course._id}`)}
+        >
+          Go to course
         </button>
-        <Image
-          src="/assets/icons/bookmark.svg"
-          alt="Bookmark"
-          className="bg-[#ECECEC] h-14 w-14 rounded-md p-2"
-          width={30}
-          height={30}
-        />
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 px-4 h-[60px]">
+            <button
+              onClick={addToCart}
+              className="flex-1 h-14 bg-[#3858F8] text-white text-xl rounded-lg hover:bg-blue-700 transition"
+            >
+              Add to cart
+            </button>
+            <Image
+              src="/assets/icons/bookmark.svg"
+              alt="Bookmark"
+              className="bg-[#ECECEC] h-14 w-14 rounded-md p-2"
+              width={30}
+              height={30}
+            />
+          </div>
 
-      <button className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition">
-        Buy now
-      </button>
+            <button
+              onClick={() => setIsOpen(true)}
+              className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition"
+            >
+              Buy now
+            </button>
+        </>
+      )}
+
+      <Dialog as={Fragment} open={isOpen} onClose={() => setIsOpen(false)}>
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-opacity-50 flex items-center justify-center">
+          <Dialog.Panel className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <Dialog.Title className="text-xl font-bold text-gray-800 mb-4">
+              Do you want to buy this course?
+            </Dialog.Title>
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleBuyNow();
+                }}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }
