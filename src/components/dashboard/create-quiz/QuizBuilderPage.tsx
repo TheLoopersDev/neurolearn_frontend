@@ -6,10 +6,18 @@ import { useToast } from '@/hooks/use-toast';
 import QuestionListSidebar from './QuestionListSidebar';
 import InstructorQuestionEditor from './InstructorQuestionEditor';
 import QuizBuilderHeader from './QuizBuilderHeader';
-import { QuestionData, QuestionSummary, Quiz } from './types'; // Đảm bảo đường dẫn đúng
+import { QuestionData, QuestionSummary } from './types'; // Đảm bảo đường dẫn đúng
+import {
+  useGetQuizByIdQuery,
+  useUpdateQuizMutation,
+  useAddQuestionMutation,
+  useUpdateQuestionMutation,
+  useDeleteQuestionMutation,
+} from '@/lib/redux/features/quiz/quizApi';
 
+<<<<<<< HEAD
 // --- Mockup hàm lưu trữ và tải quiz ---
-const QUIZZES_STORAGE_KEY = 'quizzes_v2_main'; // Đổi key để tránh xung đột với list page nếu cần
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main'; // Đổi key để tránh xung đột với list page nếu cần
 
 const fetchQuizzesFromStorage = (): Quiz[] => {
   if (typeof window !== 'undefined') {
@@ -40,6 +48,8 @@ const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
   return undefined;
 };
 // -------------------------------------
+=======
+>>>>>>> 5b41ad99b96e4a98d140a5ecf287617c144429d5
 
 function getIconForQuestionType(type: QuestionData['questionType']): React.ReactNode {
   if (type === 'multiple-choice' || type === 'single-choice') {
@@ -69,6 +79,10 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const router = useRouter();
   const pathParams = useParams();
   const { toast } = useToast();
+  const [updateQuiz] = useUpdateQuizMutation();
+  const [addQuestion] = useAddQuestionMutation();
+  const [updateQuestion] = useUpdateQuestionMutation();
+  const [deleteQuestion] = useDeleteQuestionMutation();
 
   const quizIdToLoad =
     params?.quizId || (typeof pathParams?.quizId === 'string' ? pathParams.quizId : undefined);
@@ -79,7 +93,10 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentQuizIdInternal, setCurrentQuizIdInternal] = useState<string | null>(null);
   const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined); // State để lưu ngày tạo của quiz đang sửa
-  const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const { data: fetchedQuiz, isLoading, isError } = useGetQuizByIdQuery(quizIdToLoad!, {
+    skip: !quizIdToLoad,
+  });
 
   const defaultFirstQuestion = useCallback((): QuestionData => {
     const newId = `q_${Date.now()}_init`;
@@ -101,37 +118,63 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    if (quizIdToLoad) {
-      const existingQuiz = fetchQuizByIdFromStorage(quizIdToLoad);
-      if (existingQuiz) {
-        setQuizName(existingQuiz.name);
-        const questionsToSet =
-          existingQuiz.questions && existingQuiz.questions.length > 0
-            ? existingQuiz.questions
-            : [defaultFirstQuestion()];
-        setQuestionsList(questionsToSet);
-        setSelectedQuestionId(questionsToSet[0]?.id || null);
-        setCurrentQuizIdInternal(existingQuiz.id);
-        setCurrentQuizCreatedAt(existingQuiz.createdAt); // Lưu ngày tạo của quiz hiện tại
+    if (fetchedQuiz && fetchedQuiz.quiz) {
+      const serverQuiz = fetchedQuiz.quiz;
+
+      setQuizName(serverQuiz.name || '');
+
+      const transformedQuestions: QuestionData[] = (serverQuiz.questions || []).map((q, index) => ({
+        id: `q_${index + 1}`,
+        questionNumber: q.questionNumber ?? index + 1,
+        title: q.title,
+        questionType: q.questionType,
+        questionImage: q.questionImage || null,
+        choicesConfig: q.choicesConfig || {
+          isMultipleAnswer: false,
+          isAnswerWithImageEnabled: false,
+        },
+        options: q.options || [],
+        correctAnswerIds: q.correctAnswerIds || [],
+        points: q.points || '01',
+        isRequired: q.isRequired ?? true,
+      }));
+
+      if (transformedQuestions.length > 0) {
+        setQuestionsList(transformedQuestions);
+        setSelectedQuestionId(transformedQuestions[0]?.id || null);
       } else {
-        toast({
-          title: 'Error',
-          description: 'Quiz not found. Redirecting...',
-          variant: 'destructive',
-        });
-        router.push('/dashboard/create-quiz');
+        const defaultQuestion = defaultFirstQuestion();
+        setQuestionsList([defaultQuestion]);
+        setSelectedQuestionId(defaultQuestion.id);
+
+        // ✅ Lưu vào DB nếu quiz đã có ID
+        if (serverQuiz._id) {
+          addQuestion({
+            id: serverQuiz._id,
+            question: defaultQuestion,
+          })
+            .unwrap()
+            .then((res) => {
+              console.log('✅ Default question saved:', res);
+            })
+            .catch((err) => {
+              console.error('❌ Failed to save default question:', err);
+            });
+        }
       }
-    } else {
-      const firstQuestion = defaultFirstQuestion();
-      setQuizName('Name Quiz');
-      setQuestionsList([firstQuestion]);
-      setSelectedQuestionId(firstQuestion.id);
-      setCurrentQuizIdInternal(null);
-      setCurrentQuizCreatedAt(undefined); // Reset ngày tạo cho quiz mới
+      setCurrentQuizIdInternal(serverQuiz._id ?? null);
+      setCurrentQuizCreatedAt(serverQuiz.createdAt || undefined);
+      setHasInitialized(true);
+    } else if (isError) {
+      toast({
+        title: 'Error',
+        description: 'Quiz not found. Redirecting...',
+        variant: 'destructive',
+      });
+      router.push('/dashboard/create-quiz');
     }
-    setIsLoading(false);
-  }, [quizIdToLoad, router, toast, defaultFirstQuestion]);
+  }, [fetchedQuiz, isError]);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -143,37 +186,139 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
   const handleSelectQuestion = (id: string) => setSelectedQuestionId(id);
 
-  const handleAddQuestion = useCallback(() => {
-    setQuestionsList(prevList => {
-      const newQuestionNumber =
-        prevList.length > 0 ? Math.max(...prevList.map(q => q.questionNumber)) + 1 : 1;
-      const newQuestion: QuestionData = {
-        id: `q_${Date.now()}_${newQuestionNumber}`,
-        questionNumber: newQuestionNumber,
-        title: `New Question ${newQuestionNumber}`,
-        questionType: 'single-choice',
-        questionImage: null,
-        choicesConfig: { isMultipleAnswer: false, isAnswerWithImageEnabled: false },
-        options: [
-          { id: `nqo_${Date.now()}_1`, text: 'Option A' },
-          { id: `nqo_${Date.now()}_2`, text: 'Option B' },
-        ],
-        correctAnswerIds: [],
-        points: '01',
-        isRequired: true,
-      };
-      setSelectedQuestionId(newQuestion.id);
-      return [...prevList, newQuestion].sort((a, b) => a.questionNumber - b.questionNumber);
-    });
-    if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024)
+  const handleAddQuestion = useCallback(async () => {
+    const newQuestionNumber =
+      questionsList.length > 0
+        ? Math.max(...questionsList.map(q => q.questionNumber)) + 1
+        : 1;
+
+    const timestamp = Date.now();
+    const localId = `q_${timestamp}_${newQuestionNumber}`;
+
+    const newQuestion: QuestionData = {
+      id: localId,
+      questionNumber: newQuestionNumber,
+      title: `New Question ${newQuestionNumber}`,
+      questionType: 'single-choice',
+      questionImage: null,
+      choicesConfig: {
+        isMultipleAnswer: false,
+        isAnswerWithImageEnabled: false,
+      },
+      options: [
+        { id: `opt_${timestamp}_1`, text: 'Option A' },
+        { id: `opt_${timestamp}_2`, text: 'Option B' },
+      ],
+      correctAnswerIds: [],
+      points: '01',
+      isRequired: true,
+    };
+
+    if (currentQuizIdInternal) {
+      try {
+        const res = await addQuestion({
+          id: currentQuizIdInternal,
+          question: newQuestion,
+        }).unwrap();
+
+        if (res?.question) {
+          // Giữ id là localId để match với selectedQuestionId
+          const merged = { ...res.question, id: localId };
+
+          setQuestionsList(prev => [...prev, merged]);
+          setSelectedQuestionId(localId); // Gán chính xác ID này để editor nhận
+        }
+      } catch (err) {
+        toast({
+          title: 'Error',
+          description: 'Failed to add question',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      setQuestionsList(prev => [...prev, newQuestion]);
+      setSelectedQuestionId(localId);
+    }
+
+    // Mở sidebar nếu đang ẩn
+    if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
-  }, [isSidebarOpen]);
+    }
+  }, [currentQuizIdInternal, isSidebarOpen, questionsList]);
 
-  const handleQuestionDataUpdateFromEditor = useCallback((updatedData: QuestionData) => {
-    setQuestionsList(prevList => prevList.map(q => (q.id === updatedData.id ? updatedData : q)));
-  }, []);
 
-  const handleSaveQuiz = () => {
+  const handleQuestionDataUpdateFromEditor = useCallback(
+    async (updatedData: QuestionData) => {
+      setQuestionsList(prev =>
+        prev.map(q => (q.id === updatedData.id ? updatedData : q))
+      );
+
+      if (!hasInitialized || !updatedData.questionNumber) return;
+
+      if (currentQuizIdInternal && updatedData.questionNumber) {
+        try {
+          await updateQuestion({
+            id: currentQuizIdInternal,
+            questionNumber: updatedData.questionNumber,
+            question: updatedData,
+          }).unwrap();
+        } catch (err) {
+          toast({ title: 'Error', description: 'Failed to update question', variant: 'destructive' });
+        }
+      }
+    },
+    [currentQuizIdInternal, hasInitialized]
+  );
+
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!currentQuizIdInternal || !questionId) return;
+
+    const targetQuestion = questionsList.find(q => q.id === questionId);
+    if (!targetQuestion) return;
+
+    try {
+      const res = await deleteQuestion({
+        id: currentQuizIdInternal,
+        questionNumber: targetQuestion.questionNumber,
+      }).unwrap();
+
+      if (res.success) {
+        const remaining = questionsList.filter(q => q.id !== questionId);
+
+        // Cập nhật UI
+        setQuestionsList(remaining);
+        setSelectedQuestionId(remaining.length > 0 ? remaining[0].id : null);
+
+        // GỌI UPDATE QUIZ BẰNG DANH SÁCH MỚI NHẤT
+        await updateQuiz({
+          id: currentQuizIdInternal,
+          quiz: {
+            name: quizName,
+            questions: remaining, // 💡 dùng `remaining` trực tiếp
+            duration: '30 Min',
+            category: 'General',
+            imageUrl: '/assets/images/default_quiz_thumbnail.png',
+          },
+        }).unwrap();
+
+        toast({
+          title: 'Question deleted',
+          description: 'The question was removed and saved successfully.',
+          variant: 'success',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err?.data?.message || 'Could not delete question.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+
+  const handleSaveQuiz = async () => {
     if (!quizName.trim()) {
       toast({
         title: 'Validation Error',
@@ -182,6 +327,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       });
       return;
     }
+
     if (questionsList.length === 0) {
       toast({
         title: 'Validation Error',
@@ -191,28 +337,35 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       return;
     }
 
-    const quizToSave: Quiz = {
-      id: currentQuizIdInternal || `quiz_${Date.now()}`,
-      name: quizName,
-      questions: questionsList,
-      // Sử dụng currentQuizCreatedAt nếu đang sửa, ngược lại là ngày mới
-      createdAt: currentQuizIdInternal
-        ? currentQuizCreatedAt
-        : new Date().toLocaleDateString('en-CA'),
-      totalQuestions: questionsList.length,
-      duration: '30 Min', // Ví dụ, có thể lấy từ state nếu có
-      category: 'General', // Ví dụ
-      imageUrl: '/assets/images/default_quiz_thumbnail.png', // Hoặc một URL ảnh cụ thể nếu có
+    const payload = {
+      id: currentQuizIdInternal!,
+      quiz: {
+        name: quizName,
+        questions: questionsList,
+        duration: '30 Min',
+        category: 'General',
+        imageUrl: '/assets/images/default_quiz_thumbnail.png',
+      },
     };
 
-    saveQuizToStorage(quizToSave);
-    toast({
-      title: 'Success!',
-      description: `Quiz "${quizName}" has been ${currentQuizIdInternal ? 'updated' : 'created'} successfully.`,
-      variant: 'success',
-    });
-    router.push('/dashboard/create-quiz'); // Chuyển về trang danh sách
+    try {
+      await updateQuiz(payload).unwrap();
+      toast({
+        title: 'Success!',
+        description: `Quiz "${quizName}" updated successfully.`,
+        variant: 'success',
+      });
+      router.push('/dashboard/create-quiz');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update quiz.',
+        variant: 'destructive',
+      });
+    }
   };
+
+
 
   const questionSummaries: QuestionSummary[] = useMemo(
     () =>
@@ -261,6 +414,11 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           placeholder="Enter quiz name"
           className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
         />
+        {currentQuizCreatedAt && (
+          <div className="mt-2 text-xs text-gray-500">
+            Created at: {new Date(currentQuizCreatedAt).toLocaleString()}
+          </div>
+        )}
       </div>
       <div className="flex flex-grow overflow-hidden pt-2 sm:pt-4 px-4 sm:px-6 gap-4 sm:gap-6">
         {!isSidebarOpen && (
@@ -291,7 +449,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           activeQuestionNumber={activeQuestionData?.questionNumber}
           onSelectQuestion={handleSelectQuestion}
           onAddQuestion={handleAddQuestion}
-          // isOpen và onToggle đã được truyền từ phiên bản trước, đảm bảo chúng vẫn có
+        // isOpen và onToggle đã được truyền từ phiên bản trước, đảm bảo chúng vẫn có
         />
         <main className={`flex-grow overflow-y-auto transition-all duration-300 ease-in-out`}>
           <div className="h-full">
@@ -300,6 +458,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
                 key={selectedQuestionId}
                 questionToLoad={activeQuestionData}
                 onQuestionDataChange={handleQuestionDataUpdateFromEditor}
+                onDeleteQuestion={handleDeleteQuestion}
               />
             ) : (
               <div className="flex items-center justify-center h-full min-h-[calc(100vh-250px)]">

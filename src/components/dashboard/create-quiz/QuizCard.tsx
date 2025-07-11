@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MoreHorizontal } from 'lucide-react';
-import { Quiz } from './types';
+import { Quiz } from '../../../types/quiz';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -14,7 +14,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
   const handleMoreOptionsClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('More options for quiz:', quiz.id);
+    console.log('More options for quiz:', quiz._id);
     // TODO: Implement dropdown menu
   };
 
@@ -22,9 +22,9 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
 
   return (
     <Link
-      href={`/dashboard/create-quiz/builder/${quiz.id}`}
+      href={`/dashboard/create-quiz/builder/${quiz._id}`}
       className="block bg-white rounded-2xl hover:shadow-lg transition-all duration-300 overflow-hidden group "
-      // Bỏ flex flex-col ở đây vì chúng ta sẽ dùng grid cho phần nội dung
+    // Bỏ flex flex-col ở đây vì chúng ta sẽ dùng grid cho phần nội dung
     >
       {/* Phần nội dung của card giờ sẽ được chia bằng CSS Grid mới */}
       {/* Chúng ta cần một container chung cho cả ảnh và text để áp dụng grid chính */}
@@ -36,7 +36,8 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
           {' '}
           {/* self-start để ảnh không bị kéo giãn quá mức */}
           <Image
-            src={quiz.imageUrl || '/assets/create-quiz/thumbnail.png'}
+            // src={quiz.imageUrl || '/assets/create-quiz/thumbnail.png'}
+            src={'/assets/create-quiz/thumbnail.png'}
             alt={quiz.name || 'Quiz thumbnail'}
             fill
             sizes="(max-width: 768px) 30vw, 100px" // Điều chỉnh sizes cho phù hợp với kích thước ảnh trong card
@@ -48,17 +49,16 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         {quiz.category && (
           <div className="col-start-2 row-start-1 flex items-center">
             <span
-              className={`inline-block px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full whitespace-nowrap ${
-                quiz.category === 'Grapic Design'
-                  ? 'bg-blue-100 text-blue-700'
-                  : quiz.category === 'Web Development'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : quiz.category === 'Data Science'
-                      ? 'bg-amber-100 text-amber-700'
-                      : quiz.category === 'UX Design'
-                        ? 'bg-pink-100 text-pink-700'
-                        : 'bg-indigo-100 text-indigo-700'
-              }`}
+              className={`inline-block px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full whitespace-nowrap ${quiz.category === 'Grapic Design'
+                ? 'bg-blue-100 text-blue-700'
+                : quiz.category === 'Web Development'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : quiz.category === 'Data Science'
+                    ? 'bg-amber-100 text-amber-700'
+                    : quiz.category === 'UX Design'
+                      ? 'bg-pink-100 text-pink-700'
+                      : 'bg-indigo-100 text-indigo-700'
+                }`}
             >
               {quiz.category}
             </span>

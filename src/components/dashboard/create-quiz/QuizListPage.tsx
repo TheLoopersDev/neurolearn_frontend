@@ -1,10 +1,9 @@
-// app/(auth)/dashboard/create-quiz/_components/QuizListPage.tsx
 'use client';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { PlusCircle, Search, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Quiz, QuestionData, ManualCreationDetails, AICreationDetails } from './types';
+import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
 import CreateQuizModal from './CreateQuizModal';
 import {
@@ -15,9 +14,11 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/common/ui/pagination'; // Đảm bảo đường dẫn đúng
+} from '@/components/common/ui/pagination';
+import { useGetAllQuizzesQuery, useCreateQuizMutation } from '@/lib/redux/features/quiz/quizApi';
 
-const QUIZZES_STORAGE_KEY = 'quizzes_v2_final';
+<<<<<<< HEAD
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main';
 
 const fetchQuizzesFromStorage = (): Quiz[] => {
   if (typeof window !== 'undefined') {
@@ -79,6 +80,8 @@ const saveNewQuizToStorage = (newQuiz: Quiz): Quiz[] => {
   }
   return [newQuiz];
 };
+=======
+>>>>>>> 5b41ad99b96e4a98d140a5ecf287617c144429d5
 
 const ITEMS_PER_PAGE = 8;
 
@@ -90,15 +93,26 @@ const QuizListPage: React.FC = () => {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    setAllQuizzes(fetchQuizzesFromStorage());
-  }, []);
+  const { data, isLoading, } = useGetAllQuizzesQuery({});
+  const [createQuiz] = useCreateQuizMutation();
 
-  // <<< --- DI CHUYỂN KHỐI NÀY LÊN TRÊN --- >>>
-  const searchedQuizzes = useMemo(
-    () => allQuizzes.filter(quiz => quiz.name.toLowerCase().includes(searchTerm.toLowerCase())),
-    [allQuizzes, searchTerm]
-  );
+  useEffect(() => {
+    if (Array.isArray(data)) {
+      setAllQuizzes(data);
+    } else if (data?.quizzes) {
+      setAllQuizzes(data.quizzes);
+    }
+  }, [data]);
+
+
+  const searchedQuizzes = useMemo(() => {
+    if (!searchTerm) return allQuizzes; // không lọc
+    return allQuizzes.filter(quiz =>
+      typeof quiz.name === 'string' &&
+      quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allQuizzes, searchTerm]);
+
 
   const totalPages = Math.ceil(searchedQuizzes.length / ITEMS_PER_PAGE);
 
@@ -107,7 +121,6 @@ const QuizListPage: React.FC = () => {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return searchedQuizzes.slice(startIndex, endIndex);
   }, [searchedQuizzes, currentPage]);
-  // <<< --- KẾT THÚC KHỐI DI CHUYỂN --- >>>
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -122,7 +135,6 @@ const QuizListPage: React.FC = () => {
     } else {
       pageNumbers.push(1);
       if (currentPage > 1 + halfPagesToShow + 1 && totalPages > maxPagesToShow) {
-        // Sửa điều kiện
         if (pageNumbers[pageNumbers.length - 1] !== 1 || currentPage > 2 + halfPagesToShow)
           pageNumbers.push(-1);
       }
@@ -139,105 +151,46 @@ const QuizListPage: React.FC = () => {
       }
       if (!pageNumbers.includes(totalPages)) pageNumbers.push(totalPages);
     }
-    return pageNumbers.filter((num, index, self) => num === -1 || self.indexOf(num) === index); // Loại bỏ ellipsis trùng lặp
+    return pageNumbers.filter((num, index, self) => num === -1 || self.indexOf(num) === index);
   };
 
   const handleOpenCreateModal = () => setIsCreateModalOpen(true);
   const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
   const handleCreateTestFromModal = useCallback(
-    (details: ManualCreationDetails | AICreationDetails) => {
-      const newQuizId = `quiz_${Date.now()}`;
-      let quizNameFromDetails = 'Untitled Quiz';
-      let initialQuestions: QuestionData[] = [];
-      let newQuizCategory = 'General';
+    async (details: ManualCreationDetails | AICreationDetails) => {
+      try {
+        const response = await createQuiz({
+          name: details.examTitle || 'Untitled Quiz',
+          duration: '30',
+          category: 'Uncategorized',
+          questions: [],
+          passingScore: 50,
+          maxAttempts: 3,
+        }).unwrap();
 
-      if (details.mode === 'manual') {
-        quizNameFromDetails = details.examTitle.trim() || `Manual Quiz ${newQuizId.slice(-4)}`;
-        const defaultFirstQuestionId = `q_${Date.now()}_manual_init`;
-        initialQuestions = [
-          {
-            id: defaultFirstQuestionId,
-            questionNumber: 1,
-            title: 'Sample Question 1 (Manual)',
-            questionType: 'single-choice',
-            questionImage: null,
-            choicesConfig: { isMultipleAnswer: false, isAnswerWithImageEnabled: false },
-            options: [
-              { id: `nqo_${Date.now()}_1`, text: 'Option A' },
-              { id: `nqo_${Date.now()}_2`, text: 'Option B' },
-            ],
-            correctAnswerIds: [],
-            points: '01',
-            isRequired: true,
-          },
-        ];
-      } else if (details.mode === 'ai') {
-        quizNameFromDetails =
-          details.examTitle.trim() || `AI Quiz on ${details.topic || 'General Topic'}`;
-        newQuizCategory = details.topic || 'AI Generated';
-        const defaultFirstQuestionId = `q_${Date.now()}_ai_init`;
-        initialQuestions = [
-          {
-            id: defaultFirstQuestionId,
-            questionNumber: 1,
-            title: `AI will generate questions for: "${details.topic || quizNameFromDetails}" (Placeholder)`,
-            questionType:
-              details.questionConfigs[0]?.type === 'multiple-choice'
-                ? 'multiple-choice'
-                : 'single-choice',
-            questionImage: null,
-            choicesConfig: {
-              isMultipleAnswer: details.questionConfigs[0]?.type === 'multiple-choice',
-              isAnswerWithImageEnabled: false,
-            },
-            options: [],
-            correctAnswerIds: [],
-            points: '00',
-            isRequired: true,
-          },
-        ];
-        console.log('AI Creation Details:', details);
+        toast({
+          title: 'Quiz created!',
+          description: `Quiz "${response.quiz!.name}" has been created.`,
+          variant: 'success',
+        });
+
+        // ✅ Fix undefined
+        router.push(`/dashboard/create-quiz/builder/${response.quiz?._id}`);
+      } catch (err) {
+        toast({
+          title: 'Failed to create quiz',
+          description: 'An error occurred while creating quiz.',
+          variant: 'destructive',
+        });
       }
-
-      const newQuizData: Quiz = {
-        id: newQuizId,
-        name: quizNameFromDetails,
-        examTitle: quizNameFromDetails,
-        duration: (details.mode === 'manual' ? details.duration : 'AI Setup') || '30 Min',
-        questions: initialQuestions,
-        createdAt: new Date().toLocaleDateString('en-US', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
-        category: newQuizCategory,
-        imageUrl: '/assets/create-quiz/thumbnail.png',
-        totalQuestions: initialQuestions.length,
-        progress: 0,
-      };
-
-      const updatedQuizzes = saveNewQuizToStorage(newQuizData);
-      setAllQuizzes(updatedQuizzes);
-
-      toast({
-        title: 'Quiz Initialized!',
-        description: `Quiz "${newQuizData.name}" (mode: ${details.mode}) is ready. Proceed to builder.`,
-        variant: 'success',
-      });
-
-      const builderPath = `/dashboard/create-quiz/builder/${newQuizId}`;
-      const finalPath =
-        details.mode === 'ai'
-          ? `${builderPath}?mode=ai&topic=${encodeURIComponent(details.topic)}&level=${details.difficultyLevel}&title=${encodeURIComponent(quizNameFromDetails)}&configs=${encodeURIComponent(JSON.stringify(details.questionConfigs))}`
-          : builderPath;
-      router.push(finalPath);
     },
-    [router, toast]
+    [createQuiz, router, toast]
   );
 
+
   return (
-    <div className="w-full  p-6 sm:p-8 ">
+    <div className="w-full">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
         <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
           <div className="relative w-full sm:flex-1 lg:min-w-[300px] xl:min-w-[400px]">
@@ -255,12 +208,12 @@ const QuizListPage: React.FC = () => {
               className="block text-black w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-white rounded-full shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder-gray-400 h-[42px]"
             />
           </div>
-          <button className="flex items-center text-sm text-gray-700 bg-white border border-gray-300 px-4 py-2.5 rounded-full hover:bg-gray-50 shadow-sm h-[42px] transition-colors duration-150 ease-in-out w-full sm:w-auto justify-center sm:justify-start flex-shrink-0">
-            <SlidersHorizontal size={16} className="mr-2 text-gray-500 flex-shrink-0" />
-            <span className="whitespace-nowrap">All courses</span>
+          <button className="flex items-center text-sm text-gray-700 bg-white border border-gray-300 px-4 py-2.5 rounded-full hover:bg-gray-50 shadow-sm h-[42px]">
+            <SlidersHorizontal size={16} className="mr-2 text-gray-500" />
+            <span>All courses</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 ml-1.5 text-gray-400 flex-shrink-0"
+              className="h-4 w-4 ml-1.5 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -270,40 +223,25 @@ const QuizListPage: React.FC = () => {
             </svg>
           </button>
         </div>
-        <div className="flex w-full sm:w-auto justify-center sm:justify-end mt-4 sm:mt-0">
-          <button
-            onClick={handleOpenCreateModal}
-            className="flex items-center bg-blue-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md h-[42px] whitespace-nowrap flex-shrink-0"
-          >
-            <PlusCircle size={18} className="mr-1.5 flex-shrink-0" />
-            Create Quiz
-          </button>
-        </div>
+        <button
+          onClick={handleOpenCreateModal}
+          className="flex items-center bg-blue-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-blue-700 h-[42px]"
+        >
+          <PlusCircle size={18} className="mr-1.5" />
+          Create Quiz
+        </button>
       </div>
 
-      {quizzesForCurrentPage.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2  gap-5 sm:gap-6">
+      {isLoading ? (
+        <p className="text-center py-12">Loading quizzes...</p>
+      ) : quizzesForCurrentPage.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {quizzesForCurrentPage.map(quiz => (
-            <QuizCard key={quiz.id} quiz={quiz} />
+            <QuizCard key={quiz._id} quiz={quiz} />
           ))}
         </div>
       ) : (
         <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              vectorEffect="non-scaling-stroke"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-              d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-            />
-          </svg>
           <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>
           <p className="mt-1 text-sm text-gray-500">
             {searchTerm ? 'Try adjusting your search.' : 'Get started by creating a new quiz.'}
@@ -311,7 +249,7 @@ const QuizListPage: React.FC = () => {
           <div className="mt-6">
             <button
               onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
               <PlusCircle size={18} className="-ml-1 mr-2" />
               New Quiz
