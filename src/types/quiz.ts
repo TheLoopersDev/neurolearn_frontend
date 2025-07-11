@@ -22,9 +22,11 @@ export interface QuestionData {
 }
 
 export interface Quiz {
-  id: string;
+  _id: string;
   name: string;
   questions: QuestionData[];
+  passingScore?: number;
+  maxAttempts?: number;
   createdAt?: string;
   examTitle?: string;
   totalQuestions?: number;
