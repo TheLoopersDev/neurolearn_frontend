@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProfileSidebar from './_components/ProfileSidebar';
 import ProfileEditorForm from './_components/ProfileEditorForm';
 import { User } from '@/types/user';
@@ -26,6 +26,7 @@ const SettingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [infoFormData, setInfoFormData] = useState({ name: '', age: '' });
+  console.log(infoFormData);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

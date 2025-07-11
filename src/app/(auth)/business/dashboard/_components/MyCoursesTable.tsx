@@ -1,3 +1,7 @@
+import Image from 'next/image';
+import defaultCourse from '@/public/assets/images/default-course.png'; // Placeholder course logo
+import Avatar from '@/public/assets/images/avatar.png'; // Placeholder course logo
+
 const courseData = [
   {
     name: 'Graphic Design Mastercla-Learn GREAT Design',
@@ -18,27 +22,27 @@ const courseData = [
 ];
 
 const ProgressBadge = ({ status }: { status: string }) => {
-  const baseClasses = 'px-3 py-1 text-xs font-medium rounded-full';
+  const baseClasses = 'px-5 py-2 text-xs font-medium rounded-full ';
   if (status === 'Pending') {
-    return <span className={`${baseClasses} bg-orange-100 text-orange-600`}>{status}</span>;
+    return <span className={`${baseClasses} bg-gray-200 text-orange-600`}>{status}</span>;
   }
   if (status === 'Learning') {
-    return <span className={`${baseClasses} bg-blue-100 text-primary`}>{status}</span>;
+    return <span className={`${baseClasses} bg-gray-200 text-green-600`}>{status}</span>;
   }
-  return <span className={`${baseClasses} bg-green-100 text-green-600`}>{status}</span>;
+  return <span className={`${baseClasses} bg-gray-200 text-blue-600`}>{status}</span>;
 };
 
 export default function MyCoursesTable() {
   return (
     <div className="rounded-xl bg-background p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-foreground">My Courses</h2>
+      <h2 className="text-lg font-bold text-foreground text-gray-900">My Courses</h2>
 
       <div className="mt-4 flow-root">
         <div className="-mx-6 -my-2 overflow-x-auto">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div className="inline-block min-w-full  align-middle sm:px-6 lg:px-8">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
-                <tr className="text-left text-sm font-medium text-gray-500">
+                <tr className="text-left text-sm  text-gray-500">
                   <th scope="col" className="py-3.5 pl-4 pr-3 sm:pl-0">
                     Course Name
                   </th>
@@ -63,33 +67,34 @@ export default function MyCoursesTable() {
                       <div className="flex items-center">
                         <div className="h-11 w-11 flex-shrink-0">
                           {/* Bạn cần thay thế bằng ảnh thật */}
-                          <img className="h-11 w-11 rounded-md" src={course.logo} alt="" />
+                          <Image src={defaultCourse} alt="Course Logo" width={44} height={44} />
                         </div>
                         <div className="ml-4">
-                          <div className="font-medium text-foreground">{course.name}</div>
+                          <div className="font-medium text-foreground text-gray-900">
+                            {course.name}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       <div className="flex items-center -space-x-2">
-                        {course.learners.map((learner, i) => (
-                          // Bạn cần thay thế bằng ảnh thật
-                          <img
-                            key={i}
-                            className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                            src={learner}
-                            alt="Learner"
-                          />
-                        ))}
+                        {course.learners.map(
+                          (learner, i) =>
+                            (
+                              // Bạn cần thay thế bằng ảnh thật
+                              console.log(learner, i),
+                              (<Image src={Avatar} alt="Avatar" width={30} height={30} />)
+                            )
+                        )}
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold text-gray-600 ring-2 ring-white">
                           +10
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                       {course.category}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                       {course.enrollmentDate}
                     </td>
                     <td className="whitespace-nowrap relative py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-0">

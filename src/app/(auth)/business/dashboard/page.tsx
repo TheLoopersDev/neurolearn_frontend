@@ -34,7 +34,7 @@ const statData = [
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-secondary p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-secondary ">
       <div className="mx-auto max-w-7xl space-y-6">
         <HeaderBanner />
 
