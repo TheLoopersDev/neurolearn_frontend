@@ -27,6 +27,8 @@ import defaultAvatar from '@/public/assets/images/avatar.png';
 import { signOutAction } from '@/lib/actions/auth';
 import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/redux/store';
 
 // Define a more specific type for the user object if possible
 interface User {
@@ -100,13 +102,11 @@ export function UserDropdown() {
   }, [session, logoutTriggered, router]);
   // --- END OF FIX ---
 
-  if (isLoading || !data?.user) {
-    // Added a check for data.user to prevent errors if data is null/undefined
-    // You might want to return a loading skeleton or null
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  if (!user) {
     return null;
   }
-
-  const { user } = data;
 
   const commonNavbarItems = [
     {
@@ -158,7 +158,7 @@ export function UserDropdown() {
   ];
 
   const dropdownList =
-    user.role === 'instructor'
+    typeof user !== 'string' && user.role === 'instructor'
       ? [...instructorNavbarItems, ...commonNavbarItems]
       : [...userNavbarItems, ...commonNavbarItems];
 
@@ -172,8 +172,8 @@ export function UserDropdown() {
               className="w-full h-full object-cover rounded-full"
               width={40}
               height={40}
-              src={user?.avatar?.url ?? defaultAvatar}
-              alt={user.name ?? 'User Avatar'}
+              src={typeof user !== 'string' && user?.avatar?.url ? user.avatar.url : defaultAvatar}
+              alt={typeof user !== 'string' && user?.name ? user.name : 'User Avatar'}
               referrerPolicy="no-referrer"
             />
           </div>
@@ -181,7 +181,7 @@ export function UserDropdown() {
           {/* Name + Arrow */}
           <div className="flex items-center gap-1 sm:gap-2 w-auto">
             <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
-              {user.name}
+              {typeof user !== 'string' ? user?.name : 'Guest'}
             </span>
             <svg
               className="w-[15.5px] h-[8.5px]"

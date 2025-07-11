@@ -14,6 +14,7 @@ import ArrowDownIcon from '@/public/assets/home/arrow-top-down.svg';
 import LogoSVG from '@/public/assets/icons/logo.svg';
 import Image from 'next/image';
 import { RootState } from '@/lib/redux/store';
+import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
 interface Category {
   name: string;
@@ -25,7 +26,8 @@ const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const { data, isLoading } = useLoadUserQuery(undefined);
+  const reduxUser = useSelector((state: RootState) => state.auth.user);
 
   const categories: Category[] = [
     { name: 'Programming', href: '/categories/programming' },
@@ -167,7 +169,8 @@ const Header: React.FC = () => {
             </button>
 
             {/* Not logged in */}
-            {!user ? (
+            {isLoading ? null : !reduxUser ? (
+
               <>
                 {/* Group 237 – Login */}
 
