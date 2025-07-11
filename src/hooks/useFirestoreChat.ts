@@ -9,7 +9,7 @@ import {
   markMessageAsRead,
   deleteMessage,
   ChatMessage,
-  ChatRoom
+  ChatRoom,
 } from '@/lib/firestore/chat';
 
 export const useFirestoreChat = () => {
@@ -43,7 +43,7 @@ export const useFirestoreChat = () => {
     console.log('Current userId for chatRooms query:', userId); // DEBUG LOG
     if (!userId) return;
 
-    const unsubscribe = subscribeToChatRooms(userId, (rooms) => {
+    const unsubscribe = subscribeToChatRooms(userId, rooms => {
       setChatRooms(rooms);
     });
 
@@ -66,7 +66,7 @@ export const useFirestoreChat = () => {
       unsubscribeMessages();
     }
 
-    const unsubscribe = subscribeToMessages(activeChatRoomId, (messages) => {
+    const unsubscribe = subscribeToMessages(activeChatRoomId, messages => {
       setMessages(messages);
     });
 
@@ -85,37 +85,36 @@ export const useFirestoreChat = () => {
     };
   }, []);
 
-  const sendMessageHandler = useCallback(async (
-    receiverId: string,
-    content: string,
-    type: 'text' | 'image' | 'file' = 'text'
-  ) => {
-    const userId = getUserId();
-    if (!userId) {
-      setError('User not authenticated');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Get or create chat room
-      const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
-      
-      // Send message (truyền receiverId)
-      await sendMessage(chatRoomId, userId, receiverId, content, type);
-
-      // Set active chat room if not already set
-      if (!activeChatRoomId) {
-        setActiveChatRoomId(chatRoomId);
+  const sendMessageHandler = useCallback(
+    async (receiverId: string, content: string, type: 'text' | 'image' | 'file' = 'text') => {
+      const userId = getUserId();
+      if (!userId) {
+        setError('User not authenticated');
+        return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, activeChatRoomId]);
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get or create chat room
+        const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
+
+        // Send message (truyền receiverId)
+        await sendMessage(chatRoomId, userId, receiverId, content, type);
+
+        // Set active chat room if not already set
+        if (!activeChatRoomId) {
+          setActiveChatRoomId(chatRoomId);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to send message');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, activeChatRoomId]
+  );
 
   const joinChat = useCallback(async (chatRoomId: string) => {
     setActiveChatRoomId(chatRoomId);
@@ -126,25 +125,31 @@ export const useFirestoreChat = () => {
     setMessages([]);
   }, []);
 
-  const markAsRead = useCallback(async (messageId: string) => {
-    if (!activeChatRoomId) return;
+  const markAsRead = useCallback(
+    async (messageId: string) => {
+      if (!activeChatRoomId) return;
 
-    try {
-      await markMessageAsRead(activeChatRoomId, messageId);
-    } catch (err) {
-      console.error('Failed to mark message as read:', err);
-    }
-  }, [activeChatRoomId]);
+      try {
+        await markMessageAsRead(activeChatRoomId, messageId);
+      } catch (err) {
+        console.error('Failed to mark message as read:', err);
+      }
+    },
+    [activeChatRoomId]
+  );
 
-  const deleteMessageHandler = useCallback(async (messageId: string) => {
-    if (!activeChatRoomId) return;
+  const deleteMessageHandler = useCallback(
+    async (messageId: string) => {
+      if (!activeChatRoomId) return;
 
-    try {
-      await deleteMessage(activeChatRoomId, messageId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete message');
-    }
-  }, [activeChatRoomId]);
+      try {
+        await deleteMessage(activeChatRoomId, messageId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete message');
+      }
+    },
+    [activeChatRoomId]
+  );
 
   return {
     messages,
@@ -157,6 +162,6 @@ export const useFirestoreChat = () => {
     leaveChat,
     markAsRead,
     deleteMessage: deleteMessageHandler,
-    setActiveChatRoomId
+    setActiveChatRoomId,
   };
-}; 
+};
