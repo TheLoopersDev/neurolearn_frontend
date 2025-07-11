@@ -262,32 +262,6 @@ const QuizListPage: React.FC = () => {
           Create Quiz
         </button>
       </div>
-
-      {/* {isLoading ? (
-        <p className="text-center py-12">Loading quizzes...</p>
-      ) : quizzesForCurrentPage.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-          {quizzesForCurrentPage.map(quiz => (
-            <QuizCard key={quiz.id} quiz={quiz} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
-          <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm ? 'Try adjusting your search.' : 'Get started by creating a new quiz.'}
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              <PlusCircle size={18} className="-ml-1 mr-2" />
-              New Quiz
-            </button>
-          </div>
-        </div>
-      )} */}
       {renderQuizContent()}
       {totalPages > 1 && (
         <Pagination className="mt-8 sm:mt-12">

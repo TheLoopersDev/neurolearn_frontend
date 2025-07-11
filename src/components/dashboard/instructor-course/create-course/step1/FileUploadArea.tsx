@@ -57,14 +57,11 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
     const reader = new FileReader();
     reader.onloadend = async () => {
       if (typeof reader.result === 'string') {
-        // 👉 Upload lên Cloudinary giả lập
-        // Replace đoạn này bằng thực tế nếu có upload server
         const mockUploaded = {
           public_id: `courses/${file.name.split('.')[0]}`,
-          url: reader.result, // Giả lập: gán base64 thành url
+          url: reader.result,
         };
-
-        setThumbnail(mockUploaded); // ✅ Gửi object thay vì string
+        setThumbnail(mockUploaded);
       }
     };
     reader.readAsDataURL(file);
@@ -89,27 +86,22 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
         />
 
         {imagePreview ? (
-          // <img
-          //     src={imagePreview}
-          //     alt="Thumbnail Preview"
-          //     onClick={handleFileSelect}
-          //     className="w-full max-h-60 object-contain rounded-xl cursor-pointer hover:opacity-80"
-          // />
-          <div
+          // ✅ SỬA LỖI Ở ĐÂY
+          <button
+            type="button"
             onClick={handleFileSelect}
-            className="w-full max-h-60 rounded-xl cursor-pointer hover:opacity-80 overflow-hidden"
+            className="w-full max-h-60 rounded-xl cursor-pointer hover:opacity-80 overflow-hidden bg-transparent p-0 border-none text-left"
           >
-            {/* danh sửa  */}
             <Image
               src={imagePreview}
               alt="Thumbnail Preview"
-              width={0} // intrinsic width
-              height={0} // intrinsic height
-              sizes="100vw" // Adjust sizes attribute as needed for responsiveness
+              width={0}
+              height={0}
+              sizes="100vw"
               style={{ width: '100%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }}
               className="rounded-xl"
             />
-          </div>
+          </button>
         ) : (
           <div className="flex flex-col gap-4 items-center">
             <div
