@@ -67,41 +67,33 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
     reader.readAsDataURL(file);
   };
 
-  // ✅ Thêm hàm xử lý sự kiện bàn phím
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleFileSelect();
-    }
-  };
-
   return (
     <section className="flex items-center p-6 bg-white rounded-3xl w-full">
-      {/* ✅ Thêm các thuộc tính accessibility vào đây */}
-      <div
-        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer ${
+      {/* ✅ SỬA LỖI 1: Chuyển div thành button và reset style */}
+      <button
+        type="button"
+        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer text-left p-0 ${
           isDragOver ? 'bg-blue-50' : ''
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={handleFileSelect} // Cho phép click vào toàn bộ vùng
-        onKeyDown={handleKeyDown} // Cho phép kích hoạt bằng bàn phím
-        role="button" // Định nghĩa vai trò là một nút bấm
-        tabIndex={0} // Cho phép focus bằng phím Tab
+        onClick={handleFileSelect}
         aria-label="Upload file area"
       >
+        {/* ✅ SỬA LỖI 2: Thêm tabIndex={-1} vào input */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleChange}
           className="hidden"
-          aria-hidden="true" // Ẩn khỏi trình đọc màn hình vì đã có vùng lớn hơn xử lý
+          aria-hidden="true"
+          tabIndex={-1}
         />
 
         {imagePreview ? (
-          <div className="w-full h-full p-2">
+          <div className="w-full h-full p-2 pointer-events-none">
             <Image
               src={imagePreview}
               alt="Thumbnail Preview"
@@ -113,7 +105,6 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
           </div>
         ) : (
           <div className="flex flex-col gap-4 items-center text-center pointer-events-none">
-            {/* SVG Icon */}
             <svg
               width="57"
               height="56"
@@ -129,7 +120,7 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
             </p>
           </div>
         )}
-      </div>
+      </button>
     </section>
   );
 }
