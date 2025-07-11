@@ -10,11 +10,12 @@ import { UserDropdown } from '../auth/UserDropDown';
 import SearchIcon from '@/public/assets/home/Search.svg';
 import BuyIcon from '@/public/assets/home/Buy.svg';
 import NotificationIcon from '@/public/assets/home/notification-black.svg'
-import ArrowDownIcon from '@/public/assets/home/arrow-top-down.svg';
+
 import LogoSVG from '@/public/assets/icons/logo.svg';
 import Image from 'next/image';
 import { RootState } from '@/lib/redux/store';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
+import ExploreDropdown from '../home/ExploreDropdown';
 
 interface Category {
   name: string;
@@ -22,19 +23,11 @@ interface Category {
 }
 
 const Header: React.FC = () => {
-  const [isExploreOpen, setIsExploreOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
   const { data, isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
-
-  const categories: Category[] = [
-    { name: 'Programming', href: '/categories/programming' },
-    { name: 'Business', href: '/categories/business' },
-    { name: 'Design', href: '/categories/design' },
-    { name: 'Marketing', href: '/categories/marketing' },
-  ];
 
   useEffect(() => {
     if (isSearchActive && searchRef.current) {
@@ -77,42 +70,7 @@ const Header: React.FC = () => {
             </Link>
 
             {/* Group 228 – Explore button */}
-            <div className="relative">
-              <button
-                onClick={() => setIsExploreOpen(open => !open)}
-                className="
-                px-2 py-2
-                bg-white rounded-4xl
-                flex items-center justify-center gap-4
-                text-[16px] font-medium text-[#0D0D0D]
-                hover:bg-blue-50 transition
-              "
-              >
-                <span>Explore</span>
-                <Image
-                  src={ArrowDownIcon}
-                  alt=""
-                  width={33}
-                  height={21}
-                />
-              </button>
-
-              {/* Dropdown menu */}
-              {isExploreOpen && (
-                <div className="absolute left-0 mt-2 w-[168px] bg-white border border-gray-200 shadow-lg rounded z-10">
-                  {categories.map(cat => (
-                    <Link
-                      key={cat.name}
-                      href={cat.href}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-                      onClick={() => setIsExploreOpen(false)}
-                    >
-                      {cat.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ExploreDropdown />
           </div>
 
           {/* Right group: Search – Buy – (Login/Signup or Cart + User) */}

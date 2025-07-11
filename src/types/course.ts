@@ -192,6 +192,7 @@ export interface Course {
   name: string;
   subTitle?: string;
   description?: string;
+  overview?: string;
   author: {
     _id: string;
     name: string;
@@ -204,9 +205,9 @@ export interface Course {
   };
   price?: number;
   estimatedPrice?: number;
-  thumbnail: string;
-  tags?: string;
-  level: string; // Level ID
+  thumbnail: { url: string };
+  tags?: string[];
+  level?: string | { _id: string; name: string } | null;
   demoUrl?: {
     public_id: string;
     url: string;
@@ -219,92 +220,93 @@ export interface Course {
   purchased: number;
   isPublished: boolean;
   isFree: boolean;
-  category: string; // Category ID
-  subCategory?: string;
+  category?: string | { _id: string; title: string } | null;
+  subCategory?: string | { _id: string; title: string } | null;
   duration?: number;
+  isDraft?: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CourseDetail {
-  _id: string;
-  name: string;
-  subTitle?: string;
-  description?: string;
-  overview: string;
-  topics: string[];
-  thumbnail: {
-    public_id: string;
-    url: string;
-  };
-  demoUrl?: {
-    public_id: string;
-    url: string;
-  };
-  price?: number;
-  estimatedPrice?: number;
-  isFree: boolean;
-  purchased?: number;
-  rating?: number;
-  totalLessons?: number;
-  durationText?: string;
-  level?: {
-    _id: string;
-    name: string;
-  };
-  category?: string;
-  subCategory?: string;
+// export interface CourseDetail {
+//   _id: string;
+//   name: string;
+//   subTitle?: string;
+//   description?: string;
+//   overview: string;
+//   topics: string[];
+//   thumbnail: {
+//     public_id: string;
+//     url: string;
+//   };
+//   demoUrl?: {
+//     public_id: string;
+//     url: string;
+//   };
+//   price?: number;
+//   estimatedPrice?: number;
+//   isFree: boolean;
+//   purchased?: number;
+//   rating?: number;
+//   totalLessons?: number;
+//   durationText?: string;
+//   level?: {
+//     _id: string;
+//     name: string;
+//   };
+//   category?: string;
+//   subCategory?: string;
 
-  publisher: {
-    _id: string;
-    name: string;
-    email: string;
-    avatar: {
-      public_id: string;
-      url: string;
-    };
-    uploadedCourses?: Array<{ _id: string }>;
-    profession: string;
-    introduce?: string;
-    rating?: number;
-    reviews?: number;
-    students?: number;
-    courses?: number;
-    updatedAt?: Date;
-  };
+//   publisher: {
+//     _id: string;
+//     name: string;
+//     email: string;
+//     avatar: {
+//       public_id: string;
+//       url: string;
+//     };
+//     uploadedCourses?: Array<{ _id: string }>;
+//     profession: string;
+//     introduce?: string;
+//     rating?: number;
+//     reviews?: number;
+//     students?: number;
+//     courses?: number;
+//     updatedAt?: Date;
+//   };
 
-  sections: Array<{
-    _id: string;
-    title: string;
-    order: number;
-    isPublished: boolean;
-    lessons: Array<{
-      _id: string;
-      title: string;
-      order: number;
-      isPublished: boolean;
-      isFree: boolean;
-      videoUrl?: {
-        public_id: string;
-        url: string;
-      };
-    }>;
-  }>;
+//   sections: Array<{
+//     _id: string;
+//     title: string;
+//     order: number;
+//     isPublished: boolean;
+//     lessons: Array<{
+//       _id: string;
+//       title: string;
+//       order: number;
+//       isPublished: boolean;
+//       isFree: boolean;
+//       videoUrl?: {
+//         public_id: string;
+//         url: string;
+//       };
+//     }>;
+//   }>;
 
-  reviews: Array<{
-    _id: string;
-    rating: number;
-    comment: string;
-    user: {
-      name: string;
-      avatar: string;
-    };
-    commentReplies?: Array<{
-      user: {
-        name: string;
-        avatar: string;
-      };
-      comment: string;
-    }>;
-  }>;
-}
+//   reviews: Array<{
+//     _id: string;
+//     rating: number;
+//     comment: string;
+//     user: {
+//       name: string;
+//       avatar: string;
+//     };
+//     commentReplies?: Array<{
+//       user: {
+//         name: string;
+//         avatar: string;
+//       };
+//       comment: string;
+//     }>;
+//   }>;
+// }

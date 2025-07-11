@@ -25,6 +25,8 @@ export interface Quiz {
   _id: string;
   name: string;
   questions: QuestionData[];
+  passingScore?: number;
+  maxAttempts?: number;
   createdAt?: string;
   examTitle?: string;
   totalQuestions?: number;

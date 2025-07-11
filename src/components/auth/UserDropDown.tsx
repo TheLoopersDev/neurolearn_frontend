@@ -6,11 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { IoSettingsOutline } from 'react-icons/io5';
-import { IoIosLogOut } from 'react-icons/io';
-import { MdOutlineDashboardCustomize, MdOutlineSlowMotionVideo } from 'react-icons/md';
-import { TbMessageDots } from 'react-icons/tb';
-import { FaRegCircleQuestion, FaRegHeart } from 'react-icons/fa6';
+import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { PiBagBold } from 'react-icons/pi';
+import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
+import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
+import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
+import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
+import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
+import LogoutIcon from '@/public/assets/home/user-dropdown/logout.svg';
 
 import {
   DropdownMenu,
@@ -19,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/common/ui/DropdownMenu';
 
@@ -110,57 +112,94 @@ export function UserDropdown() {
 
   const commonNavbarItems = [
     {
-      title: 'Order',
-      href: '/dashboard/orders',
+      title: 'Order History',
+      href: '/dashboard/purchase-history',
       icon: <PiBagBold className="text-[20px]" />,
     },
     {
       title: 'Settings',
-      href: '/dashboard/settings',
+      href: '/dashboard/setting',
       icon: <IoSettingsOutline className="text-[20px]" />,
     },
   ];
 
-  const instructorNavbarItems = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard/instructor',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-    },
-    {
-      title: 'My Course',
-      href: '/dashboard/instructor/my-course',
-      icon: <MdOutlineSlowMotionVideo className="text-[20px]" />,
-    },
-    {
-      title: 'Reviews',
-      href: '/dashboard/instructor/reviews',
-      icon: <TbMessageDots className="text-[20px]" />,
-    },
-    {
-      title: 'Wishlist',
-      href: '/dashboard/instructor/wishlist',
-      icon: <FaRegHeart className="text-[20px]" />,
-    },
-    {
-      title: 'Quizzes',
-      href: '/dashboard/quizzes',
-      icon: <FaRegCircleQuestion className="text-[20px]" />,
-    },
-  ];
-
-  const userNavbarItems = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard/user',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-    },
-  ];
 
   const dropdownList =
     typeof user !== 'string' && user.role === 'instructor'
-      ? [...instructorNavbarItems, ...commonNavbarItems]
-      : [...userNavbarItems, ...commonNavbarItems];
+      ? [
+        {
+          title: 'Dashboard User',
+          href: '/dashboard',
+          icon: (
+            <Image
+              src={UserIcon}
+              alt="Dashboard User"
+              width={20}
+              height={20}
+            />
+          ),
+        },
+        {
+          title: 'Switch to Instructor',
+          href: '/switch/instructor',
+          icon: (
+            <Image
+              src={InstructorIcon}
+              alt="Instructor"
+              width={20}
+              height={20}
+            />
+          ),
+        },
+        {
+          title: 'Switch to Business',
+          href: '/switch/business',
+          icon: (
+            <Image
+              src={BusinessIcon}
+              alt="Business"
+              width={20}
+              height={20}
+            />
+          ),
+        },
+        {
+          title: 'Terms of Service',
+          href: '/terms',
+          icon: (
+            <Image
+              src={TermsIcon}
+              alt="Terms"
+              width={20}
+              height={20}
+            />
+          ),
+        },
+        {
+          title: 'Help & Support',
+          href: '/help',
+          icon: (
+            <Image
+              src={HelpIcon}
+              alt="Help"
+              width={20}
+              height={20}
+            />
+          ),
+        },
+        ...commonNavbarItems,
+      ]
+      : [
+        {
+          title: 'Watch Course',
+          href: '/dashboard/watch-course',
+          icon: (
+            <MdOutlineDashboardCustomize className="text-[20px]" />
+          ),
+        },
+        ...commonNavbarItems,
+      ];
+
 
   return (
     <DropdownMenu>
@@ -194,33 +233,41 @@ export function UserDropdown() {
           </div>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-white text-blue-600">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+
+      <DropdownMenuContent className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100">
+        {/* Label */}
+        <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500"></DropdownMenuLabel>
+        <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+
+        {/* Items */}
         <DropdownMenuGroup>
           {dropdownList.map(item => (
-            <Link href={item.href} key={item.href} passHref legacyBehavior>
+            <Link href={item.href} key={item.title} passHref legacyBehavior>
               <DropdownMenuItem asChild>
-                <a className="flex items-center justify-between w-full">
-                  {' '}
-                  {/* Ensure 'a' tag takes full width for proper click */}
+                <a className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium">
+                  {item.icon}
                   {item.title}
-                  <DropdownMenuShortcut>{item.icon}</DropdownMenuShortcut>
                 </a>
               </DropdownMenuItem>
             </Link>
           ))}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+
+        <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+
+        {/* Logout */}
         <DropdownMenuItem asChild>
           <button
             onClick={logoutHandler}
-            className="flex w-full items-center justify-between text-left text-red-600 hover:text-red-700"
+            className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
           >
-            Log out
-            <DropdownMenuShortcut>
-              <IoIosLogOut className="text-xl" />
-            </DropdownMenuShortcut>
+            <Image
+              src={LogoutIcon}
+              alt="Dashboard User"
+              width={20}
+              height={20}
+            />
+            Sign Out
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>

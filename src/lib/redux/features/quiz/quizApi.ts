@@ -62,6 +62,27 @@ export const quizApi = createApi({
         body: quiz,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Quiz', id }],
+      async onQueryStarted({ id, quiz }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          if (data?.quiz) {
+            dispatch(
+              quizApi.util.updateQueryData('getAllQuizzes', {}, draft => {
+                const index = draft.quizzes?.findIndex(q => q._id === id);
+                if (index !== undefined && index >= 0 && draft.quizzes) {
+                  draft.quizzes[index] = {
+                    ...draft.quizzes[index],
+                    ...quiz,
+                  };
+                }
+              })
+            );
+          }
+        } catch {
+          // Có thể log lỗi hoặc toast
+        }
+      },
     }),
     deleteQuiz: builder.mutation<ApiResponse<void>, string>({
       query: id => ({
