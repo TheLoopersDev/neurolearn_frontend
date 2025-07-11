@@ -8,14 +8,13 @@ import MessageInput from './MessageInput';
 interface ChatRoomProps {
     chat: Chat | null;
     currentUserId: string;
-    chatRoomId?: string;
     messages: any[];
     sendMessage: (receiverId: string, content: string) => Promise<void>;
     loading: boolean;
     error: string | null;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, chatRoomId, messages, sendMessage, loading, error }) => {
+const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, sendMessage, loading, error }) => {
     // Lấy messages trực tiếp từ props
     const mappedMessages = messages.map((msg: any) => ({
         _id: msg.id || '',
@@ -41,8 +40,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, chatRoomId, me
             console.error('Failed to send message:', error);
         }
     };
-
-    const handleTyping = (isTyping: boolean) => { };
 
     if (!chat) {
         return (
@@ -86,7 +83,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, chatRoomId, me
             {/* Input */}
             <MessageInput
                 onSendMessage={handleSendMessage}
-                onTyping={handleTyping}
                 disabled={loading}
             />
 

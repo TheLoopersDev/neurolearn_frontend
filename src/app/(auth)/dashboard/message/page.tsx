@@ -10,7 +10,6 @@ import { ChatList, ChatRoom, CreateChatModal } from '@/components/chat';
 const MessagePage: React.FC = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { activeChatId } = useSelector((state: RootState) => state.chat);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
 
@@ -19,7 +18,7 @@ const MessagePage: React.FC = () => {
   const currentUserId = currentUser?._id || currentUser?.id;
 
   // Firestore chat hook
-  const { chatRooms, joinChat, leaveChat, activeChatRoomId, setActiveChatRoomId, messages, sendMessage, loading, error } = useFirestoreChat();
+  const { chatRooms, joinChat, leaveChat, activeChatRoomId: activeChatRoomIdHook, setActiveChatRoomId, messages, sendMessage, loading, error } = useFirestoreChat();
 
   // State loading cho box chat
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -38,7 +37,7 @@ const MessagePage: React.FC = () => {
 
   // Khi chọn chat mới, set loading và clear messages cũ
   const handleSelectChat = useCallback(async (chatRoomId: string) => {
-    if (activeChatRoomId) {
+    if (activeChatRoomIdHook) {
       leaveChat();
     }
     setIsChatLoading(true);
@@ -46,21 +45,21 @@ const MessagePage: React.FC = () => {
     setActiveChatRoomId(chatRoomId);
     await joinChat(chatRoomId);
     prevChatRoomId.current = chatRoomId;
-  }, [activeChatRoomId, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
+  }, [activeChatRoomIdHook, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
 
   // Khi messages thay đổi hoặc activeChatRoomId đổi, tắt loading
   useEffect(() => {
     if (isChatLoading && messages && messages.length >= 0) {
       setIsChatLoading(false);
     }
-  }, [messages, activeChatRoomId]);
+  }, [messages, activeChatRoomIdHook]);
 
   // Auto-select first chat if none selected, hoặc chọn phòng chat mới nhất có lastMessage chưa đọc
   useEffect(() => {
     if (chatRooms.length > 0) {
       // Nếu chưa có phòng chat nào active hoặc active chat không còn tồn tại trong danh sách
-      const activeRoomStillExists = chatRooms.some(room => room.id === activeChatRoomId);
-      if (!activeChatRoomId || !activeRoomStillExists) {
+      const activeRoomStillExists = chatRooms.some(room => room.id === activeChatRoomIdHook);
+      if (!activeChatRoomIdHook || !activeRoomStillExists) {
         // Ưu tiên chọn phòng chat có lastMessage chưa đọc (nếu có)
         const unreadRoom = chatRooms.find(room => {
           // Nếu lastMessage tồn tại và receiverId là currentUserId và chưa đọc
@@ -81,7 +80,7 @@ const MessagePage: React.FC = () => {
         }
       }
     }
-  }, [chatRooms, activeChatRoomId, handleSelectChat, currentUserId]);
+  }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId]);
 
   // Helper: Map ChatRoom to Chat (for UI compatibility)
   const mapChatRoomToChat = function (room: any): any {
@@ -144,17 +143,16 @@ const MessagePage: React.FC = () => {
       {/* Chat List */}
       <ChatList
         chats={chatRooms.map(mapChatRoomToChat)}
-        activeChatId={activeChatRoomId}
+        activeChatId={activeChatRoomIdHook}
         onSelectChat={handleSelectChat}
         onCreateChat={() => { }}
       />
 
       {/* Chat Room */}
-      {(!usersLoading && activeChatRoomId && !isChatLoading) ? (
+      {(!usersLoading && activeChatRoomIdHook && !isChatLoading) ? (
         <ChatRoom
-          chat={chatRooms.find(room => room.id === activeChatRoomId) ? mapChatRoomToChat(chatRooms.find(room => room.id === activeChatRoomId)) : null}
+          chat={chatRooms.find(room => room.id === activeChatRoomIdHook) ? mapChatRoomToChat(chatRooms.find(room => room.id === activeChatRoomIdHook)) : null}
           currentUserId={currentUserId}
-          chatRoomId={activeChatRoomId}
           messages={messages}
           sendMessage={sendMessage}
           loading={loading}

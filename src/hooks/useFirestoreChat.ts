@@ -4,9 +4,7 @@ import { RootState } from '@/lib/redux/store';
 import {
   getOrCreateChatRoom,
   sendMessage,
-  getMessages,
   subscribeToMessages,
-  getUserChatRooms,
   subscribeToChatRooms,
   markMessageAsRead,
   deleteMessage,
