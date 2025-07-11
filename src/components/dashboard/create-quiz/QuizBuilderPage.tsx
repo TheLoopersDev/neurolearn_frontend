@@ -100,7 +100,8 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     data: fetchedQuiz,
     isLoading,
     isError,
-  } = useGetQuizByIdQuery(quizIdToLoad!, {
+    // } = useGetQuizByIdQuery(quizIdToLoad!, {
+  } = useGetQuizByIdQuery(quizIdToLoad as string, {
     skip: !quizIdToLoad,
   });
 
@@ -232,8 +233,12 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           setSelectedQuestionId(localId); // Gán chính xác ID này để editor nhận
         }
       } catch (err) {
+        // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
+        console.error('Failed to add question:', err);
+
         toast({
           title: 'Error',
+          // Giữ thông báo thân thiện với người dùng
           description: 'Failed to add question',
           variant: 'destructive',
         });
@@ -263,8 +268,12 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
             question: updatedData,
           }).unwrap();
         } catch (err) {
+          // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
+          console.error('Failed to update question:', err);
+
           toast({
             title: 'Error',
+            // Giữ thông báo thân thiện với người dùng
             description: 'Failed to update question',
             variant: 'destructive',
           });
