@@ -67,15 +67,29 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
     reader.readAsDataURL(file);
   };
 
+  // ✅ Thêm hàm xử lý sự kiện bàn phím
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleFileSelect();
+    }
+  };
+
   return (
     <section className="flex items-center p-6 bg-white rounded-3xl w-full">
+      {/* ✅ Thêm các thuộc tính accessibility vào đây */}
       <div
-        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 ${
+        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer ${
           isDragOver ? 'bg-blue-50' : ''
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={handleFileSelect} // Cho phép click vào toàn bộ vùng
+        onKeyDown={handleKeyDown} // Cho phép kích hoạt bằng bàn phím
+        role="button" // Định nghĩa vai trò là một nút bấm
+        tabIndex={0} // Cho phép focus bằng phím Tab
+        aria-label="Upload file area"
       >
         <input
           ref={fileInputRef}
@@ -83,43 +97,35 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
           accept="image/*"
           onChange={handleChange}
           className="hidden"
+          aria-hidden="true" // Ẩn khỏi trình đọc màn hình vì đã có vùng lớn hơn xử lý
         />
 
         {imagePreview ? (
-          // ✅ SỬA LỖI Ở ĐÂY
-          <button
-            type="button"
-            onClick={handleFileSelect}
-            className="w-full max-h-60 rounded-xl cursor-pointer hover:opacity-80 overflow-hidden bg-transparent p-0 border-none text-left"
-          >
+          <div className="w-full h-full p-2">
             <Image
               src={imagePreview}
               alt="Thumbnail Preview"
               width={0}
               height={0}
               sizes="100vw"
-              style={{ width: '100%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }}
-              className="rounded-xl"
+              className="w-full h-full object-contain rounded-xl"
             />
-          </button>
+          </div>
         ) : (
-          <div className="flex flex-col gap-4 items-center">
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<svg width="57" height="56" viewBox="0 0 57 56" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="..."/></svg>`,
-              }}
-            />
-            <p className="text-xl leading-5 text-center text-neutral-500 max-sm:text-base">
-              <span>Drag and drop or</span>
-              <br />
-              <button
-                type="button"
-                onClick={handleFileSelect}
-                className="font-bold text-blue-600 hover:underline"
-              >
-                Choose File
-              </button>
-              <span> to upload (10MB)</span>
+          <div className="flex flex-col gap-4 items-center text-center pointer-events-none">
+            {/* SVG Icon */}
+            <svg
+              width="57"
+              height="56"
+              viewBox="0 0 57 56"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="..." />
+            </svg>
+            <p className="text-xl leading-5 text-neutral-500 max-sm:text-base">
+              Drag and drop or <span className="font-bold text-blue-600">Choose File</span> to
+              upload (10MB)
             </p>
           </div>
         )}
