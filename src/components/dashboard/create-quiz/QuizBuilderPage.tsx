@@ -15,6 +15,41 @@ import {
   useDeleteQuestionMutation,
 } from '@/lib/redux/features/quiz/quizApi';
 
+<<<<<<< HEAD
+// --- Mockup hàm lưu trữ và tải quiz ---
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main'; // Đổi key để tránh xung đột với list page nếu cần
+
+const fetchQuizzesFromStorage = (): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const storedQuizzes = localStorage.getItem(QUIZZES_STORAGE_KEY);
+    return storedQuizzes ? JSON.parse(storedQuizzes) : [];
+  }
+  return [];
+};
+
+const saveQuizToStorage = (quizData: Quiz) => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    const existingQuizIndex = quizzes.findIndex(q => q.id === quizData.id);
+    if (existingQuizIndex > -1) {
+      quizzes[existingQuizIndex] = quizData;
+    } else {
+      quizzes.push(quizData);
+    }
+    localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(quizzes));
+  }
+};
+
+const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    return quizzes.find(q => q.id === quizId);
+  }
+  return undefined;
+};
+// -------------------------------------
+=======
+>>>>>>> 5b41ad99b96e4a98d140a5ecf287617c144429d5
 
 function getIconForQuestionType(type: QuestionData['questionType']): React.ReactNode {
   if (type === 'multiple-choice' || type === 'single-choice') {

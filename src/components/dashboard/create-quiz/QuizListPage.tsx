@@ -17,6 +17,71 @@ import {
 } from '@/components/common/ui/pagination';
 import { useGetAllQuizzesQuery, useCreateQuizMutation } from '@/lib/redux/features/quiz/quizApi';
 
+<<<<<<< HEAD
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main';
+
+const fetchQuizzesFromStorage = (): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const storedQuizzes = localStorage.getItem(QUIZZES_STORAGE_KEY);
+    if (!storedQuizzes || JSON.parse(storedQuizzes).length === 0) {
+      const demoQuizzes: Quiz[] = Array.from({ length: 25 }, (_, i) => ({
+        id: `demo${i + 1}`,
+        name: `Sample Quiz Title ${i + 1} - Advanced Web Topics`,
+        questions: [
+          {
+            id: `q${i}-1`,
+            questionNumber: 1,
+            title: `Sample question 1 for Quiz ${i + 1}`,
+            questionType: 'single-choice',
+            choicesConfig: { isMultipleAnswer: false, isAnswerWithImageEnabled: false },
+            options: [
+              { id: `q${i}o1`, text: 'OptA' },
+              { id: `q${i}o2`, text: 'OptB' },
+            ],
+            correctAnswerIds: [],
+            points: '01',
+            isRequired: true,
+          },
+        ],
+        createdAt: `${String(i + 1).padStart(2, '0')} Jan, 2025`,
+        examTitle: `QUIZ ${(i % 3) + 1}`,
+        totalQuestions: 10 + (i % 5),
+        duration: `${15 + (i % 4) * 15} Min`,
+        progress: 20 + ((i * 13) % 80),
+        imageUrl: `/assets/create-quiz/thumbnail.png`,
+        category: [
+          'Grapic Design',
+          'Web Development',
+          'Data Science',
+          'UX Design',
+          'Marketing',
+          'IT & Software',
+        ][i % 6],
+      }));
+      localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(demoQuizzes));
+      return demoQuizzes;
+    }
+    return storedQuizzes ? JSON.parse(storedQuizzes) : [];
+  }
+  return [];
+};
+
+const saveNewQuizToStorage = (newQuiz: Quiz): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    const existingIndex = quizzes.findIndex(q => q.id === newQuiz.id);
+    if (existingIndex > -1) {
+      quizzes[existingIndex] = newQuiz;
+    } else {
+      quizzes.push(newQuiz);
+    }
+    localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(quizzes));
+    return quizzes;
+  }
+  return [newQuiz];
+};
+=======
+>>>>>>> 5b41ad99b96e4a98d140a5ecf287617c144429d5
 
 const ITEMS_PER_PAGE = 8;
 
