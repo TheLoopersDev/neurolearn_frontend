@@ -69,7 +69,7 @@ export const quizApi = createApi({
           if (data?.quiz) {
             dispatch(
               quizApi.util.updateQueryData('getAllQuizzes', {}, draft => {
-                const index = draft.quizzes?.findIndex(q => q._id === id);
+                const index = draft.quizzes?.findIndex(q => q.id === id);
                 if (index !== undefined && index >= 0 && draft.quizzes) {
                   draft.quizzes[index] = {
                     ...draft.quizzes[index],

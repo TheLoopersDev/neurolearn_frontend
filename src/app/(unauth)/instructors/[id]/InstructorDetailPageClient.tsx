@@ -29,7 +29,7 @@ const fetchCoursesByInstructorId = (instructorId: string): Course[] => {
     name: 'USER INTERFACE DESIGN COURSE (APP/WEBSITE)',
     subTitle:
       'Quickly Master Adobe Photoshop: Beginner to Advanced Graphic Design, Photo Editing...',
-    thumbnail: '/assets/create-quiz/thumbnail.png',
+    thumbnail: { url: '/assets/create-quiz/thumbnail.png' },
     authorId: instructorId,
     author,
     level: 'Beginner',

@@ -193,8 +193,8 @@ const QuizListPage: React.FC = () => {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {quizzesForCurrentPage.map(quiz => (
-            // Giả sử Quiz API trả về _id, nhưng localStorage trả về id
-            <QuizCard key={quiz._id || quiz.id} quiz={quiz} />
+            // Use quiz.id as the key, since Quiz type only has id
+            <QuizCard key={quiz.id} quiz={quiz} />
           ))}
         </div>
       );
