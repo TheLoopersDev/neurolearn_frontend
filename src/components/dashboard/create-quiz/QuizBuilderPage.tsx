@@ -252,7 +252,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
     }
-  }, [currentQuizIdInternal, isSidebarOpen, questionsList]);
+  }, [currentQuizIdInternal, isSidebarOpen, questionsList, addQuestion, toast]);
 
   const handleQuestionDataUpdateFromEditor = useCallback(
     async (updatedData: QuestionData) => {
@@ -280,7 +280,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         }
       }
     },
-    [currentQuizIdInternal, hasInitialized]
+    [currentQuizIdInternal, hasInitialized, updateQuestion, toast]
   );
 
   const handleDeleteQuestion = async (questionId: string) => {

@@ -12,7 +12,7 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebaseClient';
 
 export interface ChatMessage {
   id?: string;
