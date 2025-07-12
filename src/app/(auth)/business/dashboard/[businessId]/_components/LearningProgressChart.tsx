@@ -5,26 +5,11 @@ import { ArrowRight } from 'lucide-react';
 import { LineChart, Line, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/common/ui/Button2'; // Cập nhật đúng path
 
-const weeklyData = [
-  { day: 'Mon', progress: 20 },
-  { day: 'Tue', progress: 35 },
-  { day: 'Wed', progress: 55 },
-  { day: 'Thu', progress: 62 },
-  { day: 'Fri', progress: 70 },
-];
 
-const monthlyData = [
-  { day: 'Week 1', progress: 35 },
-  { day: 'Week 2', progress: 42 },
-  { day: 'Week 3', progress: 58 },
-  { day: 'Week 4', progress: 64 },
-  { day: 'Week 5', progress: 72 },
-];
+export default function LearningProgressChart({employeeMonthlyData, managerMonthlyData}: { employeeMonthlyData: any[], managerMonthlyData: any[] }) {
+  const [view, setView] = useState<'employee' | 'manager'>('employee');
 
-export default function LearningProgressChart() {
-  const [view, setView] = useState<'week' | 'month'>('week');
-
-  const data = view === 'week' ? weeklyData : monthlyData;
+  const data = view === 'employee' ? employeeMonthlyData : managerMonthlyData;
 
   return (
     <div className="rounded-xl bg-background p-6 shadow-sm">
@@ -37,17 +22,17 @@ export default function LearningProgressChart() {
         <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
           <Button
             size="sm"
-            variant={view === 'week' ? 'secondary2' : 'primary'}
-            onClick={() => setView('week')}
+            variant={view === 'employee' ? 'secondary2' : 'primary'}
+            onClick={() => setView('employee')}
           >
-            Week
+            Employee
           </Button>
           <Button
             size="sm"
-            variant={view === 'month' ? 'secondary2' : 'primary'}
-            onClick={() => setView('month')}
+            variant={view === 'manager' ? 'secondary2' : 'primary'}
+            onClick={() => setView('manager')}
           >
-            Month
+            Manager
           </Button>
         </div>
       </div>
@@ -67,7 +52,7 @@ export default function LearningProgressChart() {
             <LineChart data={data} margin={{ top: 20, right: 20, left: 30, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
-                dataKey="day"
+                dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -85,7 +70,7 @@ export default function LearningProgressChart() {
               />
               <Line
                 type="monotone"
-                dataKey="progress"
+                dataKey="value"
                 stroke="#3b82f6"
                 strokeWidth={3}
                 dot={{ r: 5, stroke: '#fff', strokeWidth: 2, fill: '#3b82f6' }}
