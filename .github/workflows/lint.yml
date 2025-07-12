@@ -31,3 +31,5 @@ jobs:
       - name: Lint project
         run: |
           pnpm run lint
+        env:
+          CI: true

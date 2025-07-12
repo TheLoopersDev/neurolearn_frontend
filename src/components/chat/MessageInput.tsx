@@ -3,13 +3,11 @@ import { Send } from 'lucide-react';
 
 interface MessageInputProps {
     onSendMessage: (content: string) => void;
-    onTyping: (isTyping: boolean) => void;
     disabled?: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
     onSendMessage,
-    onTyping,
     disabled = false,
 }) => {
     const [message, setMessage] = useState('');
@@ -20,12 +18,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
     useEffect(() => {
         if (message.length > 0 && !isTyping) {
             setIsTyping(true);
-            onTyping(true);
         } else if (message.length === 0 && isTyping) {
             setIsTyping(false);
-            onTyping(false);
         }
-    }, [message, isTyping, onTyping]);
+    }, [message, isTyping]);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -40,7 +36,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
             onSendMessage(message.trim());
             setMessage('');
             setIsTyping(false);
-            onTyping(false);
 
             // Reset textarea height
             if (textareaRef.current) {

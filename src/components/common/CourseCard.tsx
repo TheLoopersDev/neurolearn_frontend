@@ -2,94 +2,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Course } from '@/types/course';
 import { useState } from 'react';
-import axios from 'axios';
-import { useToast } from '@/hooks/use-toast';
-import { useSelector } from 'react-redux';
-import { redirect } from 'next/navigation';
+
 
 interface CourseCardProps {
   course: Course;
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
-  const { toast } = useToast();
-  const { user } = useSelector((state: any) => state.auth);
   const [imageError, setImageError] = useState(false);
 
-  const checkCourseExistInCart = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/cart-items`, {
-        withCredentials: true,
-      });
-      const cartItems = response.data.cart.items;
-      return cartItems.some((item: any) => item?.courseId._id === course._id);
-    } catch (error) {
-      console.error('Error checking cart:', error);
-      return false;
-    }
-  };
-  const addToCart = async () => {
-    if (!user) {
-      toast({
-        variant: 'success',
-        title: 'You are not login now!',
-        description: 'Please login to continue.',
-        duration: 3000,
-      });
-      redirect('/');
-      return;
-    }
 
-    if (!course._id) {
-      toast({
-        variant: 'destructive',
-        title: 'CourseId not found!',
-      });
-      return;
-    }
-
-    try {
-      const alreadyExists = await checkCourseExistInCart();
-
-      if (alreadyExists) {
-        const res = await axios.delete(
-          `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/remove-item`,
-          {
-            data: { courseId: course._id },
-            withCredentials: true,
-          }
-        );
-
-        if (res.data.success) {
-          toast({
-            variant: 'success',
-            title: 'Course removed from your cart!',
-            description: 'You can check it in your cart.',
-            duration: 3000,
-          });
-        }
-
-        return;
-      }
-
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/add-to-cart`,
-        { courseId: course._id },
-        { withCredentials: true }
-      );
-
-      if (res.data.success) {
-        toast({
-          variant: 'success',
-          title: 'Course added to your cart!',
-          description: 'You can check it in your cart.',
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    }
-  };
 
 
   return (
@@ -98,22 +20,6 @@ const CourseCard = ({ course }: CourseCardProps) => {
       <div className="absolute top-0 right-0 z-30 flex space-x-1 ">
         <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
           <Image src="/assets/home/Heart.svg" alt="Heart" width={20} height={20} />
-        </div>
-        <div
-          className={`w-9 h-9 rounded-full flex items-center justify-center shadow-2xl hover:brightness-110 transition 
-    'bg-white'}`}
-        >
-          <Image
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
-              addToCart();
-            }}
-            src="/assets/home/Notification.svg"
-            alt="Heart"
-            width={20}
-            height={20}
-          />
         </div>
       </div>
       <div
@@ -146,7 +52,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         {/* Thumbnail Image */}
         <div className="absolute top-[50px] left-[3%] w-[94%] h-[38%] rounded-[16px] overflow-hidden">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course?.thumbnail}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course?.thumbnail?.url}
             alt={course?.name}
             fill
             className="object-cover"

@@ -82,7 +82,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         {/* Phần ảnh thumbnail (giữ nguyên) */}
         <div className="relative h-48 w-full ">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course.thumbnail}
+            src={imageError
+              ? '/assets/images/placeholder-course.jpg'
+              : typeof course.thumbnail === 'string'
+                ? course.thumbnail
+                : course.thumbnail?.url || '/assets/images/placeholder-course.jpg'}
             alt={course.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

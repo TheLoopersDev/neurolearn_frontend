@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'; // Thêm useCallback, useMemo
 import QuizAnswerOption from './QuizAnswerOption';
 import ToggleSwitch from './ToggleSwitch';
-import { QuestionData, AnswerOptionData } from './types';
+import { QuestionData, AnswerOptionData } from '../../../types/quiz';
 
 import { debounce } from 'lodash'; // Thêm lodash để sử dụng debounce
 import Image from 'next/image';

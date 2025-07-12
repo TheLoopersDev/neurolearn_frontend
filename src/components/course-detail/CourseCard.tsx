@@ -25,8 +25,8 @@ interface CourseCardProps {
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
+  console.log(user?.businessInfo?.role);
   const [isOpen, setIsOpen] = useState(false);
-  console.log(user)
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
@@ -71,7 +71,11 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
 
     try {
       const alreadyExists = await checkCourseExistInCart();
-      if (alreadyExists) {
+
+      const isBusinessManager =
+        user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
+
+      if (alreadyExists && !isBusinessManager) {
         toast({
           variant: 'success',
           title: 'This course is already in your cart',
@@ -97,6 +101,11 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to add course to cart',
+        description: 'Please try again later.',
+      });
     }
   };
 
@@ -120,7 +129,6 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
           description: `Buy course from Academix`,
           courseIds: [course._id],
           userId: user._id,
-          webhookUrl: 'https://b340-2405-4803-d372-2630-4d53-126c-f4cf-8cfb.ngrok-free.app/api/payment/webhook'
         },
         { withCredentials: true }
       );
@@ -212,7 +220,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       {isPurchased ? (
         <button
           className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-white font-bold rounded-lg bg-green-600 hover:bg-green-700 transition"
-          onClick={() => redirect(`/courses/${course._id}`)}
+          onClick={() => redirect(`/watch-course/${course._id}`)}
         >
           Go to course
         </button>

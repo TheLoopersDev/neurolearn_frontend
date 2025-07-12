@@ -1,5 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ChatMessage, TypingEvent, OnlineStatusEvent } from '@/types/chat';
+import { ChatMessage } from '@/types/chat';
+
+// Define TypingEvent and OnlineStatusEvent locally
+interface TypingEvent {
+  chatId: string;
+  userId: string;
+  isTyping: boolean;
+}
+
+interface OnlineStatusEvent {
+  userId: string;
+  isOnline: boolean;
+}
 
 interface ChatState {
   activeChatId: string | null;

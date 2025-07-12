@@ -1,27 +1,27 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
-import { Chat, ChatMessage } from '@/types/chat';
-import { useChatSocket } from '@/hooks/useChatSocket';
-import { useSendMessageMutation } from '@/lib/redux/features/chat/chatApi';
+import React from 'react';
+import { Chat } from '@/types/chat';
 import { getChatDisplayName, getChatAvatar } from '@/utils/chatUtils';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import TypingIndicator from './TypingIndicator';
 
 interface ChatRoomProps {
     chat: Chat | null;
     currentUserId: string;
+    messages: any[];
+    sendMessage: (receiverId: string, content: string) => Promise<void>;
+    loading: boolean;
+    error: string | null;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId }) => {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const { sendMessage, sendTyping } = useChatSocket();
-    const [sendMessageApi] = useSendMessageMutation();
-    const { typingUsers } = useSelector((state: RootState) => state.chat);
+const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, sendMessage, loading, error }) => {
+    // Lấy messages trực tiếp từ props
+    const mappedMessages = messages.map((msg: any) => ({
+        _id: msg.id || '',
+        sender: msg.senderId,
+        content: msg.content,
+        timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate().toISOString() : '',
+    }));
 
     // Dùng trực tiếp chat.members
     const members = chat ? chat.members : [];
@@ -32,78 +32,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId }) => {
         : undefined;
     const role = !chat?.isGroup && otherMember ? otherMember.role : undefined;
 
-    // Get typing users for this chat
-    const chatTypingUsers = chat ? typingUsers[chat._id] || [] : [];
-
-    // Update messages when chat changes
-    useEffect(() => {
-        if (chat) {
-            setMessages(chat.messages || []);
-        } else {
-            setMessages([]);
-        }
-    }, [chat]);
-
     const handleSendMessage = async (content: string) => {
-        if (!chat || !content.trim()) return;
-
+        if (!chat || !content.trim() || !otherMember) return;
         try {
-            // Optimistic update
-            const tempMessage: ChatMessage = {
-                _id: `temp-${Date.now()}`,
-                sender: currentUserId,
-                content: content.trim(),
-                timestamp: new Date().toISOString(),
-            };
-
-            setMessages(prev => [...prev, tempMessage]);
-
-            // Send via socket for real-time
-            sendMessage(chat._id, content.trim());
-
-            // Also send via API for persistence
-            await sendMessageApi({
-                chatId: chat._id,
-                messageData: {
-                    sender: currentUserId,
-                    content: content.trim(),
-                },
-            }).unwrap();
-
-            // Remove temp message and let the real one come through socket
-            setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
-
+            await sendMessage(otherMember._id, content.trim());
         } catch (error) {
             console.error('Failed to send message:', error);
-            // Remove temp message on error
-            setMessages(prev => prev.filter(msg => !msg._id.startsWith('temp-')));
         }
     };
-
-    const handleTyping = (isTyping: boolean) => {
-        if (!chat) return;
-
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Set timeout to stop typing indicator
-        if (isTyping) {
-            typingTimeoutRef.current = setTimeout(() => {
-                sendTyping(chat._id, false);
-            }, 3000);
-        }
-    };
-
-    // Cleanup typing timeout
-    useEffect(() => {
-        return () => {
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
-    }, []);
 
     if (!chat) {
         return (
@@ -138,27 +74,24 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId }) => {
             {/* Messages */}
             <div className="flex-1 flex flex-col min-h-0">
                 <MessageList
-                    messages={messages}
+                    messages={mappedMessages}
                     currentUserId={currentUserId}
                     chatMembers={members}
                 />
-
-                {/* Typing Indicator */}
-                {chatTypingUsers.length > 0 && (
-                    <TypingIndicator
-                        typingUsers={chatTypingUsers}
-                        chatMembers={members}
-                        currentUserId={currentUserId}
-                    />
-                )}
             </div>
 
             {/* Input */}
             <MessageInput
                 onSendMessage={handleSendMessage}
-                onTyping={handleTyping}
-                disabled={false}
+                disabled={loading}
             />
+
+            {/* Error Display */}
+            {error && (
+                <div className="p-4 bg-red-50 border-t border-red-200">
+                    <p className="text-red-600 text-sm">{error}</p>
+                </div>
+            )}
         </div>
     );
 };

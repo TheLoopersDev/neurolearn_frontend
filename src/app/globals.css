@@ -82,3 +82,11 @@ body {
   white-space: nowrap;
   border-width: 0;
 }
+
+@layer utilities {
+  .custom-radial {
+    background: radial-gradient(circle, rgba(191, 219, 254, 1) 0%, rgba(255, 255, 255, 0) 70%);
+    filter: blur(60px);
+    opacity: 0.7;
+  }
+}
