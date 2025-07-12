@@ -5,8 +5,10 @@ import { ReactNode } from 'react';
 interface StatCardProps {
   icon: ReactNode;
   title: string;
-  value: string;
+  value: any;
 }
+
+
 
 export default function StatCard({ icon, title, value }: StatCardProps) {
   return (
