@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 
 // Icons
 import dashboard from '@/public/assets/icons/dashboard.svg';
+import explore from '@/public/assets/icons/dashboard.svg';
 import courses from '@/public/assets/icons/book.svg';
 import createQuiz from '@/public/assets/icons/create.svg';
 import earning from '@/public/assets/icons/wallet.svg';
@@ -19,6 +20,7 @@ import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+  { icon: explore, label: 'Explore', path: '/dashboard/explore' },
   { icon: courses, label: 'Courses', path: '/dashboard/courses' },
   {
     icon: createQuiz,
