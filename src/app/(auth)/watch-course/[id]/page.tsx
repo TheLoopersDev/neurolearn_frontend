@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Rating from '@/components/course-detail/Rating';
 import TabMenu from '@/components/instructor/TabMenu';
 import Image from 'next/image';
 import KnowledgeCheckAssignment from './quiz/KnowledgeCheckAssignment';

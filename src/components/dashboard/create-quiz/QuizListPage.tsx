@@ -17,6 +17,69 @@ import {
 } from '@/components/common/ui/pagination';
 import { useGetAllQuizzesQuery, useCreateQuizMutation } from '@/lib/redux/features/quiz/quizApi';
 
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main';
+
+const fetchQuizzesFromStorage = (): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const storedQuizzes = localStorage.getItem(QUIZZES_STORAGE_KEY);
+    if (!storedQuizzes || JSON.parse(storedQuizzes).length === 0) {
+      const demoQuizzes: Quiz[] = Array.from({ length: 25 }, (_, i) => ({
+        id: `demo${i + 1}`,
+        name: `Sample Quiz Title ${i + 1} - Advanced Web Topics`,
+        questions: [
+          {
+            id: `q${i}-1`,
+            questionNumber: 1,
+            title: `Sample question 1 for Quiz ${i + 1}`,
+            questionType: 'single-choice',
+            choicesConfig: { isMultipleAnswer: false, isAnswerWithImageEnabled: false },
+            options: [
+              { id: `q${i}o1`, text: 'OptA' },
+              { id: `q${i}o2`, text: 'OptB' },
+            ],
+            correctAnswerIds: [],
+            points: '01',
+            isRequired: true,
+          },
+        ],
+        createdAt: `${String(i + 1).padStart(2, '0')} Jan, 2025`,
+        examTitle: `QUIZ ${(i % 3) + 1}`,
+        totalQuestions: 10 + (i % 5),
+        duration: `${15 + (i % 4) * 15} Min`,
+        progress: 20 + ((i * 13) % 80),
+        imageUrl: `/assets/create-quiz/thumbnail.png`,
+        category: [
+          'Grapic Design',
+          'Web Development',
+          'Data Science',
+          'UX Design',
+          'Marketing',
+          'IT & Software',
+        ][i % 6],
+      }));
+      localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(demoQuizzes));
+      return demoQuizzes;
+    }
+    return storedQuizzes ? JSON.parse(storedQuizzes) : [];
+  }
+  return [];
+};
+
+const saveNewQuizToStorage = (newQuiz: Quiz): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    const existingIndex = quizzes.findIndex(q => q.id === newQuiz.id);
+    if (existingIndex > -1) {
+      quizzes[existingIndex] = newQuiz;
+    } else {
+      quizzes.push(newQuiz);
+    }
+    localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(quizzes));
+    return quizzes;
+  }
+  return [newQuiz];
+};
+console.log(saveNewQuizToStorage);
 
 const ITEMS_PER_PAGE = 8;
 
@@ -28,7 +91,7 @@ const QuizListPage: React.FC = () => {
   const router = useRouter();
   const { toast } = useToast();
 
-  const { data, isLoading, } = useGetAllQuizzesQuery({});
+  const { data, isLoading } = useGetAllQuizzesQuery({});
   const [createQuiz] = useCreateQuizMutation();
 
   useEffect(() => {
@@ -39,15 +102,13 @@ const QuizListPage: React.FC = () => {
     }
   }, [data]);
 
-
   const searchedQuizzes = useMemo(() => {
     if (!searchTerm) return allQuizzes; // không lọc
-    return allQuizzes.filter(quiz =>
-      typeof quiz.name === 'string' &&
-      quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return allQuizzes.filter(
+      quiz =>
+        typeof quiz.name === 'string' && quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allQuizzes, searchTerm]);
-
 
   const totalPages = Math.ceil(searchedQuizzes.length / ITEMS_PER_PAGE);
 
@@ -111,7 +172,7 @@ const QuizListPage: React.FC = () => {
         });
 
         // ✅ Fix undefined
-        router.push(`/dashboard/create-quiz/builder/${response.quiz?._id}`);
+        router.push(`/dashboard/create-quiz/builder/${response.quiz?.id}`);
       } catch (err) {
         toast({
           title: 'Failed to create quiz',
@@ -123,6 +184,41 @@ const QuizListPage: React.FC = () => {
     [createQuiz, router, toast]
   );
 
+  const renderQuizContent = () => {
+    if (isLoading) {
+      return <p className="text-center py-12">Loading quizzes...</p>;
+    }
+
+    if (quizzesForCurrentPage.length > 0) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          {quizzesForCurrentPage.map(quiz => (
+            // Use quiz.id as the key, since Quiz type only has id
+            <QuizCard key={quiz.id} quiz={quiz} />
+          ))}
+        </div>
+      );
+    }
+
+    // Trường hợp không có quiz nào
+    return (
+      <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
+        <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          {searchTerm ? 'Try adjusting your search.' : 'Get started by creating a new quiz.'}
+        </p>
+        <div className="mt-6">
+          <button
+            onClick={handleOpenCreateModal}
+            className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <PlusCircle size={18} className="-ml-1 mr-2" />
+            New Quiz
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full">
@@ -166,33 +262,7 @@ const QuizListPage: React.FC = () => {
           Create Quiz
         </button>
       </div>
-
-      {isLoading ? (
-        <p className="text-center py-12">Loading quizzes...</p>
-      ) : quizzesForCurrentPage.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-          {quizzesForCurrentPage.map(quiz => (
-            <QuizCard key={quiz._id} quiz={quiz} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
-          <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm ? 'Try adjusting your search.' : 'Get started by creating a new quiz.'}
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              <PlusCircle size={18} className="-ml-1 mr-2" />
-              New Quiz
-            </button>
-          </div>
-        </div>
-      )}
-
+      {renderQuizContent()}
       {totalPages > 1 && (
         <Pagination className="mt-8 sm:mt-12">
           <PaginationContent>

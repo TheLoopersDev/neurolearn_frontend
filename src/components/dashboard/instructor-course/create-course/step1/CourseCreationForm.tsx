@@ -35,13 +35,13 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
         if (isSuccess && courseData?.courses) {
             props.setFormData(courseData.courses);
         }
-    }, [isSuccess, courseData]);
+    }, [isSuccess, courseData, props.setFormData]);
 
     useEffect(() => {
         if (props.courseId && props.courseId !== courseId) {
             setCourseId(props.courseId);
         }
-    }, [props.courseId]);
+    }, [props.courseId, courseId]);
 
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();

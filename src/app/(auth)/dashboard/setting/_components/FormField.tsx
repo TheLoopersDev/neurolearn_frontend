@@ -8,6 +8,7 @@ interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   id: string;
   containerClassName?: string;
   icon?: React.ReactNode;
+  error?: string;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -16,6 +17,7 @@ const FormField: React.FC<FormFieldProps> = ({
   containerClassName,
   icon,
   className,
+  error,
   ...props
 }) => {
   return (
@@ -28,6 +30,7 @@ const FormField: React.FC<FormFieldProps> = ({
           id={id}
           className={cn(
             'w-full px-4 py-3 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors',
+            error ? 'border-red-500 focus:ring-red-500' : 'border-gray-200', // <<-- THAY ĐỔI MÀU VIỀN KHI CÓ LỖI
             icon ? 'pr-10' : '',
             className
           )}
@@ -39,6 +42,7 @@ const FormField: React.FC<FormFieldProps> = ({
           </div>
         )}
       </div>
+      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { X, Search, Users } from 'lucide-react';
 import { getOrCreateChatRoom } from '@/lib/firestore/chat';
 import { useDispatch } from 'react-redux';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
-import { Chat } from '@/types/chat';
 
 interface UserInfo {
     _id: string;
@@ -29,7 +28,6 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [groupName, setGroupName] = useState('');
-    const [isGroup, setIsGroup] = useState(false);
     const [users, setUsers] = useState<UserInfo[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
@@ -97,7 +95,6 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
             dispatch(setActiveChat(chatRoomId));
             setSelectedUsers([]);
             setGroupName('');
-            setIsGroup(false);
             setSearchQuery('');
             if (onChatCreated) {
                 setTimeout(() => {
@@ -113,7 +110,6 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     const handleClose = () => {
         setSelectedUsers([]);
         setGroupName('');
-        setIsGroup(false);
         setSearchQuery('');
         onClose();
     };
@@ -123,7 +119,6 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
         if (!open) {
             setSelectedUsers([]);
             setGroupName('');
-            setIsGroup(false);
             setSearchQuery('');
         }
     }, [open]);

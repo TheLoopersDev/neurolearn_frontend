@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import QuestionListSidebar from './QuestionListSidebar';
 import InstructorQuestionEditor from './InstructorQuestionEditor';
 import QuizBuilderHeader from './QuizBuilderHeader';
-import { QuestionData, QuestionSummary } from './types'; // Đảm bảo đường dẫn đúng
+import { QuestionData, QuestionSummary, Quiz } from './types'; // Đảm bảo đường dẫn đúng
 import {
   useGetQuizByIdQuery,
   useUpdateQuizMutation,
@@ -15,6 +15,43 @@ import {
   useDeleteQuestionMutation,
 } from '@/lib/redux/features/quiz/quizApi';
 
+// --- Mockup hàm lưu trữ và tải quiz ---
+const QUIZZES_STORAGE_KEY = 'quizzes_v3_main'; // Đổi key để tránh xung đột với list page nếu cần
+
+const fetchQuizzesFromStorage = (): Quiz[] => {
+  if (typeof window !== 'undefined') {
+    const storedQuizzes = localStorage.getItem(QUIZZES_STORAGE_KEY);
+    return storedQuizzes ? JSON.parse(storedQuizzes) : [];
+  }
+  return [];
+};
+
+const saveQuizToStorage = (quizData: Quiz) => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    const existingQuizIndex = quizzes.findIndex(q => q.id === quizData.id);
+    if (existingQuizIndex > -1) {
+      quizzes[existingQuizIndex] = quizData;
+    } else {
+      quizzes.push(quizData);
+    }
+    localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(quizzes));
+  }
+};
+
+console.log(saveQuizToStorage);
+
+const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
+  if (typeof window !== 'undefined') {
+    const quizzes = fetchQuizzesFromStorage();
+    return quizzes.find(q => q.id === quizId);
+  }
+  return undefined;
+};
+
+console.log(fetchQuizByIdFromStorage);
+
+// -------------------------------------
 
 function getIconForQuestionType(type: QuestionData['questionType']): React.ReactNode {
   if (type === 'multiple-choice' || type === 'single-choice') {
@@ -59,7 +96,12 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const [currentQuizIdInternal, setCurrentQuizIdInternal] = useState<string | null>(null);
   const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined); // State để lưu ngày tạo của quiz đang sửa
   const [hasInitialized, setHasInitialized] = useState(false);
-  const { data: fetchedQuiz, isLoading, isError } = useGetQuizByIdQuery(quizIdToLoad!, {
+  const {
+    data: fetchedQuiz,
+    isLoading,
+    isError,
+    // } = useGetQuizByIdQuery(quizIdToLoad!, {
+  } = useGetQuizByIdQuery(quizIdToLoad as string, {
     skip: !quizIdToLoad,
   });
 
@@ -113,21 +155,21 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         setSelectedQuestionId(defaultQuestion.id);
 
         // ✅ Lưu vào DB nếu quiz đã có ID
-        if (serverQuiz._id) {
+        if (serverQuiz.id) {
           addQuestion({
-            id: serverQuiz._id,
+            id: serverQuiz.id,
             question: defaultQuestion,
           })
             .unwrap()
-            .then((res) => {
+            .then(res => {
               console.log('✅ Default question saved:', res);
             })
-            .catch((err) => {
+            .catch(err => {
               console.error('❌ Failed to save default question:', err);
             });
         }
       }
-      setCurrentQuizIdInternal(serverQuiz._id ?? null);
+      setCurrentQuizIdInternal(serverQuiz.id ?? null);
       setCurrentQuizCreatedAt(serverQuiz.createdAt || undefined);
       setHasInitialized(true);
     } else if (isError) {
@@ -139,7 +181,6 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       router.push('/dashboard/create-quiz');
     }
   }, [fetchedQuiz, isError]);
-
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -153,9 +194,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
 
   const handleAddQuestion = useCallback(async () => {
     const newQuestionNumber =
-      questionsList.length > 0
-        ? Math.max(...questionsList.map(q => q.questionNumber)) + 1
-        : 1;
+      questionsList.length > 0 ? Math.max(...questionsList.map(q => q.questionNumber)) + 1 : 1;
 
     const timestamp = Date.now();
     const localId = `q_${timestamp}_${newQuestionNumber}`;
@@ -194,8 +233,12 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           setSelectedQuestionId(localId); // Gán chính xác ID này để editor nhận
         }
       } catch (err) {
+        // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
+        console.error('Failed to add question:', err);
+
         toast({
           title: 'Error',
+          // Giữ thông báo thân thiện với người dùng
           description: 'Failed to add question',
           variant: 'destructive',
         });
@@ -209,14 +252,11 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
     }
-  }, [currentQuizIdInternal, isSidebarOpen, questionsList]);
-
+  }, [currentQuizIdInternal, isSidebarOpen, questionsList, addQuestion, toast]);
 
   const handleQuestionDataUpdateFromEditor = useCallback(
     async (updatedData: QuestionData) => {
-      setQuestionsList(prev =>
-        prev.map(q => (q.id === updatedData.id ? updatedData : q))
-      );
+      setQuestionsList(prev => prev.map(q => (q.id === updatedData.id ? updatedData : q)));
 
       if (!hasInitialized || !updatedData.questionNumber) return;
 
@@ -228,13 +268,20 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
             question: updatedData,
           }).unwrap();
         } catch (err) {
-          toast({ title: 'Error', description: 'Failed to update question', variant: 'destructive' });
+          // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
+          console.error('Failed to update question:', err);
+
+          toast({
+            title: 'Error',
+            // Giữ thông báo thân thiện với người dùng
+            description: 'Failed to update question',
+            variant: 'destructive',
+          });
         }
       }
     },
-    [currentQuizIdInternal, hasInitialized]
+    [currentQuizIdInternal, hasInitialized, updateQuestion, toast]
   );
-
 
   const handleDeleteQuestion = async (questionId: string) => {
     if (!currentQuizIdInternal || !questionId) return;
@@ -282,7 +329,6 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     }
   };
 
-
   const handleSaveQuiz = async () => {
     if (!quizName.trim()) {
       toast({
@@ -329,8 +375,6 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       });
     }
   };
-
-
 
   const questionSummaries: QuestionSummary[] = useMemo(
     () =>
@@ -414,7 +458,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           activeQuestionNumber={activeQuestionData?.questionNumber}
           onSelectQuestion={handleSelectQuestion}
           onAddQuestion={handleAddQuestion}
-        // isOpen và onToggle đã được truyền từ phiên bản trước, đảm bảo chúng vẫn có
+          // isOpen và onToggle đã được truyền từ phiên bản trước, đảm bảo chúng vẫn có
         />
         <main className={`flex-grow overflow-y-auto transition-all duration-300 ease-in-out`}>
           <div className="h-full">

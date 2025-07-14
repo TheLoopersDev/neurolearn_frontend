@@ -5,16 +5,14 @@ import {
   updateDoc, 
   deleteDoc, 
   getDocs, 
-  getDoc, 
   query, 
   orderBy, 
-  limit, 
   onSnapshot,
   serverTimestamp,
   where,
-  Timestamp
+  Timestamp,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebaseClient';
 
 export interface ChatMessage {
   id?: string;
@@ -62,7 +60,7 @@ export const getOrCreateChatRoom = async (userId1: string, userId2: string): Pro
     participants: [String(userId1).trim(), String(userId2).trim()],
     createdAt: serverTimestamp() as Timestamp,
     lastMessageTime: serverTimestamp() as Timestamp,
-    isGroup: false
+    isGroup: false,
   };
   const docRef = await addDoc(chatRoomsRef, newChatRoom);
   return docRef.id;
@@ -70,32 +68,32 @@ export const getOrCreateChatRoom = async (userId1: string, userId2: string): Pro
 
 // Gửi tin nhắn
 export const sendMessage = async (
-  chatRoomId: string, 
-  senderId: string, 
+  chatRoomId: string,
+  senderId: string,
   receiverId: string, // thêm receiverId
-  content: string, 
+  content: string,
   type: 'text' | 'image' | 'file' = 'text'
 ): Promise<string> => {
   const messagesRef = collection(db, `chatRooms/${chatRoomId}/messages`);
-  
+
   const message: Omit<ChatMessage, 'id'> = {
     senderId,
     receiverId, // lưu đúng receiverId
     content,
     timestamp: serverTimestamp() as Timestamp,
     type,
-    read: false
+    read: false,
   };
-  
+
   const docRef = await addDoc(messagesRef, message);
-  
+
   // Cập nhật last message trong chat room
   const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
   await updateDoc(chatRoomRef, {
     lastMessage: message,
-    lastMessageTime: message.timestamp
+    lastMessageTime: message.timestamp,
   });
-  
+
   return docRef.id;
 };
 
@@ -103,26 +101,26 @@ export const sendMessage = async (
 export const getMessages = async (chatRoomId: string): Promise<ChatMessage[]> => {
   const messagesRef = collection(db, `chatRooms/${chatRoomId}/messages`);
   const q = query(messagesRef, orderBy('timestamp', 'asc'));
-  
+
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   })) as ChatMessage[];
 };
 
 // Real-time listener cho tin nhắn
 export const subscribeToMessages = (
-  chatRoomId: string, 
+  chatRoomId: string,
   callback: (messages: ChatMessage[]) => void
 ) => {
   const messagesRef = collection(db, `chatRooms/${chatRoomId}/messages`);
   const q = query(messagesRef, orderBy('timestamp', 'asc'));
-  
-  return onSnapshot(q, (querySnapshot) => {
+
+  return onSnapshot(q, querySnapshot => {
     const messages = querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     })) as ChatMessage[];
     callback(messages);
   });
@@ -136,30 +134,27 @@ export const getUserChatRooms = async (userId: string): Promise<ChatRoom[]> => {
     where('participants', 'array-contains', userId),
     orderBy('lastMessageTime', 'desc')
   );
-  
+
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   })) as ChatRoom[];
 };
 
 // Real-time listener cho chat rooms
-export const subscribeToChatRooms = (
-  userId: string, 
-  callback: (chatRooms: ChatRoom[]) => void
-) => {
+export const subscribeToChatRooms = (userId: string, callback: (chatRooms: ChatRoom[]) => void) => {
   const chatRoomsRef = collection(db, 'chatRooms');
   const q = query(
     chatRoomsRef,
     where('participants', 'array-contains', userId),
     orderBy('lastMessageTime', 'desc')
   );
-  
-  return onSnapshot(q, (querySnapshot) => {
+
+  return onSnapshot(q, querySnapshot => {
     const chatRooms = querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     })) as ChatRoom[];
     console.log('Firestore chatRooms:', chatRooms); // DEBUG LOG
     callback(chatRooms);
@@ -176,4 +171,4 @@ export const markMessageAsRead = async (chatRoomId: string, messageId: string) =
 export const deleteMessage = async (chatRoomId: string, messageId: string) => {
   const messageRef = doc(db, `chatRooms/${chatRoomId}/messages`, messageId);
   await deleteDoc(messageRef);
-}; 
+};

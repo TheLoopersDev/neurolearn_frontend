@@ -1,16 +1,30 @@
 // src/app/(auth)/dashboard/setting/_components/ProfileSidebar.tsx
 'use client';
-import React from 'react';
+import React, { useRef } from 'react'; // Thêm useRef
 import Image from 'next/image';
 import { Facebook, Mail } from 'lucide-react';
-import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
+import { User } from '@/types/user';
 
 interface ProfileSidebarProps {
   user?: User | null;
-  onPhotoEditClick: () => void;
+  // onPhotoEditClick: () => void; // Bỏ đi, xử lý trực tiếp ở đây
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void; // Callback mới
+  newAvatarPreview?: string | null; // Prop để nhận URL preview của ảnh mới
 }
 
-const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, onPhotoEditClick }) => {
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
+  user,
+  onFileChange,
+  newAvatarPreview,
+}) => {
+  // Tạo một ref để truy cập vào input file ẩn
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleEditPhotoClick = () => {
+    // Khi nhấn nút, kích hoạt click của input file
+    fileInputRef.current?.click();
+  };
+
   if (!user) {
     // Skeleton Loader
     return (
@@ -42,12 +56,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, onPhotoEditClick 
     (user.profession || user.role).charAt(0).toUpperCase() +
     (user.profession || user.role).slice(1);
 
+  // Xác định nguồn ảnh: ưu tiên ảnh preview mới, sau đó là ảnh từ user, cuối cùng là ảnh mặc định
+  const avatarSrc = newAvatarPreview || user.avatar?.url || '/assets/images/default-avatar.png';
+
   return (
     <aside className="w-full lg:w-[300px] xl:w-[350px] flex-shrink-0 bg-white p-6 sm:p-8 rounded-2xl flex flex-col">
       <div className="flex flex-col items-center text-center">
         <div className="relative w-28 h-28 sm:w-32 sm:h-32 mb-4">
           <Image
-            src={user.avatar?.url || '/assets/images/default-avatar.png'}
+            src={avatarSrc} // <<-- SỬ DỤNG NGUỒN ẢNH ĐỘNG
             alt={user.name}
             fill
             sizes="128px"
@@ -57,10 +74,19 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, onPhotoEditClick 
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{user.name}</h1>
         <p className="text-sm text-gray-500 mt-1 capitalize">{userRole}</p>
 
-        {/* <<-- THAY ĐỔI Ở ĐÂY: Xóa `w-full` và có thể tăng padding ngang (px) -->> */}
+        {/* Input file ẩn */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={onFileChange}
+          className="hidden"
+          accept="image/png, image/jpeg, image/jpg, image/webp"
+        />
+
+        {/* Nút này giờ sẽ kích hoạt input file */}
         <button
-          onClick={onPhotoEditClick}
-          className="mt-5 bg-blue-500 hover:cursor-pointer text-white px-8 py-2.5 rounded-3xl text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+          onClick={handleEditPhotoClick}
+          className="mt-5 bg-blue-500 hover:cursor-pointer text-white px-8 py-2.5 rounded-3xl text-sm font-medium hover:bg-blue-600 transition-colors"
         >
           Edit your photo
         </button>
