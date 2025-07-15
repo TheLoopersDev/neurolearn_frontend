@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['axios'],
   },
+  // Disable static generation for pages that require authentication
+  generateStaticParams: async () => {
+    return [];
+  },
+  // Handle dynamic routes that shouldn't be statically generated
+  trailingSlash: false,
 };
 
 export default nextConfig;

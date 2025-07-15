@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import TabMenu from '@/components/instructor/TabMenu';
+import Image from 'next/image';
 import KnowledgeCheckAssignment from './quiz/KnowledgeCheckAssignment';
 import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
