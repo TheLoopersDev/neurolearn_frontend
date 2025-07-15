@@ -169,7 +169,7 @@ export default function InviteModal({
                   </div>
                   {/* Course summary */}
                   <div className="mt-6 bg-gray-50 p-4 rounded-xl flex items-center gap-4">
-                    <div className="relative w-20 h-12 flex-shrink-0">
+                                      <div className="relative w-40 h-24 flex-shrink-0">
                       <Image
                         src={course.thumbnailUrl}
                         alt={course.name}
