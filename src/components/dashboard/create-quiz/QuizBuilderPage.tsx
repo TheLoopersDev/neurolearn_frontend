@@ -180,7 +180,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       });
       router.push('/dashboard/create-quiz');
     }
-  }, [fetchedQuiz, isError]);
+  }, [fetchedQuiz, isError, defaultFirstQuestion, addQuestion, toast, router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {

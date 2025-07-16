@@ -1,5 +1,5 @@
 // ✅ Updated KnowledgeCheckAssignment.tsx with integrated API
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 
 import { Card } from './ui/Card';
@@ -24,7 +24,7 @@ const KnowledgeCheckAssignment = () => {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizResults, setQuizResults] = useState<QuizResultsSummary | null>(null);
 
-  const questions = data?.quiz?.questions || [];
+  const questions = useMemo(() => data?.quiz?.questions || [], [data?.quiz?.questions]);
   const currentQuestion = questions[currentQuestionIndex];
   const progress = Math.min(100, Math.round((answers.size / questions.length) * 100));
 

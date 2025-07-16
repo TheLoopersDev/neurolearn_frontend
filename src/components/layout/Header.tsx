@@ -17,16 +17,12 @@ import { RootState } from '@/lib/redux/store';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
 
-interface Category {
-  name: string;
-  href: string;
-}
 
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const { data, isLoading } = useLoadUserQuery(undefined);
+  const { isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {

@@ -52,7 +52,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         {/* Thumbnail Image */}
         <div className="absolute top-[50px] left-[3%] w-[94%] h-[38%] rounded-[16px] overflow-hidden">
           <Image
-            src={imageError ? '/assets/images/placeholder-course.jpg' : course?.thumbnail}
+            src={imageError ? '/assets/images/placeholder-course.jpg' : course?.thumbnail?.url}
             alt={course?.name}
             fill
             className="object-cover"

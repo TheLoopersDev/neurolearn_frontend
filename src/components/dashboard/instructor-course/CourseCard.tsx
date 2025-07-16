@@ -28,7 +28,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             <div className="z-0 my-auto min-w-60 w-[332px]">
                 <CourseHeader
                     courseId={_id.toString()}
-                    thumbnailImage={thumbnail || ''}
+                    thumbnailImage={typeof thumbnail === 'string' ? thumbnail : thumbnail?.url || ''}
                     category={typeof category === 'string' ? category : category?.title || 'Uncategorized'}
                     title={name}
                 />

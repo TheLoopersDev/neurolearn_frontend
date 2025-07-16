@@ -28,37 +28,13 @@ import {
 import defaultAvatar from '@/public/assets/images/avatar.png';
 import { signOutAction } from '@/lib/actions/auth';
 import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
-import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
-
-// Define a more specific type for the user object if possible
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'instructor' | 'user' | string; // Be more specific if roles are fixed
-  avatar?: {
-    url?: string;
-  };
-  // other user properties
-}
-
-interface LoadUserResponse {
-  user: User;
-  // other properties in the response
-}
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
-
-  // Provide a type for the data returned by useLoadUserQuery
-  const { data, isLoading } = useLoadUserQuery(undefined) as {
-    data?: LoadUserResponse;
-    isLoading: boolean;
-  };
 
   // Type the refetch function if possible, or leave as any if its signature is complex/unknown
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
