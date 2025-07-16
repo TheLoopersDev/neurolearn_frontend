@@ -29,7 +29,7 @@ const fetchQuizzesFromStorage = (): Quiz[] => {
 const saveQuizToStorage = (quizData: Quiz) => {
   if (typeof window !== 'undefined') {
     const quizzes = fetchQuizzesFromStorage();
-    const existingQuizIndex = quizzes.findIndex(q => q.id === quizData.id);
+    const existingQuizIndex = quizzes.findIndex(q => q._id === quizData._id);
     if (existingQuizIndex > -1) {
       quizzes[existingQuizIndex] = quizData;
     } else {
@@ -44,7 +44,7 @@ console.log(saveQuizToStorage);
 const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
   if (typeof window !== 'undefined') {
     const quizzes = fetchQuizzesFromStorage();
-    return quizzes.find(q => q.id === quizId);
+    return quizzes.find(q => q._id === quizId);
   }
   return undefined;
 };
