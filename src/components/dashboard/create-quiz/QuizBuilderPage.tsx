@@ -155,9 +155,9 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         setSelectedQuestionId(defaultQuestion.id);
 
         // ✅ Lưu vào DB nếu quiz đã có ID
-        if (serverQuiz.id) {
+        if (serverQuiz._id) {
           addQuestion({
-            id: serverQuiz.id,
+            id: serverQuiz._id,
             question: defaultQuestion,
           })
             .unwrap()
@@ -169,7 +169,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
             });
         }
       }
-      setCurrentQuizIdInternal(serverQuiz.id ?? null);
+      setCurrentQuizIdInternal(serverQuiz._id ?? null);
       setCurrentQuizCreatedAt(serverQuiz.createdAt || undefined);
       setHasInitialized(true);
     } else if (isError) {
