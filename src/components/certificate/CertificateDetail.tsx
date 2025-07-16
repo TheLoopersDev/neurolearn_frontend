@@ -3,9 +3,34 @@
 import React from 'react';
 import Image from 'next/image';
 import ShareModal from "./ShareModal";
+import { Certificate } from '@/types/certificate';
+import { format } from 'date-fns';
 
-const CertificateDetail: React.FC = () => {
+interface CertificateDetailProps {
+    certificate?: Certificate | null;
+}
+
+const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) => {
     const [showModal, setShowModal] = React.useState(false);
+
+    const formatDate = (dateString: string) => {
+        try {
+            return format(new Date(dateString), 'MMM dd, yyyy');
+        } catch {
+            return 'Invalid date';
+        }
+    };
+
+    // If no certificate data, show a placeholder or loading state
+    if (!certificate) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-lg font-semibold mb-2 text-gray-600">Certificate not found</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative">
@@ -15,10 +40,10 @@ const CertificateDetail: React.FC = () => {
                 {/* Left Column */}
                 <div className="flex-1 min-w-[350px]">
                     <div className="flex justify-center items-center text-xs text-white font-semibold my-4 bg-blue-700 rounded-xl w-36 h-7">
-                        #1 Online Course 2025
+                        Course Certificate
                     </div>
                     <div className="text-3xl font-bold text-blue-700 my-4 leading-tight">
-                        Graphic Design Mastercla Learn Great Design
+                        {certificate.courseName}
                     </div>
                     <div className="flex items-start gap-4 my-4">
                         <div>
@@ -31,20 +56,17 @@ const CertificateDetail: React.FC = () => {
                             />
                         </div>
                         <div className="flex-1">
-                            <div className="text-xl font-semibold text-black">Completed by Đào Tuấn Kiệt</div>
-                            <div className="text-lg mb-1 text-black">Jun 9, 2025</div>
-                            <div className="text-lg mb-1 text-black">Duration: 33 hours (approximately)</div>
+                            <div className="text-xl font-semibold text-black">Completed by {certificate.userName}</div>
+                            <div className="text-lg mb-1 text-black">{formatDate(certificate.completedAt)}</div>
+                            <div className="text-lg mb-1 text-black">Duration: Completed</div>
                             <div className="text-lg mb-1 text-black">Grade Achieved: <span className="font-bold">100%</span></div>
                             <div className="text-lg mb-4 text-gray-500">
-                                Dao Tuan Kiet account is verified. Coursera certifies their successful completion of California Institute of the Arts UI UX Design Specialization.
+                                {certificate.userName} has successfully completed the {certificate.courseName} course. This certificate is issued by {certificate.issuedBy}.
                             </div>
                             <div className="flex flex-wrap gap-2 mb-8">
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Typography</span>
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Graphic and Visual Design</span>
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Prototyping</span>
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Human Computer Interaction</span>
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">User Flows</span>
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">User Research</span>
+                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Course Completion</span>
+                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Certificate</span>
+                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">Achievement</span>
                             </div>
                         </div>
                     </div>

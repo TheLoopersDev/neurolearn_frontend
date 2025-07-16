@@ -1,12 +1,17 @@
-import React from 'react';
+'use client'
 
-const MyCoursesPage = () => {
+import CourseCard, { mockCoursesData } from "@/components/business/CourseCard";
+
+
+export default function MyCoursesListPage() {
   return (
-    <div>
-      <h1>My Courses</h1>
-      <p>Welcome to your courses page.</p>
+    <div className="min-h-screen">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {mockCoursesData.map(course => (
+          <CourseCard key={course._id} course={course} />
+        ))}
+      </div>
+
     </div>
   );
-};
-
-export default MyCoursesPage;
+}
