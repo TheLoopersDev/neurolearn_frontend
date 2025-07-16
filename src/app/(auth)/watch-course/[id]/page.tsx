@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import TabMenu from '@/components/instructor/TabMenu';
-import KnowledgeCheckAssignment from './quiz/KnowledgeCheckAssignment';
 import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
 import axios from 'axios';
@@ -107,7 +106,8 @@ function CoursePage() {
                 <p>No demo video</p>
               </div>
             )}
-            <TabMenu />
+            <TabMenu course={course} />
+
           </div>
 
           {/* RIGHT: Danh sách bài học */}

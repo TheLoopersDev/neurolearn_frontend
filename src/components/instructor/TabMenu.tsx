@@ -7,6 +7,7 @@ import ChatAI from './ChatAI';
 import QnA from './QnA';
 import NotificationPanel from './NotificationPanel';
 import EvaluatePanel from './EvaluatePanel';
+import { Course } from '@/types/course';
 
 const tabs = [
   { id: 'chat', label: 'Chat.AI', icon: '/assets/icons/chat.svg' },
@@ -15,8 +16,13 @@ const tabs = [
   { id: 'evaluate', label: 'Evaluate', icon: '/assets/icons/black-star.svg' },
 ];
 
-export default function TabMenu() {
+interface TabMenuProps {
+  course: Course; // hoặc cụ thể hơn nếu bạn có type Course
+}
+
+export default function TabMenu({ course }: TabMenuProps) {
   const [activeTab, setActiveTab] = useState('chat');
+  console.log(course);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -44,7 +50,7 @@ export default function TabMenu() {
         {activeTab === 'chat' && <ChatAI />}
         {activeTab === 'qa' && <QnA />}
         {activeTab === 'notification' && <NotificationPanel />}
-        {activeTab === 'evaluate' && <EvaluatePanel />}
+        {activeTab === 'evaluate' && <EvaluatePanel courseId={course._id} reviews={course.reviews} />}
         {activeTab !== 'lesson' && activeTab !== 'chat' && activeTab !== 'qa' && activeTab !== 'notification' && activeTab !== 'evaluate' &&(
           <div className="p-4 bg-white rounded-b-xl shadow text-[#6B6B6B]">
             Content for <strong>{tabs.find(tab => tab.id === activeTab)?.label}</strong> coming
