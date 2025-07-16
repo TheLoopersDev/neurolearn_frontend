@@ -6,7 +6,7 @@ import { Star, Star as StarFilled, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-interface EvaluatePanelProps {
+type EvaluatePanelProps = Readonly < {
   courseId: string;
   reviews: {
     _id: string;
@@ -21,7 +21,7 @@ interface EvaluatePanelProps {
     createdAt?: string | Date;
   }[];
   onReviewAdded?: () => void; // callback để reload nếu cần
-}
+}>;
 
 export default function EvaluatePanel({ courseId, reviews = [], onReviewAdded }: EvaluatePanelProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);

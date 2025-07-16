@@ -38,6 +38,56 @@ const Header: React.FC = () => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+  let userSection = null;
+
+  if (!isLoading) {
+    if (!reduxUser) {
+      userSection = (
+        <>
+          {/* Group 237 – Login */}
+          <button
+            onClick={() => showModal('login')}
+            className="
+              w-[124px] h-[56px]
+              bg-white rounded-[120px]
+              text-[16px] font-medium text-[#0D0D0D]
+              hover:bg-gray-100 transition
+            "
+          >
+            Log In
+          </button>
+
+          {/* Group 236 – Sign up */}
+          <button
+            onClick={() => showModal('signup')}
+            className="
+              w-[124px] h-[56px]
+              bg-[#3858F8] rounded-[120px]
+              text-[16px] font-medium text-white
+              hover:bg-blue-700 transition
+            "
+          >
+            Sign Up
+          </button>
+        </>
+      );
+    } else {
+      userSection = (
+        <>
+          <button
+            className="
+              bg-white rounded-full
+              p-[16px]
+              flex items-center justify-center color-black
+            "
+          >
+            <Image src={NotificationIcon} alt="Notification" width={20} height={20} />
+          </button>
+          <UserDropdown />
+        </>
+      );
+    }
+  }
 
   return (
     <>
@@ -123,56 +173,9 @@ const Header: React.FC = () => {
             </button>
 
             {/* Not logged in */}
-            {isLoading ? null : !reduxUser ? (
+            {userSection}
 
-              <>
-                {/* Group 237 – Login */}
 
-                <button
-                  onClick={() => showModal('login')}
-                  className="
-                  w-[124px] h-[56px]
-                  bg-white rounded-[120px]
-                  text-[16px] font-medium text-[#0D0D0D]
-                  hover:bg-gray-100 transition
-                "
-                >
-                  Log In
-                </button>
-
-                {/* Group 236 – Sign up */}
-                <button
-                  onClick={() => showModal('signup')}
-                  className="
-                  w-[124px] h-[56px]
-                  bg-[#3858F8] rounded-[120px]
-                  text-[16px] font-medium text-white
-                  hover:bg-blue-700 transition
-                "
-                >
-                  Sign Up
-                </button>
-              </>
-            ) : (
-              /* Nếu đã login, giữ lại Cart + UserDropdown như cũ */
-              <>
-                <button
-                  // onClick={() => showModal('notification')}
-                  className="
-                  bg-white rounded-full
-                  p-[16px]
-                  flex items-center justify-center color-black"
-                >
-                  <Image
-                    src={NotificationIcon}
-                    alt="Notification"
-                    width={20}
-                    height={20}
-                  />
-                </button>
-                <UserDropdown />
-              </>
-            )}
           </div>
         </div>
       </header>

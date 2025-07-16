@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type CourseContentProps = {
+type CourseContentProps = Readonly<{
   courseId: string;
   sections: {
     _id: string;
@@ -30,7 +30,7 @@ type CourseContentProps = {
     }[];
   }[];
   onLessonClick: (url: string, lessonId: string) => void;
-};
+}>;
 
 const formatDuration = (seconds?: number) => {
   if (!seconds || isNaN(seconds)) return '0:00';
@@ -82,12 +82,20 @@ export default function CourseContent({ courseId, sections, onLessonClick }: Cou
                 return (
                   <div
                     key={lesson._id}
-                    className={`flex justify-between items-center px-4 py-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       if (!isLocked && lesson.videoUrl?.url) {
                         onLessonClick(lesson.videoUrl.url, lesson._id);
                       }
                     }}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && !isLocked && lesson.videoUrl?.url) {
+                        onLessonClick(lesson.videoUrl.url, lesson._id);
+                      }
+                    }}
+                    className={`flex justify-between items-center px-4 py-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'
+                      }`}
                   >
                     <div className="flex items-center gap-2 h-[40px]">
                       <span className="text-[#3A3C45] text-base">
@@ -108,9 +116,16 @@ export default function CourseContent({ courseId, sections, onLessonClick }: Cou
                 (section.quizzes ?? []).map((quiz) => (
                   <div
                     key={quiz._id}
+                    role="button"
+                    tabIndex={0}
                     className="flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100"
                     onClick={() => {
                       router.push(`/watch-course/${courseId}/quiz/${quiz._id}`);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        router.push(`/watch-course/${courseId}/quiz/${quiz._id}`);
+                      }
                     }}
                   >
                     <div className="flex flex-col">

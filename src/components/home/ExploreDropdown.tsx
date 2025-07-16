@@ -77,8 +77,8 @@ export default function ExploreDropdown() {
                         <div className="flex flex-col gap-3 w-full bg-[#F7F8FA] rounded-[20px] px-6 py-4">
                             <div className="text-[12px] font-medium text-[#6B6B6B]">SUB CATEGORY</div>
                             <div className="grid grid-cols-2 gap-y-3 gap-x-10">
-                                {selectedCategory.subcategories.map((sub, idx) => (
-                                    <div key={idx} className="text-[16px] text-[#000] font-medium hover:text-[#3858F8] cursor-pointer">
+                                {selectedCategory.subcategories.map((sub) => (
+                                    <div key={sub} className="text-[16px] text-[#000] font-medium hover:text-[#3858F8] cursor-pointer">
                                         {sub}
                                     </div>
                                 ))}

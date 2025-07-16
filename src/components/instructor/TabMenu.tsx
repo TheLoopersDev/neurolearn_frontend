@@ -16,9 +16,9 @@ const tabs = [
   { id: 'evaluate', label: 'Evaluate', icon: '/assets/icons/black-star.svg' },
 ];
 
-interface TabMenuProps {
+type TabMenuProps = Readonly<{
   course: Course; // hoặc cụ thể hơn nếu bạn có type Course
-}
+}>;
 
 export default function TabMenu({ course }: TabMenuProps) {
   const [activeTab, setActiveTab] = useState('chat');
