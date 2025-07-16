@@ -29,7 +29,7 @@ const fetchQuizzesFromStorage = (): Quiz[] => {
 const saveQuizToStorage = (quizData: Quiz) => {
   if (typeof window !== 'undefined') {
     const quizzes = fetchQuizzesFromStorage();
-    const existingQuizIndex = quizzes.findIndex(q => q.id === quizData.id);
+    const existingQuizIndex = quizzes.findIndex(q => q._id === quizData._id);
     if (existingQuizIndex > -1) {
       quizzes[existingQuizIndex] = quizData;
     } else {
@@ -44,7 +44,7 @@ console.log(saveQuizToStorage);
 const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
   if (typeof window !== 'undefined') {
     const quizzes = fetchQuizzesFromStorage();
-    return quizzes.find(q => q.id === quizId);
+    return quizzes.find(q => q._id === quizId);
   }
   return undefined;
 };
@@ -155,9 +155,9 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         setSelectedQuestionId(defaultQuestion.id);
 
         // ✅ Lưu vào DB nếu quiz đã có ID
-        if (serverQuiz.id) {
+        if (serverQuiz._id) {
           addQuestion({
-            id: serverQuiz.id,
+            id: serverQuiz._id,
             question: defaultQuestion,
           })
             .unwrap()
@@ -169,7 +169,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
             });
         }
       }
-      setCurrentQuizIdInternal(serverQuiz.id ?? null);
+      setCurrentQuizIdInternal(serverQuiz._id ?? null);
       setCurrentQuizCreatedAt(serverQuiz.createdAt || undefined);
       setHasInitialized(true);
     } else if (isError) {
@@ -180,7 +180,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       });
       router.push('/dashboard/create-quiz');
     }
-  }, [fetchedQuiz, isError]);
+  }, [fetchedQuiz, isError, defaultFirstQuestion, addQuestion, toast, router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
