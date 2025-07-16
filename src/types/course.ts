@@ -205,7 +205,7 @@ export interface Course {
   };
   price?: number;
   estimatedPrice?: number;
-  thumbnail: { url: string };
+  thumbnail: string;
   tags?: string[];
   level?: string | { _id: string; name: string } | null;
   demoUrl?: {
