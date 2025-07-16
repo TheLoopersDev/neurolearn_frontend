@@ -6,7 +6,7 @@ import { User } from '@/types/user';
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI,
+    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000',
   }),
   endpoints: builder => ({
     refreshToken: builder.query({

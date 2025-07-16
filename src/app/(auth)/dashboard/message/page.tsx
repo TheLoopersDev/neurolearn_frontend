@@ -6,6 +6,11 @@ import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
 import { ChatList, ChatRoom, CreateChatModal } from '@/components/chat';
 
+// Check if Firebase is available
+const isFirebaseAvailable = () => {
+  return typeof window !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+};
+
 
 const MessagePage: React.FC = () => {
   const dispatch = useDispatch();
@@ -17,7 +22,8 @@ const MessagePage: React.FC = () => {
   const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
   const currentUserId = currentUser?._id || currentUser?.id;
 
-  // Firestore chat hook
+  // Firestore chat hook - only use if Firebase is available
+  const firebaseAvailable = isFirebaseAvailable();
   const { chatRooms, joinChat, leaveChat, activeChatRoomId: activeChatRoomIdHook, setActiveChatRoomId, messages, sendMessage, loading, error } = useFirestoreChat();
 
   // State loading cho box chat
@@ -52,7 +58,7 @@ const MessagePage: React.FC = () => {
     if (isChatLoading && messages && messages.length >= 0) {
       setIsChatLoading(false);
     }
-  }, [messages, activeChatRoomIdHook]);
+  }, [messages, activeChatRoomIdHook, isChatLoading]);
 
   // Auto-select first chat if none selected, hoặc chọn phòng chat mới nhất có lastMessage chưa đọc
   useEffect(() => {
@@ -133,6 +139,16 @@ const MessagePage: React.FC = () => {
       <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
         <div className="text-center">
           <p className="text-gray-500">Please log in to access messages</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!firebaseAvailable) {
+    return (
+      <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
+        <div className="text-center">
+          <p className="text-gray-500">Chat feature is not available</p>
         </div>
       </div>
     );

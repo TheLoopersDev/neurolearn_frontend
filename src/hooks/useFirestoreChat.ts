@@ -52,7 +52,7 @@ export const useFirestoreChat = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user]);
+  }, [user, getUserId]);
 
   // Subscribe to messages when active chat room changes
   useEffect(() => {
@@ -75,7 +75,7 @@ export const useFirestoreChat = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [activeChatRoomId]);
+  }, [activeChatRoomId, unsubscribeMessages]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -83,7 +83,7 @@ export const useFirestoreChat = () => {
       if (unsubscribeMessages) unsubscribeMessages();
       if (unsubscribeChatRooms) unsubscribeChatRooms();
     };
-  }, []);
+  }, [unsubscribeMessages, unsubscribeChatRooms]);
 
   const sendMessageHandler = useCallback(
     async (receiverId: string, content: string, type: 'text' | 'image' | 'file' = 'text') => {
@@ -113,7 +113,7 @@ export const useFirestoreChat = () => {
         setLoading(false);
       }
     },
-    [user, activeChatRoomId]
+    [user, activeChatRoomId, getUserId]
   );
 
   const joinChat = useCallback(async (chatRoomId: string) => {
