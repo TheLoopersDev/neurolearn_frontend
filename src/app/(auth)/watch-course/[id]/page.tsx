@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import TabMenu from '@/components/instructor/TabMenu';
-import KnowledgeCheckAssignment from './quiz/KnowledgeCheckAssignment';
 import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
 import axios from 'axios';
@@ -14,7 +13,6 @@ function CoursePage() {
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const hasUpdatedProgress = useRef(false);
-
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -81,7 +79,7 @@ function CoursePage() {
 
 
   return (
-    <div className="w-full bg-[#F7F8FA] py-20">
+    <div className="w-full py-20">
       <div className="w-full">
         <div className="flex flex-col lg:flex-row gap-20 px-4 sm:px-6 lg:px-20">
           {/* LEFT: Nội dung video */}
@@ -108,18 +106,19 @@ function CoursePage() {
                 <p>No demo video</p>
               </div>
             )}
-            <TabMenu />
+            <TabMenu course={course} />
+
           </div>
 
           {/* RIGHT: Danh sách bài học */}
           <div className="w-full lg:w-[35%] space-y-6">
             <CourseContent
+              courseId={Array.isArray(courseId) ? courseId[0] : courseId || ''}
               sections={course?.sections}
               onLessonClick={handleLessonClick}
             />
           </div>
         </div>
-        <KnowledgeCheckAssignment />
       </div>
     </div>
   );

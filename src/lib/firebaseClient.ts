@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
@@ -11,18 +11,26 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
 };
 
-// Initialize Firebase only if we have the required config and we're not in build time
+// Initialize Firebase only on client side
 let app: any = null;
 let db: any = null;
 let auth: any = null;
 
-if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
-  try {
-    app = initializeApp(firebaseConfig);
+if (typeof window !== 'undefined') {
+  // Check if Firebase is already initialized
+  if (getApps().length === 0 && firebaseConfig.apiKey) {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+    } catch (error) {
+      console.warn('Firebase client initialization failed:', error);
+    }
+  } else if (getApps().length > 0) {
+    // Use existing app
+    app = getApps()[0];
     db = getFirestore(app);
     auth = getAuth(app);
-  } catch (error) {
-    console.warn('Firebase initialization failed:', error);
   }
 }
 

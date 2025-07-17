@@ -15,11 +15,11 @@ import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/business/dashboard' },
-  { icon: dashboard, label: 'Explore', path: '/business/Explore' },
+  { icon: dashboard, label: 'Explore', path: '/business/explore' },
   {
     icon: courses,
     label: 'My Courses',
-    path: '/business/my-courses',
+    path: '/business/mycourses',
   },
   { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
   { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },

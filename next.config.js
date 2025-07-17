@@ -22,8 +22,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'api.vietqr.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
-}
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig;

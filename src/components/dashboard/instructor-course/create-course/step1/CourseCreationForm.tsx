@@ -22,6 +22,7 @@ interface CourseCreationFormProps {
 }
 
 export default function CourseCreationForm(props: CourseCreationFormProps) {
+    const { setFormData } = props;
     const [step, setStep] = useState<1 | 2>(1);
     const [draftSaved, setDraftSaved] = useState(false);
     const [courseId, setCourseId] = useState<string | null>(props.courseId || null);
@@ -33,15 +34,16 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
 
     useEffect(() => {
         if (isSuccess && courseData?.courses) {
-            props.setFormData(courseData.courses);
+            setFormData(courseData.courses);
         }
-    }, [isSuccess, courseData]);
+    }, [isSuccess, courseData, setFormData]);
+
 
     useEffect(() => {
         if (props.courseId && props.courseId !== courseId) {
             setCourseId(props.courseId);
         }
-    }, [props.courseId]);
+    }, [props.courseId, courseId]);
 
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
