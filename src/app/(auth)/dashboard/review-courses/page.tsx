@@ -2,16 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, Eye, Trash2, MoreHorizontal,
-  ChevronLeft, ChevronRight, Users
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { Course } from '@/types/course';
-
-interface Instructor {
-  name: string;
-  email: string;
-  avatar: string;
-}
+import Image from 'next/image';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -244,10 +239,12 @@ const CourseManagementSystem: React.FC = () => {
                   <div key={course._id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                     {/* Instructor */}
                     <div className="col-span-3 flex items-center gap-3">
-                      <img 
+                      <Image 
                         src={course.author?.avatar?.url || 'https://via.placeholder.com/56'} 
+                        alt="avatar"
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" 
-                        alt="avatar" 
                       />
                       <div>
                         <div className="font-semibold text-gray-900">{authorNames[course.author?._id || (course as any).authorId?._id] || 'N/A'}</div>
@@ -305,9 +302,11 @@ const CourseManagementSystem: React.FC = () => {
                   <div key={course._id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">
                     {/* Banner Image */}
                     <div className="relative">
-                      <img
+                      <Image
                         src={course.thumbnail?.url || '/assets/business/book.svg'}
                         alt="Course Banner"
+                        width={1280}
+                        height={320}
                         className="w-full h-32 object-cover rounded-t-2xl border-b-2 border-blue-100"
                       />
                       {/* More button */}
@@ -320,7 +319,7 @@ const CourseManagementSystem: React.FC = () => {
                       {/* Category */}
                       <div className="flex items-center gap-2 mb-1">
                         <span className="w-4 h-4 flex items-center justify-center">
-                          <img src="/assets/icons/blue-book.svg" alt="icon" className="w-4 h-4" />
+                          <Image src="/assets/icons/blue-book.svg" alt="icon" width={16} height={16} />
                         </span>
                         <span className="text-xs text-blue-600 font-medium">
                           {Array.isArray(course.tags)

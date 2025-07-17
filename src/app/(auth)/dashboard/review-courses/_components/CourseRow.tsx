@@ -1,6 +1,7 @@
 import React from 'react';
 import { Eye, Trash2 } from 'lucide-react';
 import { Course } from './types';
+import Image from 'next/image';
 
 interface CourseRowProps {
   course: Course;
@@ -12,9 +13,11 @@ const CourseRow: React.FC<CourseRowProps> = ({ course, onView, onDelete }) => {
   return (
     <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
       <div className="col-span-4 flex items-center gap-3">
-        <img
+        <Image
           src={course.instructor.avatar}
           alt={course.instructor.name}
+          width={48}
+          height={48}
           className="w-12 h-12 rounded-full object-cover"
         />
         <div>

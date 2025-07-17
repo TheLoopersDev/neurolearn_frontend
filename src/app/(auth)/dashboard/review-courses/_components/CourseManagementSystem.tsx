@@ -3,7 +3,7 @@ import {
   Search, Eye, Trash2,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
-import { Course } from './types';
+import Image from 'next/image';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -12,7 +12,7 @@ const CourseManagementSystem: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [courses, setCourses] = useState<Course[]>([]); // Initialize with empty array
+  // Xóa khai báo hoặc gán giá trị cho biến setCourses
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,7 +81,13 @@ const CourseManagementSystem: React.FC = () => {
           {currentCourses.map(course => (
             <div key={course.id} className="grid grid-cols-6 gap-4 items-center py-3 border-b">
               <div className="flex items-center gap-2">
-                <img src={course.instructor.avatar} className="w-10 h-10 rounded-full" alt="avatar" />
+                <Image
+                  src={course.instructor.avatar}
+                  alt="avatar"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full"
+                />
                 <div>
                   <div className="font-medium">{course.instructor.name}</div>
                   <div className="text-xs text-gray-400">{course.instructor.email}</div>
