@@ -8,7 +8,7 @@ interface CourseDetailsCardProps {
 }
 
 const CourseDetailsCard: React.FC<CourseDetailsCardProps> = ({
-  course, learners
+  course
 }) => {
 
   return (

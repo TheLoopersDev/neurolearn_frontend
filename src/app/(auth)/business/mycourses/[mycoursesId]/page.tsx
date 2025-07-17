@@ -1,7 +1,6 @@
 import CourseDetailsCard from './_components/CourseDetailsCard';
 import LearnerList from './_components/LearnerList';
 import { cookies } from 'next/headers';
-import { ILearner } from '@/types/leaner';
 
 export default async function CourseDetailPage({ params }: any) {
   const cookieStore = await cookies();
@@ -25,7 +24,6 @@ export default async function CourseDetailPage({ params }: any) {
 
   const { course, learners } = await res.json();
 
-  const totalLearners = learners?.length || 0;
 
 
   return (
