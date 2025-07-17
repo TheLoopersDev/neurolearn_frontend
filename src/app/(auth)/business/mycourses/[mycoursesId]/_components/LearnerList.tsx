@@ -51,7 +51,7 @@ const LearnerList: React.FC<LearnerListProps> = ({ learners }) => {
               <div className="col-span-3 pl-10">Full Name</div>
               <div className="col-span-2">Status</div>
               <div className="col-span-3">Last opened content</div>
-              <div className="col-span-2">Enrollment Date</div>
+              <div className="col-span-2">Start Date</div>
               <div className="col-span-2">Progress</div>
             </div>
             <div className="flex flex-col gap-4">
