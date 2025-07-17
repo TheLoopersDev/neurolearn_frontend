@@ -1,13 +1,6 @@
 import Image from 'next/image';
 import { UserRoundPlus } from 'lucide-react';
-import ImageCourse from '@/public/assets/images/banner.png';
 
-// Giả sử bạn có một mảng người dùng được gán
-const assignedUsers = [
-  { id: 'a', avatarUrl: 'https://i.pravatar.cc/150?u=a' },
-  { id: 'b', avatarUrl: 'https://i.pravatar.cc/150?u=b' },
-  { id: 'c', avatarUrl: 'https://i.pravatar.cc/150?u=c' },
-];
 
 interface CourseDetailsCardProps {
   course: any;
@@ -17,11 +10,6 @@ interface CourseDetailsCardProps {
 const CourseDetailsCard: React.FC<CourseDetailsCardProps> = ({
   course, learners
 }) => {
-  const purchaseDate = new Date(learners.startDate).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
 
   return (
     <div className="bg-white p-6 rounded-2xl flex flex-col lg:flex-row gap-6">

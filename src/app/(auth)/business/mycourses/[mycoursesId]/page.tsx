@@ -1,7 +1,6 @@
 import CourseDetailsCard from './_components/CourseDetailsCard';
 import LearnerList from './_components/LearnerList';
 import { cookies } from 'next/headers';
-import { Course } from '@/types/course';
 import { ILearner } from '@/types/leaner';
 
 export default async function CourseDetailPage({ params }: any) {
@@ -26,11 +25,8 @@ export default async function CourseDetailPage({ params }: any) {
 
   const { course, learners } = await res.json();
 
-  const learnersCompleted = learners?.filter((l: ILearner) => l.progress === 100)?.length || 0;
   const totalLearners = learners?.length || 0;
-  const courseProgress = Math.round(
-    learners.reduce((sum: number, l: ILearner) => sum + (l.progress || 0), 0) / (totalLearners || 1)
-  );
+
 
   return (
     <div className="min-h-screen">
