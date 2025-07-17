@@ -66,7 +66,7 @@ export default function LearningProgressChart({employeeMonthlyData, managerMonth
                   boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',
                 }}
                 labelStyle={{ color: '#000' }}
-                formatter={(value: number) => [`${value}%`, 'Rating']}
+                formatter={(value: number) => [`${value}`, 'Value']}
               />
               <Line
                 type="monotone"
