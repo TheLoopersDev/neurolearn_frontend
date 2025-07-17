@@ -5,20 +5,6 @@ import {
 } from 'lucide-react';
 import { Course } from './types';
 
-const sampleCourses: Course[] = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  title: 'Graphic Design Mastercla- Learn GREAT Design',
-  category: 'UI/UX',
-  requestDate: '05 Jan, 2025',
-  instructor: {
-    name: 'Dao Tuan Kiet',
-    email: 'kietdteq170088@gmail.com',
-    avatar: '/public/assets/images/avatar.png', // adjust path if needed
-  },
-  progress: 0, // or any default value
-  status: 'Pending', // or any default value
-}));
-
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
 const CourseManagementSystem: React.FC = () => {
@@ -26,7 +12,7 @@ const CourseManagementSystem: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [courses] = useState<Course[]>(sampleCourses);
+  const [courses, setCourses] = useState<Course[]>([]); // Initialize with empty array
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,9 +1,11 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search, Eye, Trash2, MoreHorizontal,
   ChevronLeft, ChevronRight, Users
 } from 'lucide-react';
+import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
+import { Course } from '@/types/course';
 
 interface Instructor {
   name: string;
@@ -11,210 +13,75 @@ interface Instructor {
   avatar: string;
 }
 
-interface Course {
-  id: number;
-  instructor: Instructor;
-  title: string;
-  category: string;
-  requestDate: string;
-  progress: number;
-  status: string;
-}
-
-const sampleCourses: Course[] = [
-  {
-    id: 1,
-    instructor: {
-      name: 'Dao Tuan Kiet',
-      email: 'kietdtqe170088@gmail.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 75,
-    status: 'Published'
-  },
-  {
-    id: 2,
-    instructor: {
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@email.com',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9d7fce0?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 60,
-    status: 'Published'
-  },
-  {
-    id: 3,
-    instructor: {
-      name: 'Michael Chen',
-      email: 'michael.chen@email.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 45,
-    status: 'Published'
-  },
-  {
-    id: 4,
-    instructor: {
-      name: 'Emily Davis',
-      email: 'emily.davis@email.com',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 90,
-    status: 'Published'
-  },
-  {
-    id: 5,
-    instructor: {
-      name: 'James Wilson',
-      email: 'james.wilson@email.com',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 30,
-    status: 'Published'
-  },
-  {
-    id: 6,
-    instructor: {
-      name: 'Lisa Rodriguez',
-      email: 'lisa.rodriguez@email.com',
-      avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 85,
-    status: 'Published'
-  },
-  {
-    id: 7,
-    instructor: {
-      name: 'Alex Turner',
-      email: 'alex.turner@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 55,
-    status: 'Published'
-  },
-  {
-    id: 8,
-    instructor: {
-      name: 'Maria Garcia',
-      email: 'maria.garcia@email.com',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9d7fce0?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 70,
-    status: 'Published'
-  },
-  {
-    id: 9,
-    instructor: {
-      name: 'David Kim',
-      email: 'david.kim@email.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 95,
-    status: 'Published'
-  },
-  {
-    id: 10,
-    instructor: {
-      name: 'Anna Smith',
-      email: 'anna.smith@email.com',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 40,
-    status: 'Published'
-  },
-  {
-    id: 11,
-    instructor: {
-      name: 'Robert Johnson',
-      email: 'robert.johnson@email.com',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 65,
-    status: 'Published'
-  },
-  {
-    id: 12,
-    instructor: {
-      name: 'Sophie Chen',
-      email: 'sophie.chen@email.com',
-      avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=56&h=56&fit=crop&crop=faces'
-    },
-    title: 'USER INTERFACE DESIGN COURSE (APP/ WEBSITE)',
-    category: 'Graphic Design',
-    requestDate: '13 Jan, 2025',
-    progress: 80,
-    status: 'Published'
-  }
-];
-
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
 const CourseManagementSystem: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
-  const [courses] = useState<Course[]>(sampleCourses);
   const [activeTab, setActiveTab] = useState<'request' | 'courses'>('request');
+  const [authorNames, setAuthorNames] = useState<{ [id: string]: string }>({});
 
-  // Request tab settings
-  const requestItemsPerPage = 10;
-  // Courses tab settings
-  const coursesItemsPerPage = 9;
+  // API call
+  const { data, isLoading, isError } = useGetCoursesQuery();
+  const courses: Course[] = data?.courses || [];
 
+  // Debug log
+  console.log('courses from API:', courses);
+
+  // Filter and map data
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.instructor.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All courses' || course.category === selectedCategory;
+    const matchesSearch = (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (course.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const categoryName = typeof course.category === 'string' ? course.category : course.category?.title || '';
+    const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
+  // Debug log
+  console.log('filteredCourses:', filteredCourses);
+
+  const requestItemsPerPage = 10;
+  const coursesItemsPerPage = 9;
   const itemsPerPage = activeTab === 'request' ? requestItemsPerPage : coursesItemsPerPage;
   const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentCourses = filteredCourses.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleDeleteCourse = (courseId: number) => {
+  useEffect(() => {
+    const ids = currentCourses
+      .map(course => course.author?._id || (course as any).authorId?._id)
+      .filter(Boolean);
+    const idsToFetch = ids.filter(id => !(id in authorNames));
+    if (idsToFetch.length === 0) return;
+    Promise.all(
+      idsToFetch.map(id =>
+        fetch(`/api/users/${id}`)
+          .then(res => res.json())
+          .then(data => ({ id, name: data.name || 'N/A' }))
+          .catch(() => ({ id, name: 'N/A' }))
+      )
+    ).then(results => {
+      setAuthorNames(prev => {
+        const updated = { ...prev };
+        results.forEach(({ id, name }) => {
+          updated[id] = name;
+        });
+        return updated;
+      });
+    });
+  }, [currentCourses, authorNames]);
+
+  const handleDeleteCourse = (courseId: string) => {
+  // TODO: Implement delete logic with API
     console.log(`Deleting course with ID: ${courseId}`);
   };
 
-  const handleViewProgress = (courseId: number) => {
+  const handleViewProgress = (courseId: string) => {
+  // TODO: Implement view progress logic
     console.log(`Viewing progress for course ID: ${courseId}`);
   };
 
-  // Reset to page 1 when switching tabs
   const handleTabChange = (tab: 'request' | 'courses') => {
     setActiveTab(tab);
     setCurrentPage(1);
@@ -292,6 +159,14 @@ const CourseManagementSystem: React.FC = () => {
     );
   };
 
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
+
+  // Nếu filteredCourses rỗng, hiển thị số lượng courses lấy được để debug
+  if (filteredCourses.length === 0) {
+    return <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">Không có khóa học nào phù hợp.<br />Tổng số khóa học lấy được từ API: {courses.length}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -366,37 +241,39 @@ const CourseManagementSystem: React.FC = () => {
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {currentCourses.map((course, index) => (
-                  <div key={course.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                  <div key={course._id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                     {/* Instructor */}
                     <div className="col-span-3 flex items-center gap-3">
                       <img 
-                        src={course.instructor.avatar} 
+                        src={course.author?.avatar?.url || 'https://via.placeholder.com/56'} 
                         className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" 
                         alt="avatar" 
                       />
                       <div>
-                        <div className="font-semibold text-gray-900">{course.instructor.name}</div>
-                        <div className="text-sm text-gray-500">{course.instructor.email}</div>
+                        <div className="font-semibold text-gray-900">{authorNames[course.author?._id || (course as any).authorId?._id] || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">{course.author?.email || 'N/A'}</div>
                       </div>
                     </div>
                     {/* Course Title */}
                     <div className="col-span-3 flex items-center ml-4">
-                      <div className="font-medium text-gray-900 line-clamp-2">{course.title}</div>
+                      <div className="font-medium text-gray-900 line-clamp-2">{course.name}</div>
                     </div>
                     {/* Category */}
                     <div className="col-span-2 flex items-center ml-4">
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {course.category}
+                        {Array.isArray(course.tags)
+                          ? course.tags.join(', ')
+                          : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
                       </span>
                     </div>
                     {/* Request Date */}
                     <div className="col-span-2 flex items-center">
-                      <span className="text-gray-700 font-medium">{course.requestDate}</span>
+                      <span className="text-gray-700 font-medium">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</span>
                     </div>
                     {/* Progress (Eye Icon) */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button 
-                        onClick={() => handleViewProgress(course.id)}
+                        onClick={() => handleViewProgress(course._id)}
                         className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
                         title="View Progress"
                       >
@@ -406,7 +283,7 @@ const CourseManagementSystem: React.FC = () => {
                     {/* Actions (Delete Icon) */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button 
-                        onClick={() => handleDeleteCourse(course.id)}
+                        onClick={() => handleDeleteCourse(course._id)}
                         className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
                         title="Delete Course"
                       >
@@ -421,69 +298,84 @@ const CourseManagementSystem: React.FC = () => {
         ) : (
           // Grid card view for Courses tab
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentCourses.map((course) => (
-              <div key={course.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">
-                {/* Banner Image */}
-                <div className="relative">
-                  <img
-                    src="/assets/business/book.svg"
-                    alt="Course Banner"
-                    className="w-full h-32 object-cover rounded-t-2xl border-b-2 border-blue-100"
-                  />
-                  {/* More button */}
-                  <button className="absolute top-3 right-3 bg-white rounded-full p-1 shadow hover:bg-gray-100">
-                    <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                  </button>
-                </div>
-                {/* Card Content */}
-                <div className="p-4 flex flex-col flex-1">
-                  {/* Category */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-4 h-4 flex items-center justify-center">
-                      <img src="/assets/icons/blue-book.svg" alt="icon" className="w-4 h-4" />
-                    </span>
-                    <span className="text-xs text-blue-600 font-medium">{course.category}</span>
-                  </div>
-                  {/* Title */}
-                  <div className="font-bold text-base text-gray-900 mb-3 leading-tight line-clamp-2 min-h-[36px]">{course.title}</div>
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">
-                    {/* People */}
-                    <div>
-                      <div className="text-xs text-gray-500 mb-0.5">People</div>
-                      <div className="flex items-center gap-1">
-                        <div className="flex -space-x-2">
-                          <img src={course.instructor.avatar} alt="avatar" className="w-6 h-6 rounded-full border-2 border-white bg-gray-200" />
-                          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar" className="w-6 h-6 rounded-full border-2 border-white bg-gray-200" />
-                          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="avatar" className="w-6 h-6 rounded-full border-2 border-white bg-gray-200" />
+              {currentCourses.map((course) => {
+                const authorId = course.author?._id || (course as any).authorId?._id;
+                const authorName = authorId ? authorNames[authorId] || '...' : 'N/A';
+                return (
+                  <div key={course._id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">
+                    {/* Banner Image */}
+                    <div className="relative">
+                      <img
+                        src={course.thumbnail?.url || '/assets/business/book.svg'}
+                        alt="Course Banner"
+                        className="w-full h-32 object-cover rounded-t-2xl border-b-2 border-blue-100"
+                      />
+                      {/* More button */}
+                      <button className="absolute top-3 right-3 bg-white rounded-full p-1 shadow hover:bg-gray-100">
+                        <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                      </button>
+                    </div>
+                    {/* Card Content */}
+                    <div className="p-4 flex-1 flex flex-col justify-between">
+                      {/* Category */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-4 h-4 flex items-center justify-center">
+                          <img src="/assets/icons/blue-book.svg" alt="icon" className="w-4 h-4" />
+                        </span>
+                        <span className="text-xs text-blue-600 font-medium">
+                          {Array.isArray(course.tags)
+                            ? course.tags.join(', ')
+                            : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
+                        </span>
+                      </div>
+                      {/* Title */}
+                      <div className="font-bold text-base text-gray-900 mb-3 leading-tight line-clamp-2 min-h-[36px]">{course.name}</div>
+                      {/* Tag */}
+                      <div className="mb-2">
+                        <span className="text-xs text-gray-500">Tags: </span>
+                        <span className="text-xs text-gray-700">
+                          {Array.isArray(course.tags)
+                            ? course.tags.join(', ')
+                            : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
+                        </span>
+                      </div>
+                      {/* Info Grid */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">
+                        {/* People */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-0.5">People</div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-800 font-semibold">
+                              {authorName}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Creation Date */}
+                        <div className="items-end text-right flex flex-col justify-end">
+                          <div className="text-xs text-gray-500 mb-0.5">Creation Date</div>
+                          <div className="text-xs text-gray-800 font-semibold">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        {/* Sale */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-0.5">Sale</div>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-400 line-through">{course.estimatedPrice ? course.estimatedPrice.toLocaleString('vi-VN') + ' VND' : ''}</span>
+                            <span className="text-lg text-blue-600 font-bold leading-tight">{course.price ? course.price.toLocaleString('vi-VN') + ' VND' : ''}</span>
+                          </div>
+                        </div>
+                        {/* Status */}
+                        <div className="flex flex-col items-end justify-end text-right">
+                          <div className="text-xs text-gray-500 mb-0.5 pr-11">Status</div>
+                          <button className="px-4 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors cursor-default min-w-[80px] text-center ml-0">
+                            {course.isPublished ? 'Published' : 'Pending'}
+                          </button>
                         </div>
                       </div>
                     </div>
-                    {/* Creation Date */}
-                    <div className="items-end text-right flex flex-col justify-end">
-                      <div className="text-xs text-gray-500 mb-0.5">Creation Date</div>
-                      <div className="text-xs text-gray-800 font-semibold">{course.requestDate}</div>
-                    </div>
-                    {/* Sale */}
-                    <div>
-                      <div className="text-xs text-gray-500 mb-0.5">Sale</div>
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-400 line-through">800.000 VND</span>
-                        <span className="text-lg text-blue-600 font-bold leading-tight">400.000 VND</span>
-                      </div>
-                    </div>
-                    {/* Status */}
-                    <div className="flex flex-col items-end justify-end text-right">
-                      <div className="text-xs text-gray-500 mb-0.5 pr-11">Status</div>
-                      <button className="px-4 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition-colors cursor-default min-w-[80px] text-center ml-0">
-                        {course.status}
-                      </button>
-                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
         )}
 
         {/* Pagination */}
