@@ -4,10 +4,13 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Image from 'next/image';
+import { Course } from './types';
 
-const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+interface CourseManagementSystemProps {
+  courses: Course[];
+}
 
-const CourseManagementSystem: React.FC = () => {
+const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({ courses }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +55,7 @@ const CourseManagementSystem: React.FC = () => {
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
             >
-              {categories.map(cat => (
+              {['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'].map(cat => (
                 <option key={cat}>{cat}</option>
               ))}
             </select>
