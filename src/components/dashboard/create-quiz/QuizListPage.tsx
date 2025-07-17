@@ -25,6 +25,7 @@ const fetchQuizzesFromStorage = (): Quiz[] => {
     if (!storedQuizzes || JSON.parse(storedQuizzes).length === 0) {
       const demoQuizzes: Quiz[] = Array.from({ length: 25 }, (_, i) => ({
         id: `demo${i + 1}`,
+        _id: `demo${i + 1}`,
         name: `Sample Quiz Title ${i + 1} - Advanced Web Topics`,
         questions: [
           {
@@ -68,7 +69,7 @@ const fetchQuizzesFromStorage = (): Quiz[] => {
 const saveNewQuizToStorage = (newQuiz: Quiz): Quiz[] => {
   if (typeof window !== 'undefined') {
     const quizzes = fetchQuizzesFromStorage();
-    const existingIndex = quizzes.findIndex(q => q.id === newQuiz.id);
+    const existingIndex = quizzes.findIndex(q => q._id === newQuiz._id);
     if (existingIndex > -1) {
       quizzes[existingIndex] = newQuiz;
     } else {
@@ -172,7 +173,7 @@ const QuizListPage: React.FC = () => {
         });
 
         // ✅ Fix undefined
-        router.push(`/dashboard/create-quiz/builder/${response.quiz?.id}`);
+        router.push(`/dashboard/create-quiz/builder/${response.quiz?._id}`);
       } catch (err) {
         toast({
           title: 'Failed to create quiz',
@@ -194,7 +195,7 @@ const QuizListPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {quizzesForCurrentPage.map(quiz => (
             // Use quiz.id as the key, since Quiz type only has id
-            <QuizCard key={quiz.id} quiz={quiz} />
+            <QuizCard key={quiz._id} quiz={quiz} />
           ))}
         </div>
       );
