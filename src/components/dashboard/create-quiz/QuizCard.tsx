@@ -14,7 +14,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
   const handleMoreOptionsClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('More options for quiz:', quiz.id);
+    console.log('More options for quiz:', quiz._id);
     // TODO: Implement dropdown menu
   };
 
@@ -22,7 +22,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
 
   return (
     <Link
-      href={`/dashboard/create-quiz/builder/${quiz.id}`}
+      href={`/dashboard/create-quiz/builder/${quiz._id}`}
       className="block bg-white rounded-2xl hover:shadow-lg transition-all duration-300 overflow-hidden group "
       // Bỏ flex flex-col ở đây vì chúng ta sẽ dùng grid cho phần nội dung
     >
