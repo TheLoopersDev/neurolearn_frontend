@@ -128,7 +128,9 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
           amount: course.price,
           description: `Buy course from Academix`,
           courseIds: [course._id],
-          userId: user._id,
+          licenseQuantities: {
+            [course._id]: 1
+          }
         },
         { withCredentials: true }
       );

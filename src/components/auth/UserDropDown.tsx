@@ -28,13 +28,35 @@ import {
 import defaultAvatar from '@/public/assets/images/avatar.png';
 import { signOutAction } from '@/lib/actions/auth';
 import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
+import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
+
+// Define a more specific type for the user object if possible
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'instructor' | 'user' | string; // Be more specific if roles are fixed
+  avatar?: {
+    url?: string;
+  };
+  // other user properties
+}
+
+interface LoadUserResponse {
+  user: User;
+  // other properties in the response
+}
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+
+  // Provide a type for the data returned by useLoadUserQuery
+  const { data, isLoading } = useLoadUserQuery(undefined) as {
+    data?: LoadUserResponse;
+    isLoading: boolean;
+  };
 
   // Type the refetch function if possible, or leave as any if its signature is complex/unknown
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
@@ -80,11 +102,13 @@ export function UserDropdown() {
   }, [session, logoutTriggered, router]);
   // --- END OF FIX ---
 
-  const user = useSelector((state: RootState) => state.auth.user);
-
-  if (!user) {
+  if (isLoading || !data?.user) {
+    // Added a check for data.user to prevent errors if data is null/undefined
+    // You might want to return a loading skeleton or null
     return null;
   }
+
+  const { user } = data;
 
   const commonNavbarItems = [
     {
@@ -101,7 +125,7 @@ export function UserDropdown() {
 
 
   const dropdownList =
-    typeof user !== 'string' && user.role === 'instructor'
+    user.role === 'instructor'
       ? [
         {
           title: 'Dashboard User',
@@ -187,8 +211,8 @@ export function UserDropdown() {
               className="w-full h-full object-cover rounded-full"
               width={40}
               height={40}
-              src={typeof user !== 'string' && user?.avatar?.url ? user.avatar.url : defaultAvatar}
-              alt={typeof user !== 'string' && user?.name ? user.name : 'User Avatar'}
+              src={user?.avatar?.url ?? defaultAvatar}
+              alt={user.name ?? 'User Avatar'}
               referrerPolicy="no-referrer"
             />
           </div>
@@ -196,7 +220,7 @@ export function UserDropdown() {
           {/* Name + Arrow */}
           <div className="flex items-center gap-1 sm:gap-2 w-auto">
             <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
-              {typeof user !== 'string' ? user?.name : 'Guest'}
+              {user.name}
             </span>
             <svg
               className="w-[15.5px] h-[8.5px]"

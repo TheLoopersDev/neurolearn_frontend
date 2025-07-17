@@ -1,13 +1,50 @@
 import Image from 'next/image';
 import { ILearner } from '@/types/leaner';
 import CircularProgress from './CircularProgress';
+import { format } from "date-fns";
+import defaultAvatar from '@/public/assets/images/default-avatar.png';
 
 interface LearnerRowProps {
   learner: ILearner;
   index: number;
 }
 
+const getStatusLabel = (status: 'not_started' | 'in_progress' | 'completed') => {
+  switch (status) {
+    case 'not_started':
+      return 'Not Started';
+    case 'in_progress':
+      return 'In Progress';
+    case 'completed':
+      return 'Completed';
+    default:
+      return 'Unknown';
+  }
+};
+
+const getStatusColor = (status: 'not_started' | 'in_progress' | 'completed') => {
+  switch (status) {
+    case 'not_started':
+      return 'bg-gray-400';
+    case 'in_progress':
+      return 'bg-yellow-500';
+    case 'completed':
+      return 'bg-green-500';
+    default:
+      return 'bg-gray-300';
+  }
+};
+
 const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
+  const statusLabel = getStatusLabel(learner.status as any);
+  const statusDotColor = getStatusColor(learner.status as any);
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd MMM, yyyy');
+    } catch {
+      return 'Invalid date';
+    }
+  };
   return (
     <div className="grid grid-cols-12 gap-3 items-center">
       {/* Index and Full Name */}
@@ -15,7 +52,7 @@ const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
         <span className="w-6 text-center text-md font-medium text-gray-900">{index}</span>
         <div className="flex items-center gap-3">
           <Image
-            src={learner.avatar?.url || '/default-avatar.png'}
+            src={learner.avatar?.url || defaultAvatar}
             alt={learner.name}
             width={48}
             height={48}
@@ -31,10 +68,8 @@ const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
       {/* Status */}
       <div className="col-span-2">
         <div className="px-3 py-2 bg-gray-100 rounded-full inline-flex items-center justify-center gap-2 text-sm font-medium">
-          {learner.status === 'Learning' && (
-            <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
-          )}
-          <span className="text-gray-900">{learner.status}</span>
+          <span className={`w-2.5 h-2.5 rounded-full ${statusDotColor}`}></span>
+          <span className="text-gray-900">{statusLabel}</span>
         </div>
       </div>
 
@@ -43,20 +78,22 @@ const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
         className="col-span-3 text-sm font-medium text-gray-900"
         title={learner.lastOpenedContent}
       >
-        {learner.lastOpenedContent.length > 20
+        {learner?.lastOpenedContent?.length > 20
           ? `${learner.lastOpenedContent.slice(0, 20)}...`
           : learner.lastOpenedContent}
       </div>
 
       {/* Enrollment Date */}
       <div className="col-span-2 text-[14px] font-medium text-gray-900 pl-2">
-        {learner.enrollmentDate}
+        {formatDate(learner.enrollmentDate)}
       </div>
 
       {/* Progress */}
-      <div className="col-span-2 flex items-center   gap-3 pl-2">
+      <div className="col-span-2 flex items-center gap-3 pl-2">
         <CircularProgress value={learner.progress} />
-        <span className="w-10  text-[14px] font-medium text-gray-900">{learner.progress}%</span>
+        <span className="w-10 text-[14px] font-medium text-gray-900">
+          {learner.progress}%
+        </span>
       </div>
     </div>
   );
