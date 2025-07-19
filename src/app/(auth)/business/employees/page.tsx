@@ -5,7 +5,6 @@ import EmployeeTable from './_components/EmployeeTable';
 import { User } from './_components/EmployeeTableRow';
 import AddEmployeeModal from './_components/AddEmployeeModal';
 
-// Mock data (dữ liệu giả lập)
 const initialEmployees: User[] = [
   {
     _id: '1',
@@ -47,16 +46,13 @@ const initialEmployees: User[] = [
 
 const EmployeePage = () => {
   const [employees, setEmployees] = useState<User[]>(initialEmployees);
-  // Dòng này đã đúng cú pháp, đảm bảo không có ký tự lạ
   const [isModalOpen, setModalOpen] = useState(false);
 
   const handleDeleteEmployee = (id: string) => {
-    // Trong thực tế, bạn sẽ gọi API ở đây
     setEmployees(currentEmployees => currentEmployees.filter(emp => emp._id !== id));
   };
 
   const handleUpgradeEmployee = (id: string) => {
-    // Trong thực tế, bạn sẽ gọi API ở đây
     setEmployees(currentEmployees =>
       currentEmployees.map(emp => (emp._id === id ? { ...emp, role: 'manager' } : emp))
     );
@@ -66,7 +62,6 @@ const EmployeePage = () => {
     <>
       <AddEmployeeModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
 
-      {/* THAY ĐỔI: Thêm padding vào đây để giao diện không bị dính vào cạnh */}
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">

@@ -1,7 +1,7 @@
 'use client';
 
-// THAY ĐỔI 1: Import thêm useEffect
-import React, { useState, useEffect } from 'react';
+// THAY ĐỔI 1: Import thêm useRef
+import React, { useState, useEffect, useRef } from 'react';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -10,58 +10,49 @@ interface AddEmployeeModalProps {
 
 const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
   const [activeTab, setActiveTab] = useState<'email' | 'file'>('email');
+  // THAY ĐỔI 2: Tạo một ref để tham chiếu đến element <dialog>
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // THAY ĐỔI 2: Thêm hook để xử lý khi người dùng nhấn phím "Escape"
+  // THAY ĐỔI 3: Dùng useEffect để điều khiển việc đóng/mở dialog
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    // Chỉ thêm event listener khi modal đang mở
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
+      dialogRef.current?.showModal(); // Mở dialog dưới dạng modal
+    } else {
+      dialogRef.current?.close(); // Đóng dialog
     }
+  }, [isOpen]);
 
-    // Dọn dẹp event listener khi component bị unmount hoặc khi modal đóng
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]); // Effect sẽ chạy lại nếu isOpen hoặc onClose thay đổi
+  // THAY ĐỔI 4: Xử lý sự kiện khi dialog bị đóng (bằng phím Esc) để đồng bộ state
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
 
-  if (!isOpen) return null;
+  // if (!isOpen) return null; // Không cần dòng này nữa vì dialog quản lý việc hiển thị
 
   return (
-    // THAY ĐỔI 3: Thêm các thuộc tính role và aria-* để cải thiện accessibility
-    <div
-      className="fixed inset-0 z-[999] flex items-center justify-center"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dialog-title"
+    // THAY ĐỔI 5: Sử dụng thẻ <dialog> và áp dụng ref
+    <dialog
+      ref={dialogRef}
+      onClose={handleClose}
+      className="w-full max-w-md rounded-lg bg-transparent p-0 shadow-xl backdrop:bg-black backdrop:bg-opacity-50"
     >
-      <div className="absolute inset-0 bg-black opacity-50" aria-hidden="true"></div>
-
-      <div
-        className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
-        onClick={e => e.stopPropagation()}
-      >
+      {/* Bao bọc nội dung trong một div để có nền trắng và padding */}
+      <div className="rounded-lg bg-white p-6">
         <div className="flex items-center justify-between mb-4">
-          {/* THAY ĐỔI 4: Thêm id để aria-labelledby có thể tham chiếu đến */}
           <h2 id="dialog-title" className="text-xl font-semibold text-gray-900">
             Add New Employee
           </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-800 hover:cursor-pointer"
-            aria-label="Close modal" // Thêm aria-label cho nút không có text
+            aria-label="Close modal"
           >
             &times;
           </button>
         </div>
 
-        {/* Phần còn lại của code không thay đổi */}
         <div className="flex mb-4 border-b">
           <button
             onClick={() => setActiveTab('email')}
@@ -85,9 +76,9 @@ const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
           </button>
         </div>
 
-        <div>{/* ... Nội dung các tab ... */}</div>
+        <div>{/* Nội dung các tab ở đây (giữ nguyên) */}</div>
       </div>
-    </div>
+    </dialog>
   );
 };
 
