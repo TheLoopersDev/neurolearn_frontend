@@ -21,6 +21,8 @@ const menuItems = [
     label: 'My Courses',
     path: '/business/mycourses',
   },
+  // 👇 Mục Employee mới được thêm vào đây
+  { icon: dashboard, label: 'Employee', path: '/business/employee' },
   { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
   { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
   { icon: setting, label: 'Setting', path: '/business/setting' },
