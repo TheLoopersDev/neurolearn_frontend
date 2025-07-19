@@ -46,7 +46,7 @@ const initialEmployees: User[] = [
 
 const EmployeePage = () => {
   const [employees, setEmployees] = useState<User[]>(initialEmployees);
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const handleDeleteEmployee = (id: string) => {
     setEmployees(currentEmployees => currentEmployees.filter(emp => emp._id !== id));

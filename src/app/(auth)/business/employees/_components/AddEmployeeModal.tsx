@@ -1,6 +1,5 @@
 'use client';
 
-// THAY ĐỔI 1: Import thêm useRef
 import React, { useState, useEffect, useRef } from 'react';
 
 interface AddEmployeeModalProps {
@@ -10,35 +9,37 @@ interface AddEmployeeModalProps {
 
 const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
   const [activeTab, setActiveTab] = useState<'email' | 'file'>('email');
-  // THAY ĐỔI 2: Tạo một ref để tham chiếu đến element <dialog>
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // THAY ĐỔI 3: Dùng useEffect để điều khiển việc đóng/mở dialog
+  // useEffect để đồng bộ trạng thái của dialog với prop `isOpen`
+  // Cách làm này là một quy ước phổ biến và dễ hiểu trong React.
   useEffect(() => {
-    if (isOpen) {
-      dialogRef.current?.showModal(); // Mở dialog dưới dạng modal
-    } else {
-      dialogRef.current?.close(); // Đóng dialog
+    const dialog = dialogRef.current;
+    if (dialog) {
+      if (isOpen) {
+        dialog.showModal();
+      } else {
+        dialog.close();
+      }
     }
   }, [isOpen]);
 
-  // THAY ĐỔI 4: Xử lý sự kiện khi dialog bị đóng (bằng phím Esc) để đồng bộ state
-  const handleClose = () => {
-    if (onClose) {
+  // THAY ĐỔI 1: Thêm hàm xử lý khi click vào lớp phủ (backdrop)
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    // Chỉ đóng modal nếu người dùng click trực tiếp vào backdrop (thẻ dialog)
+    // chứ không phải vào nội dung bên trong nó.
+    if (event.target === dialogRef.current) {
       onClose();
     }
   };
 
-  // if (!isOpen) return null; // Không cần dòng này nữa vì dialog quản lý việc hiển thị
-
   return (
-    // THAY ĐỔI 5: Sử dụng thẻ <dialog> và áp dụng ref
     <dialog
       ref={dialogRef}
-      onClose={handleClose}
+      onClose={onClose} // Tự động gọi khi nhấn phím Escape
+      onClick={handleBackdropClick} // THAY ĐỔI 2: Gán hàm xử lý backdrop click
       className="w-full max-w-md rounded-lg bg-transparent p-0 shadow-xl backdrop:bg-black backdrop:bg-opacity-50"
     >
-      {/* Bao bọc nội dung trong một div để có nền trắng và padding */}
       <div className="rounded-lg bg-white p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 id="dialog-title" className="text-xl font-semibold text-gray-900">
@@ -76,7 +77,11 @@ const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
           </button>
         </div>
 
-        <div>{/* Nội dung các tab ở đây (giữ nguyên) */}</div>
+        {/* THAY ĐỔI 3: Xóa comment không cần thiết và thêm nội dung tab */}
+        <div>
+          {activeTab === 'email' && <div>Email tab content...</div>}
+          {activeTab === 'file' && <div>File upload tab content...</div>}
+        </div>
       </div>
     </dialog>
   );
