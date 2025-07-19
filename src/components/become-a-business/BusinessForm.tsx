@@ -209,7 +209,7 @@ export default function BusinessForm() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                             {docImages.map((file, index) => (
                                 <div key={index} className="relative group flex flex-col items-center space-y-2">
-                                    <img
+                                    <Image
                                         src={URL.createObjectURL(file)}
                                         alt={`Preview ${index}`}
                                         className="w-full rounded-lg border object-cover h-40"
