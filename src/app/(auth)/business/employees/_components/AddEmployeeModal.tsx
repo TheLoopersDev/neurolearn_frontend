@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -10,65 +10,58 @@ interface AddEmployeeModalProps {
 const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // useEffect để đồng bộ trạng thái của dialog với prop `isOpen`
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (isOpen) {
-      dialog?.showModal();
-    } else {
-      dialog?.close();
+    if (dialog) {
+      if (isOpen) {
+        dialog.showModal(); // Dùng phương thức tích hợp sẵn để mở modal
+      } else {
+        dialog.close(); // Dùng phương thức tích hợp sẵn để đóng modal
+      }
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Xử lý việc click vào lớp nền mờ (backdrop) để đóng modal
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (event.target === dialogRef.current) {
+      onClose();
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      role="presentation"
-      tabIndex={-1}
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={e => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          onClose();
-        }
-      }}
+    // Thẻ <dialog> là thành phần gốc, không cần thẻ div bao ngoài
+    <dialog
+      ref={dialogRef}
+      onClose={onClose} // Tự động gọi khi người dùng nhấn phím Escape
+      onClick={handleBackdropClick} // Xử lý khi click vào backdrop
+      // Style cho dialog và lớp nền mờ bằng Tailwind
+      className="w-full max-w-md rounded-lg bg-transparent p-0 shadow-xl backdrop:bg-black backdrop:bg-opacity-50"
     >
-      <dialog
-        ref={dialogRef}
-        className="w-full max-w-md rounded-lg bg-transparent p-0 shadow-xl open:block"
-        open
-        aria-modal="true"
-        aria-labelledby="dialog-title"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="rounded-lg bg-white p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 id="dialog-title" className="text-xl font-semibold text-gray-900">
-              Add New Employee
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-800 hover:cursor-pointer"
-              aria-label="Close modal"
-            >
-              &times;
-            </button>
-          </div>
-
-          <EmailFileTabs />
-
-          {/* Phần nội dung form hoặc upload file của bạn */}
+      {/* Nội dung trực quan của modal nằm trong một div riêng */}
+      <div className="rounded-lg bg-white p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="dialog-title" className="text-xl font-semibold text-gray-900">
+            Add New Employee
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 hover:cursor-pointer"
+            aria-label="Close modal"
+          >
+            &times;
+          </button>
         </div>
-      </dialog>
-    </div>
+
+        <EmailFileTabs />
+      </div>
+    </dialog>
   );
 };
 
+// Component con để quản lý các tab (giữ nguyên)
 function EmailFileTabs() {
-  const [activeTab, setActiveTab] = React.useState<'email' | 'file'>('email');
+  const [activeTab, setActiveTab] = useState<'email' | 'file'>('email');
 
   return (
     <>
