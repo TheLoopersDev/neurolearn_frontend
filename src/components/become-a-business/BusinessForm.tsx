@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import Image from 'next/image';
 import React, { useState } from 'react'
 
 export default function BusinessForm() {
@@ -114,7 +114,7 @@ export default function BusinessForm() {
                                 </div>
                             ) : (
                                 <div className="relative group w-[200px] h-[200px]">
-                                    <img
+                                        <Image
                                         src={URL.createObjectURL(logo)}
                                         alt="Company Logo"
                                         className="w-full h-full object-cover border rounded-lg"

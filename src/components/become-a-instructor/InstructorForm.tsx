@@ -1,10 +1,10 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
+import Image from 'next/image';
 import React, { useState } from 'react'
 
 export default function InstructorForm() {
-    const [logo, setLogo] = useState<File | null>(null)
     const [docImages, setDocImages] = useState<File[]>([]);
     const [agree, setAgree] = useState(false)
 
@@ -184,7 +184,7 @@ export default function InstructorForm() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                             {docImages.map((file, index) => (
                                 <div key={index} className="relative group flex flex-col items-center space-y-2">
-                                    <img
+                                    <Image
                                         src={URL.createObjectURL(file)}
                                         alt={`Preview ${index}`}
                                         className="w-full rounded-lg border object-cover h-40"
