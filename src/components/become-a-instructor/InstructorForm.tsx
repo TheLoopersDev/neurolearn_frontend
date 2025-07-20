@@ -2,14 +2,73 @@
 
 import { ChevronDown } from 'lucide-react'
 import Image from 'next/image';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 export default function InstructorForm() {
+    // State cho từng trường
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [dob, setDob] = useState('');
+    const [address, setAddress] = useState('');
+    const [category, setCategory] = useState('');
+    const [description, setDescription] = useState('');
+    const [experience, setExperience] = useState('');
+    const [role, setRole] = useState('');
+    const [company, setCompany] = useState('');
     const [docImages, setDocImages] = useState<File[]>([]);
-    const [agree, setAgree] = useState(false)
+    const [agree, setAgree] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!agree) return;
+
+        setLoading(true);
+        setMessage('');
+
+        const body = {
+            fullName,
+            email,
+            phone,
+            dob,
+            address,
+            category,
+            description,
+            experience,
+            role,
+            company,
+            documents: docImages.map(f => f.name)
+        };
+
+        try {
+            const token = localStorage.getItem('accessToken');
+            console.log('Token:', token);
+            const res = await fetch('http://localhost:8000/api/request/instructor-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMessage('Send request successful!');
+            } else {
+                setMessage(data.message || 'Send request error!');
+            }
+        } catch (err) {
+            setMessage('Send request error!');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className="max-w-full mx-auto  p-10 text-sm">
+        <form onSubmit={handleSubmit}>
+            <div className="max-w-full mx-auto  p-10 text-sm">
             <h2 className="text-2xl font-semibold text-black">Instructor Application Form</h2>
             <p className="text-gray-500 py-4">Complete the information below to submit your instructor profile.</p>
             {/* Instructor Info */}
@@ -31,6 +90,8 @@ export default function InstructorForm() {
                                         type="text"
                                         placeholder="Enter your name"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            value={fullName}
+                                            onChange={e => setFullName(e.target.value)}
                                     />
                                 </div>
                                 {/* Phone Number*/}
@@ -41,6 +102,8 @@ export default function InstructorForm() {
                                         type="text"
                                         placeholder="Enter your phone number"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            value={phone}
+                                            onChange={e => setPhone(e.target.value)}
                                     />
                                 </div>
                                 {/* Email Address*/}
@@ -51,6 +114,8 @@ export default function InstructorForm() {
                                         type="email"
                                         placeholder="Enter your email"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
                                     />
                                 </div>
                                 {/* Day of Birth*/}
@@ -60,6 +125,8 @@ export default function InstructorForm() {
                                         id="dob"
                                         type="date"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            value={dob}
+                                            onChange={e => setDob(e.target.value)}
                                     />
                                 </div>
                                 {/* Address */}
@@ -70,6 +137,8 @@ export default function InstructorForm() {
                                         type="text"
                                         placeholder="Enter your address"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            value={address}
+                                            onChange={e => setAddress(e.target.value)}
                                     />
                                 </div>
                                 {/* Category */}
@@ -80,6 +149,8 @@ export default function InstructorForm() {
                                             id="category"
                                             className="w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10"
                                             defaultValue=""
+                                                value={category}
+                                                onChange={e => setCategory(e.target.value)}
                                         >
                                             <option value="" disabled hidden>Select</option>
                                             <option value="education">Education</option>
@@ -101,6 +172,8 @@ export default function InstructorForm() {
                                         rows={4}
                                         placeholder="About you"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            value={description}
+                                            onChange={e => setDescription(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -125,6 +198,8 @@ export default function InstructorForm() {
                                         type="text"
                                         placeholder="E.g. 5"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            value={experience}
+                                            onChange={e => setExperience(e.target.value)}
                                     />
                                 </div>
                                 {/* Previous Roles */}
@@ -135,6 +210,8 @@ export default function InstructorForm() {
                                             id="role"
                                             className="w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10"
                                             defaultValue=""
+                                                value={role}
+                                                onChange={e => setRole(e.target.value)}
                                         >
                                             <option value="" disabled hidden>e.g. Instructor, Teaching Assistant, Curriculum Developer</option>
                                             <option value="instructor">Instructor</option>
@@ -154,6 +231,8 @@ export default function InstructorForm() {
                                         rows={4}
                                         placeholder="e.g. FPT, Coursera, FUNiX"
                                         className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            value={company}
+                                            onChange={e => setCompany(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -187,7 +266,9 @@ export default function InstructorForm() {
                                     <Image
                                         src={URL.createObjectURL(file)}
                                         alt={`Preview ${index}`}
-                                        className="w-full rounded-lg border object-cover h-40"
+                                        className="rounded-lg border object-cover"
+                                        width={300}
+                                        height={40}
                                     />
                                     {/* Nút remove */}
                                     <button
@@ -222,12 +303,14 @@ export default function InstructorForm() {
                     <button
                         type="submit"
                         className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50"
-                        disabled={!agree}
+                            disabled={!agree || loading}
                     >
                         Submit
                     </button>
                 </div>
+                    {message && <div className="mt-4 text-center text-green-600">{message}</div>}
             </div>
-        </div>
-    )
+            </div>
+        </form>
+    );
 }
