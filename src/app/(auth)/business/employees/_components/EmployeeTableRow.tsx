@@ -54,7 +54,7 @@ const EmployeeTableRow = ({ employee, onUpgrade, onDelete }: EmployeeTableRowPro
           <div className="h-11 w-11 flex-shrink-0">
             <Image
               className="h-11 w-11 rounded-full object-cover"
-              src={employee.avatar?.url || 'https://via.placeholder.com/44'}
+              src={employee.avatar?.url || '/assets/images/default-avatar.png'}
               alt={employee.name}
               width={44}
               height={44}

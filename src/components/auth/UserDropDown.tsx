@@ -30,85 +30,71 @@ import { signOutAction } from '@/lib/actions/auth';
 import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
-// Define a more specific type for the user object if possible
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'instructor' | 'user' | string; // Be more specific if roles are fixed
+  role: 'instructor' | 'user' | string;
   avatar?: {
     url?: string;
   };
-  // other user properties
+  businessInfo?: {
+    businessId?: string;
+    role?: string;
+  };
 }
 
 interface LoadUserResponse {
   user: User;
-  // other properties in the response
 }
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
-
-  // Provide a type for the data returned by useLoadUserQuery
   const { data, isLoading } = useLoadUserQuery(undefined) as {
     data?: LoadUserResponse;
     isLoading: boolean;
   };
-
-  // Type the refetch function if possible, or leave as any if its signature is complex/unknown
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
 
   const logoutHandler = async () => {
     if (session) {
       await signOut({ redirect: false });
     }
-    setLogoutTriggered(true); // Trigger API call
-    // await signOutAction(); // This might be redundant if next-auth signOut and API logout handle session clearing
-    // await logoutApi(); // This will be called due to logoutTriggered changing state if skip condition is met
-    // router.push('/'); // Let useEffect handle redirection based on session and logoutTriggered
+    setLogoutTriggered(true);
   };
 
   useEffect(() => {
-    // This effect handles the API call for logout when logoutTriggered becomes true
     if (logoutTriggered) {
       logoutApi()
         .then(() => {
           signOutAction().then(() => {
-            // Call signOutAction after API logout
             if (!session) {
-              // Check session *after* logout actions
               router.push('/');
             }
           });
         })
         .catch(error => {
           console.error('Logout API call failed:', error);
-          // Optionally, still try to redirect or show an error
           router.push('/');
         });
     }
-  }, [logoutTriggered, logoutApi, router, session]); // Added session here to re-evaluate if it changes during the process
+  }, [logoutTriggered, logoutApi, router, session]);
 
   useEffect(() => {
-    // This effect handles redirection if the session is lost for other reasons while logout was triggered
     if (!session && logoutTriggered) {
       router.push('/');
     }
-    // --- START OF FIX ---
-    // Added 'router' to the dependency array
   }, [session, logoutTriggered, router]);
-  // --- END OF FIX ---
 
   if (isLoading || !data?.user) {
-    // Added a check for data.user to prevent errors if data is null/undefined
-    // You might want to return a loading skeleton or null
     return null;
   }
 
   const { user } = data;
+  const isBusinessAdminOrManager =
+    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
 
   const commonNavbarItems = [
     {
@@ -123,6 +109,15 @@ export function UserDropdown() {
     },
   ];
 
+  const businessDashboardItem = isBusinessAdminOrManager
+    ? [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
+      },
+    ]
+    : [];
 
   const dropdownList =
     user.role === 'instructor'
@@ -130,62 +125,28 @@ export function UserDropdown() {
         {
           title: 'Dashboard User',
           href: '/dashboard',
-          icon: (
-            <Image
-              src={UserIcon}
-              alt="Dashboard User"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
         },
         {
           title: 'Switch to Instructor',
           href: '/switch/instructor',
-          icon: (
-            <Image
-              src={InstructorIcon}
-              alt="Instructor"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
         },
         {
           title: 'Switch to Business',
           href: '/switch/business',
-          icon: (
-            <Image
-              src={BusinessIcon}
-              alt="Business"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
         },
+        ...businessDashboardItem,
         {
           title: 'Terms of Service',
           href: '/terms',
-          icon: (
-            <Image
-              src={TermsIcon}
-              alt="Terms"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
         },
         {
           title: 'Help & Support',
           href: '/help',
-          icon: (
-            <Image
-              src={HelpIcon}
-              alt="Help"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
         },
         ...commonNavbarItems,
       ]
@@ -193,19 +154,16 @@ export function UserDropdown() {
         {
           title: 'Watch Course',
           href: '/dashboard/watch-course',
-          icon: (
-            <MdOutlineDashboardCustomize className="text-[20px]" />
-          ),
+          icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
         },
+        ...businessDashboardItem,
         ...commonNavbarItems,
       ];
-
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center gap-2 sm:gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow">
-          {/* Avatar */}
           <div className="w-10 h-10 rounded-full bg-[#B8DFF2] overflow-hidden flex items-center justify-center">
             <Image
               className="w-full h-full object-cover rounded-full"
@@ -217,7 +175,6 @@ export function UserDropdown() {
             />
           </div>
 
-          {/* Name + Arrow */}
           <div className="flex items-center gap-1 sm:gap-2 w-auto">
             <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
               {user.name}
@@ -235,11 +192,8 @@ export function UserDropdown() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100">
-        {/* Label */}
-        <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500"></DropdownMenuLabel>
+        <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500" />
         <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-
-        {/* Items */}
         <DropdownMenuGroup>
           {dropdownList.map(item => (
             <Link href={item.href} key={item.title} passHref legacyBehavior>
@@ -254,19 +208,12 @@ export function UserDropdown() {
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-
-        {/* Logout */}
         <DropdownMenuItem asChild>
           <button
             onClick={logoutHandler}
             className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
           >
-            <Image
-              src={LogoutIcon}
-              alt="Dashboard User"
-              width={20}
-              height={20}
-            />
+            <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
             Sign Out
           </button>
         </DropdownMenuItem>
