@@ -1,143 +1,167 @@
-// src/app/(auth)/dashboard/setting/page.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import ProfileSidebar from './_components/ProfileSidebar';
 import ProfileEditorForm from './_components/ProfileEditorForm';
 import { User } from '@/types/user';
+import { useToast } from '@/hooks/use-toast';
+import {
+  getCurrentUserAPI,
+  updateCurrentUserInfoAPI,
+  updateUserAvatarAPI,
+} from '@/services/api/user';
 
-// Interface cục bộ cho state của form
-interface InfoFormData {
-  name: string;
-  age: string; // <<-- QUAN TRỌNG: Quản lý tuổi trong form dưới dạng chuỗi
-}
-interface PasswordFormData {
-  newPassword: string;
-  retypePassword: string;
-}
-
-// --- Dữ liệu người dùng mẫu ---
-const initialUserData: User = {
-  _id: '12345',
-  name: 'Dao Tuan Kiet',
-  email: 'daotuankiet123@gmail.com',
-  role: 'user',
-  avatar: {
-    url: '/assets/images/avatar.png',
-  },
-  socialLinks: {
-    facebook: 'https://facebook.com/daotuankiet',
-  },
-  profession: 'Student',
-  age: 23, // Dữ liệu gốc là number | null
-};
-// ------------------------------------
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
 
 const SettingPage: React.FC = () => {
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
-  const [infoFormData, setInfoFormData] = useState<InfoFormData>({
-    name: '',
-    age: '', // Khởi tạo là chuỗi rỗng
-  });
-  const [passwordFormData, setPasswordFormData] = useState<PasswordFormData>({
-    newPassword: '',
-    retypePassword: '',
-  });
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [infoFormData, setInfoFormData] = useState({ name: '', age: '' });
+  console.log(infoFormData);
 
-  // Tải dữ liệu và đồng bộ vào form
-  useEffect(() => {
-    setIsLoading(true);
-    const userData = initialUserData;
-    setUser(userData);
-
-    // Chuyển đổi age (number | null) thành chuỗi để hiển thị trong input
-    setInfoFormData({
-      name: userData.name,
-      age: userData.age?.toString() || '', // Chuyển số thành chuỗi, hoặc thành chuỗi rỗng nếu là null/undefined
-    });
-    setIsLoading(false);
-  }, []);
-
-  const handleInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // Nếu là trường 'age', chỉ cho phép nhập số
-    if (name === 'age' && value !== '' && !/^\d+$/.test(value)) {
-      return; // Không cập nhật state nếu không phải là số
-    }
-    setInfoFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSaveChanges = () => {
-    if (!user) return;
-
-    // Chuyển đổi age từ chuỗi trong form về number | null trước khi lưu
-    const ageAsNumber = infoFormData.age ? parseInt(infoFormData.age, 10) : null;
-    if (isNaN(ageAsNumber as number)) {
-      // Xử lý trường hợp chuỗi không hợp lệ nếu cần, mặc dù đã chặn ở trên
-      alert('Invalid age value.');
-      return;
-    }
-
-    const updatedUserData: User = {
-      ...user,
-      name: infoFormData.name.trim(),
-      age: ageAsNumber, // Lưu tuổi dưới dạng number | null
-    };
-
-    setUser(updatedUserData);
-    console.log('Saving Information:', updatedUserData);
-    alert('Profile information updated! (Check console log)');
-
-    // ... (logic lưu password giữ nguyên) ...
-    if (passwordFormData.newPassword) {
-      if (passwordFormData.newPassword !== passwordFormData.retypePassword) {
-        alert('Passwords do not match!');
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        // Giới hạn 2MB
+        toast({
+          title: 'Error',
+          description: 'Image file is too large. Maximum 2MB.',
+          variant: 'destructive',
+        });
         return;
       }
-      console.log('Saving New Password:', passwordFormData.newPassword);
-      alert('Password updated successfully!');
+      setNewAvatarFile(file); // Lưu file vào state
+      setNewAvatarPreview(URL.createObjectURL(file)); // Tạo URL để xem trước
     }
-    setPasswordFormData({ newPassword: '', retypePassword: '' });
   };
 
-  const handleCancel = () => {
+  useEffect(() => {
+    const loadUserData = async () => {
+      setIsLoading(true);
+      try {
+        const userData = await getCurrentUserAPI();
+        setUser(userData);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadUserData();
+  }, [toast]);
+
+  // Hàm save giờ nhận dữ liệu đã được validate từ react-hook-form
+  const handleSaveChanges = async (formData: {
+    name: string;
+    age?: string;
+    newPassword?: string;
+  }) => {
     if (!user) return;
-    setInfoFormData({
-      name: user.name,
-      age: user.age?.toString() || '',
-    });
-    setPasswordFormData({ newPassword: '', retypePassword: '' });
-    console.log('Changes cancelled.');
-  };
+    setIsSaving(true);
+    try {
+      let finalUpdatedUser = user;
+      let hasChanges = false;
 
-  const handlePhotoEdit = () => {
-    console.log('Edit photo clicked');
-    alert('Functionality to edit photo is not implemented yet.');
+      // 1. Xử lý upload và cập nhật avatar nếu có file mới
+      if (newAvatarFile) {
+        hasChanges = true;
+        const avatarBase64 = await fileToBase64(newAvatarFile);
+        const avatarUpdateResult = await updateUserAvatarAPI(avatarBase64);
+        finalUpdatedUser = avatarUpdateResult.user; // Cập nhật user từ kết quả API avatar
+        console.log('Avatar updated successfully.');
+      }
+
+      // 2. Xử lý cập nhật thông tin text nếu có thay đổi
+      const ageAsNumber = formData.age ? parseInt(formData.age, 10) : null;
+      if (formData.name.trim() !== user.name || ageAsNumber !== user.age) {
+        hasChanges = true;
+        const infoToUpdate: Partial<User> = {
+          name: formData.name.trim(),
+          age: ageAsNumber,
+        };
+        const infoUpdateResult = await updateCurrentUserInfoAPI(infoToUpdate);
+        finalUpdatedUser = infoUpdateResult.user; // Cập nhật user từ kết quả API info
+        console.log('User info updated successfully.');
+      }
+
+      // 3. Xử lý cập nhật mật khẩu nếu có
+      if (formData.newPassword) {
+        hasChanges = true;
+        // ... gọi API đổi mật khẩu ở đây ...
+        console.log('Password would be updated here.');
+      }
+
+      // Cập nhật state cuối cùng và hiển thị toast
+      if (hasChanges) {
+        setUser(finalUpdatedUser);
+        setInfoFormData({
+          name: finalUpdatedUser.name,
+          age: finalUpdatedUser.age?.toString() || '',
+        });
+        toast({
+          title: 'Success!',
+          description: 'Your profile has been updated.',
+          variant: 'success',
+        });
+      } else {
+        toast({
+          title: 'No Changes',
+          description: "You haven't made any changes.",
+          variant: 'default',
+        });
+      }
+
+      // Reset các state tạm thời
+      if (newAvatarPreview) URL.revokeObjectURL(newAvatarPreview);
+      setNewAvatarFile(null);
+      setNewAvatarPreview(null);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="bg-gray-100 p-4 sm:p-6 md:p-8 min-h-screen">
-      {/* Container này sử dụng `lg:flex-row`, là điều kiện để `align-items: stretch` hoạt động */}
+    <div className="   min-h-screen">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <ProfileSidebar user={user} onPhotoEditClick={handlePhotoEdit} />
+        <ProfileSidebar
+          user={user}
+          onFileChange={handleFileChange}
+          newAvatarPreview={newAvatarPreview}
+        />
 
-        {isLoading ? (
+        {isLoading || !user ? (
           <div className="w-full lg:flex-1 bg-white p-6 sm:p-8 rounded-2xl shadow-sm animate-pulse">
-            {/* ... skeleton loader ... */}
+            {/* Skeleton Loader */}
           </div>
         ) : (
           <ProfileEditorForm
-            infoData={infoFormData}
-            passwordData={passwordFormData}
-            onInfoChange={handleInfoChange}
-            onPasswordChange={handlePasswordChange}
+            initialData={{
+              name: user.name,
+              age: user.age?.toString() || '',
+              newPassword: '',
+              retypePassword: '',
+            }}
             onSave={handleSaveChanges}
-            onCancel={handleCancel}
+            onCancel={() => {
+              // Logic cancel giờ được quản lý bởi `reset` trong `ProfileEditorForm`
+              // Chỉ cần log hoặc không làm gì ở đây
+              console.log('Cancel clicked, form was reset.');
+            }}
+            isSaving={isSaving}
           />
         )}
       </div>

@@ -9,9 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-black text-white shadow hover:bg-[#1e3a8a] cursor-pointer', // Giữ nguyên
-        primary: 'bg-foreground text-black shadow hover:bg-gray-100 cursor-pointer', // Giữ nguyên
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-[#1e3a8a]', // Giữ nguyên, nhưng lưu ý hover:bg-[#1e3a8a] có thể không phải là màu destructive đậm hơn.
+        default: 'bg-[#3858F8] text-white shadow hover:bg-[#2C48E0] cursor-pointer',
+
+        // --- PHẦN PRIMARY ĐÃ ĐIỀU CHỈNH ---
+        primary: 'bg-white text-[#3858F8] shadow-sm hover:bg-[#F7F8FA] cursor-pointer',
+
+        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-[#D4405E]', // Đổi hover sang màu đỏ đậm hơn cho destructive
 
         // --- PHẦN OUTLINE ĐÃ ĐIỀU CHỈNH ---
         outline:
@@ -26,14 +29,15 @@ const buttonVariants = cva(
           'border border-blue-600 rounded-full bg-transparent text-blue-600 shadow-sm hover:bg-blue-600 hover:text-white cursor-pointer',
 
         secondary: 'bg-[#3b82f6] text-black shadow hover:bg-[#1e3a8a]', // Giữ nguyên
+        secondary2: 'bg-[#3b82f6] text-white shadow ', // Giữ nguyên
 
         // --- PHẦN GHOST ĐÃ ĐIỀU CHỈNH ---
-        ghost:
-          'text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
+        ghost: 'text-[#3858F8] hover:bg-[#F7F8FA] hover:text-[#2C48E0] cursor-pointer shadow-sm',
         ghost2:
           'text-blue-600 rounded-full hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 cursor-pointer',
 
         ['active-tab']: 'bg-foreground text-black shadow', // Giữ nguyên
+        hero: 'bg-[#3858F8] text-white shadow hover:bg-[#2C48E0] rounded-full px-6 py-3 text-base hover:cursor-pointer',
       },
       size: {
         default: 'rounded px-9 py-3',
@@ -44,6 +48,7 @@ const buttonVariants = cva(
         lg: 'rounded px-[35px] py-3 text-base',
         xl: 'rounded px-[49px] py-3 text-base',
         icon: 'h-9 w-9',
+        hero: 'rounded-full px-6 py-3 text-base',
       },
     },
     defaultVariants: {

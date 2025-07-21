@@ -60,7 +60,7 @@ export default function CourseDetailsPage() {
             />
 
             {/* Instructor Info */}
-            <InstructorInfo courseName={course.name} instructor={course.publisher} />
+            <InstructorInfo courseName={course.name} instructor={course.author} />
             {/* Description Section */}
             <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
             <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
@@ -85,8 +85,8 @@ export default function CourseDetailsPage() {
           <div className="w-full lg:w-[30%] space-y-15">
             <CourseCard course={course} />
             <Rating rating={course.rating as number} />
-            <PublisherCard author={course.publisher} updatedAt={course.publisher.updatedAt} />
-            <OverView title={course.name} overview={course.overview} topics={course.topics} />
+            <PublisherCard author={course.author} updatedAt={course.updatedAt ? new Date(course.updatedAt) : undefined} />
+            <OverView title={course.name} overview={course.overview} topics={course.tags || []} />
             <SuggestedCourse />
             {/* Learners are viewing */}
 
