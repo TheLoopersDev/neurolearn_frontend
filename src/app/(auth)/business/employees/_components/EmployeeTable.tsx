@@ -1,6 +1,6 @@
 import React from 'react';
 import EmployeeTableHeader from './EmployeeTableHeader';
-import EmployeeTableRow, { User } from './EmployeeTableRow';
+import EmployeeTableRow from './EmployeeTableRow';
 
 interface EmployeeTableProps {
   employees: any[];
