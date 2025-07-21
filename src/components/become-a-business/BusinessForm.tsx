@@ -9,7 +9,6 @@ export default function BusinessForm() {
     const [docImages, setDocImages] = useState<File[]>([]);
     const [agree, setAgree] = useState(false)
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
     // refs cho input
     const companyNameRef = useRef<HTMLInputElement>(null);
     const taxCodeRef = useRef<HTMLInputElement>(null);
