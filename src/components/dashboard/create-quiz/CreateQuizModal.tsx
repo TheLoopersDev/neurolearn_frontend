@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronDown, UploadCloud, Plus, ArrowLeft, Minus } from 'lucide-react';
-import { ManualCreationDetails, AICreationDetails } from '../../../types/quiz'; // Đảm bảo đường dẫn đúng
+import { ManualCreationDetails, AICreationDetails } from './types'; // Đảm bảo đường dẫn đúng
 
 interface CreateQuizModalProps {
   isOpen: boolean;

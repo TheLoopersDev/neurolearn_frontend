@@ -15,14 +15,20 @@ import {
   PaginationPrevious,
 } from '@/components/common/ui/pagination'; // Đảm bảo đường dẫn đúng
 
-
-const fetchInstructors = async (): Promise<User[]> => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/users/get-instructors`, {
-    credentials: 'include', // nếu cần cookie
-  });
-  const data = await res.json();
-  return data.instructors || [];
+// --- Mockup hàm lấy danh sách giảng viên ---
+const fetchInstructors = (): User[] => {
+  return Array.from({ length: 25 }, (_, i) => ({
+    _id: `instructor${i + 1}`,
+    name: `Dao Tuan Kiet ${i + 1}`,
+    email: `instructor${i + 1}@example.com`,
+    role: 'instructor',
+    profession: 'UX/UI DESIGNER',
+    avatar: { url: '/assets/images/memoji-avatar-placeholder.png' },
+    rating: 4.2 + (i % 8) / 10,
+    student: 500 + i * 17,
+  }));
 };
+// --------------------------------------------------
 
 const ITEMS_PER_PAGE = 6; // Hiển thị 6 card trên mỗi trang (vừa với lưới 3x2)
 
@@ -32,7 +38,7 @@ const InstructorListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchInstructors().then(setAllInstructors);
+    setAllInstructors(fetchInstructors());
   }, []);
 
   const filteredInstructors = useMemo(

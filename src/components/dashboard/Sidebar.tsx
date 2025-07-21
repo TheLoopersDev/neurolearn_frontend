@@ -14,8 +14,6 @@ import message from '@/public/assets/icons/message.svg';
 import setting from '@/public/assets/icons/setting.svg';
 import teacher from '@/public/assets/icons/teacher.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
-import certificate from '@/public/assets/icons/award.svg';
-import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
@@ -28,8 +26,6 @@ const menuItems = [
   },
   { icon: earning, label: 'Earning', path: '/dashboard/earning' },
   { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
-  { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
-  { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
   { icon: message, label: 'Message', path: '/dashboard/message' },
   { icon: setting, label: 'Setting', path: '/dashboard/setting' },
 ];

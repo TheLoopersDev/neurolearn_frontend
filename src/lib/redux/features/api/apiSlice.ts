@@ -6,7 +6,7 @@ import { User } from '@/types/user';
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000',
+    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI,
   }),
   endpoints: builder => ({
     refreshToken: builder.query({
@@ -25,21 +25,14 @@ export const apiSlice = createApi({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-
-          // For session-based auth, we don't get accessToken from loadUser
-          // Just update the user info
-          const user = result.data?.user;
-
-          if (user) {
-            dispatch(
-              userLoggerIn({
-                accessToken: 'session-based', // Placeholder for session auth
-                user: user,
-              })
-            );
-          }
+          dispatch(
+            userLoggerIn({
+              accessToken: result.data.accessToken,
+              user: result.data.user,
+            })
+          );
         } catch (error) {
-          console.log('LoadUser error:', error);
+          console.log(error);
         }
       },
     }),

@@ -1,16 +1,19 @@
 // src/app/(auth)/dashboard/setting/_components/ChangePasswordForm.tsx
 import React from 'react';
 import FormField from './FormField';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
-// <<-- THAY ĐỔI 3: IMPORT TYPE TỪ FILE CHA -->>
-import { ProfileFormData } from './ProfileEditorForm';
 
+// Định nghĩa props trực tiếp
 interface ChangePasswordFormProps {
-  register: UseFormRegister<ProfileFormData>;
-  errors: FieldErrors<ProfileFormData>;
+  newPasswordValue: string;
+  retypePasswordValue: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ register, errors }) => {
+const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
+  newPasswordValue,
+  retypePasswordValue,
+  onChange,
+}) => {
   return (
     <section>
       <h2 className="text-xl font-bold text-gray-800">Change Password</h2>
@@ -18,18 +21,20 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ register, error
         <FormField
           label="Password"
           id="newPassword"
+          name="newPassword"
           type="password"
+          value={newPasswordValue} // Sử dụng prop mới
+          onChange={onChange}
           placeholder="Enter new password"
-          {...register('newPassword')}
-          error={errors.newPassword?.message}
         />
         <FormField
           label="Re-Type password"
           id="retypePassword"
+          name="retypePassword"
           type="password"
+          value={retypePasswordValue} // Sử dụng prop mới
+          onChange={onChange}
           placeholder="Re-enter password"
-          {...register('retypePassword')}
-          error={errors.retypePassword?.message}
         />
       </div>
     </section>

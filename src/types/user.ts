@@ -30,4 +30,4 @@ export interface User {
   socialLinks?: SocialLinks;
   createdAt?: string;
   updatedAt?: string;
-}
+} 

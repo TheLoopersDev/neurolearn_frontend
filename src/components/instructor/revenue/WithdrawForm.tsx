@@ -3,38 +3,24 @@
 import React, { useState } from 'react';
 import { TotalRevenueIcon } from '@/components/instructor/revenue/RevenueIcons';   
 import { FiUpload } from "react-icons/fi";
-import { useWithDrawApiMutation } from '@/lib/redux/features/bank/bankApi';
 
 interface WithdrawFormProps {
   totalRevenue: string;
+  onWithdraw: (amount: string, reason: string) => void;
 }
 
-export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
+export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, onWithdraw }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
-  const [withdraw, { isLoading }] = useWithDrawApiMutation();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!amount) {
       alert('Please enter an amount');
       return;
     }
-    try {
-      const result = await withdraw({ amount: Number(amount), reason: reason || undefined }).unwrap();
-      if (result.success) {
-        alert('Withdrawal request sent successfully!');
-        setAmount('');
-        setReason('');
-      } else {
-        alert(result.message || 'Withdrawal failed.');
-      }
-    } catch (error: unknown) {
-      if (typeof error === 'object' && error && 'data' in error) {
-        alert((error as { data?: string }).data || 'Withdrawal failed.');
-      } else {
-        alert('Withdrawal failed.');
-      }
-    }
+    onWithdraw(amount, reason);
+    setAmount('');
+    setReason('');
   };
 
   return (
@@ -51,7 +37,6 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
           <button
             onClick={handleSubmit}
             className="flex justify-center items-center py-2 px-8 text-lg leading-none bg-slate-50 min-h-[40px] rounded-[30px] text-stone-950 hover:bg-slate-100 transition-colors"
-            disabled={isLoading}
           >
             <div className="flex gap-2 items-center">
               <FiUpload className="w-5 h-5" />
@@ -71,7 +56,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-full min-h-[60px] py-2 px-3 mt-1 text-base font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="w-full">
@@ -84,7 +69,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter reason"
-              className="w-full min-h-[60px] py-2 px-3 mt-1 text-base font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full py-2 px-3 mt-1 text-xs font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>

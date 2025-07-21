@@ -1,16 +1,19 @@
 // src/app/(auth)/dashboard/setting/_components/EditInformationForm.tsx
 import React from 'react';
 import FormField from './FormField';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
-// <<-- THAY ĐỔI 2: IMPORT TYPE TỪ FILE CHA -->>
-import { ProfileFormData } from './ProfileEditorForm';
 
+// Định nghĩa props trực tiếp, không cần import type riêng cho form
 interface EditInformationFormProps {
-  register: UseFormRegister<ProfileFormData>;
-  errors: FieldErrors<ProfileFormData>;
+  nameValue: string;
+  ageValue: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const EditInformationForm: React.FC<EditInformationFormProps> = ({ register, errors }) => {
+const EditInformationForm: React.FC<EditInformationFormProps> = ({
+  nameValue,
+  ageValue,
+  onChange,
+}) => {
   return (
     <section>
       <h2 className="text-xl font-bold text-gray-800">Edit Information</h2>
@@ -18,18 +21,20 @@ const EditInformationForm: React.FC<EditInformationFormProps> = ({ register, err
         <FormField
           label="Name"
           id="name"
+          name="name"
           type="text"
+          value={nameValue}
+          onChange={onChange}
           placeholder="Your full name"
-          {...register('name')}
-          error={errors.name?.message}
         />
         <FormField
           label="Age"
           id="age"
+          name="age"
           type="number"
+          value={ageValue}
+          onChange={onChange}
           placeholder="Your Age"
-          {...register('age')}
-          error={errors.age?.message}
         />
       </div>
     </section>

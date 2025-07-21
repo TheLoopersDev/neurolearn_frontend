@@ -1,191 +1,117 @@
+// src/app/(auth)/dashboard/message/page.tsx
 'use client';
-import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
-import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
-import { useFirestoreChat } from '@/hooks/useFirestoreChat';
-import { ChatList, ChatRoom, CreateChatModal } from '@/components/chat';
+import React, { useState, useMemo } from 'react';
+import ConversationList from './_components/ConversationList';
+import ChatWindow from './_components/ChatWindow';
+import { Conversation, Message, User } from './_components/types';
 
-// Check if Firebase is available
-const isFirebaseAvailable = () => {
-  return typeof window !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+// --- DỮ LIỆU GIẢ LẬP (MOCK DATA) ---
+const CURRENT_USER_ID = 'me';
+
+const mockUsers: Record<string, User> = {
+  user1: {
+    id: 'user1',
+    name: 'Dao Tuan Kiet',
+    avatarUrl: '/assets/images/avatar.png',
+    role: 'Design Instructor',
+  },
+  // Thêm các user khác nếu cần
 };
 
+const mockConversations: Conversation[] = [
+  {
+    id: 'conv1',
+    participant: mockUsers['user1'],
+    lastMessage: { text: 'OK, you can ask anything', timestamp: '3d ago' },
+    unreadCount: 2,
+  },
+  // Thêm các cuộc trò chuyện khác
+];
+
+const mockMessages: Record<string, Message[]> = {
+  conv1: [
+    {
+      id: 'msg1',
+      text: "Thanks for joining us on this journey to becoming a top Designer! This course took nearly a year to build, and we believe it can truly help you grow.\n\nJoin us on Discord (see Lesson 2) to ask questions or meet others. Enjoy the course!\n\nP.S. A review would mean a lot if you're enjoying it!",
+      senderId: 'user1',
+      timestamp: '3d ago',
+    },
+    {
+      id: 'msg2',
+      text: 'I want to ask you a question about layout in interface design for applications?',
+      senderId: CURRENT_USER_ID,
+      timestamp: '3d ago',
+    },
+    { id: 'msg3', text: 'OK, you can ask anything', senderId: 'user1', timestamp: '3d ago' },
+  ],
+};
+// ------------------------------------
 
 const MessagePage: React.FC = () => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
+  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [messages, setMessages] = useState<Record<string, Message[]>>(mockMessages);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    mockConversations[0]?.id || null
+  );
 
-  // Parse current user
-  const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
-  const currentUserId = currentUser?._id || currentUser?.id;
-
-  // Firestore chat hook - only use if Firebase is available
-  const firebaseAvailable = isFirebaseAvailable();
-  const { chatRooms, joinChat, leaveChat, activeChatRoomId: activeChatRoomIdHook, setActiveChatRoomId, messages, sendMessage, loading, error } = useFirestoreChat();
-
-  // State loading cho box chat
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const prevChatRoomId = useRef<string | null>(null);
-
-  // Fetch all users whenever chatRooms thay đổi (đảm bảo user mới được cập nhật)
-  useEffect(() => {
-    if (!currentUserId) return;
-    setUsersLoading(true);
-    const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => setAllUsers(data.users || []))
-      .finally(() => setUsersLoading(false));
-  }, [currentUserId, chatRooms.length]);
-
-  // Khi chọn chat mới, set loading và clear messages cũ
-  const handleSelectChat = useCallback(async (chatRoomId: string) => {
-    if (activeChatRoomIdHook) {
-      leaveChat();
-    }
-    setIsChatLoading(true);
-    dispatch(setActiveChat(chatRoomId));
-    setActiveChatRoomId(chatRoomId);
-    await joinChat(chatRoomId);
-    prevChatRoomId.current = chatRoomId;
-  }, [activeChatRoomIdHook, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
-
-  // Khi messages thay đổi hoặc activeChatRoomId đổi, tắt loading
-  useEffect(() => {
-    if (isChatLoading && messages && messages.length >= 0) {
-      setIsChatLoading(false);
-    }
-  }, [messages, activeChatRoomIdHook, isChatLoading]);
-
-  // Auto-select first chat if none selected, hoặc chọn phòng chat mới nhất có lastMessage chưa đọc
-  useEffect(() => {
-    if (chatRooms.length > 0) {
-      // Nếu chưa có phòng chat nào active hoặc active chat không còn tồn tại trong danh sách
-      const activeRoomStillExists = chatRooms.some(room => room.id === activeChatRoomIdHook);
-      if (!activeChatRoomIdHook || !activeRoomStillExists) {
-        // Ưu tiên chọn phòng chat có lastMessage chưa đọc (nếu có)
-        const unreadRoom = chatRooms.find(room => {
-          // Nếu lastMessage tồn tại và receiverId là currentUserId và chưa đọc
-          return room.lastMessage && room.lastMessage.receiverId === currentUserId && !room.lastMessage.read;
-        });
-        if (unreadRoom) {
-          handleSelectChat(unreadRoom.id!);
-        } else {
-          // Nếu không có, chọn phòng chat mới nhất (theo lastMessageTime hoặc createdAt)
-          const sortedRooms = [...chatRooms].sort((a, b) => {
-            const aTime = a.lastMessageTime || a.createdAt;
-            const bTime = b.lastMessageTime || b.createdAt;
-            return bTime?.toMillis?.() - aTime?.toMillis?.();
-          });
-          if (sortedRooms.length > 0) {
-            handleSelectChat(sortedRooms[0].id!);
-          }
-        }
-      }
-    }
-  }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId]);
-
-  // Helper: Map ChatRoom to Chat (for UI compatibility)
-  const mapChatRoomToChat = function (room: any): any {
-    if (room.isGroup) {
-      return {
-        _id: room.id,
-        members: room.participants.map((id: string) => allUsers.find(u => String(u._id) === String(id)) || { _id: id, name: 'Loading...', email: '' }),
-        isGroup: true,
-        groupName: room.groupName || 'Group',
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: '/assets/images/avatar-default.png',
-      };
-    } else {
-      // 1-1 chat: get the other user
-      const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-      const otherUser = allUsers.find(u => String(u._id) === String(otherId));
-      return {
-        _id: room.id,
-        members: [otherUser || { _id: otherId, name: 'Loading...', email: '' }],
-        isGroup: false,
-        groupName: undefined,
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png',
-        displayName: otherUser?.name || 'Loading...'
-      };
-    }
+  const handleSelectConversation = (id: string) => {
+    setActiveConversationId(id);
+    // TODO: Xóa số tin nhắn chưa đọc khi click vào
   };
 
-  // Callback khi tạo chat mới
-  const handleChatCreated = (chatRoomId: string) => {
-    if (!currentUserId) return;
-    setUsersLoading(true);
-    const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => setAllUsers(data.users || []))
-      .finally(() => setUsersLoading(false));
-    dispatch(setActiveChat(chatRoomId));
-    setActiveChatRoomId(chatRoomId);
-    // Đảm bảo join vào phòng chat vừa tạo
-    joinChat(chatRoomId);
+  const handleSendMessage = (text: string) => {
+    if (!activeConversationId) return;
+
+    const newMessage: Message = {
+      id: `msg_${Date.now()}`,
+      text,
+      senderId: CURRENT_USER_ID,
+      timestamp: 'Just now',
+    };
+
+    // Cập nhật state messages
+    setMessages(prevMessages => {
+      const activeConvoMessages = prevMessages[activeConversationId] || [];
+      return {
+        ...prevMessages,
+        [activeConversationId]: [...activeConvoMessages, newMessage],
+      };
+    });
+
+    // Cập nhật lastMessage của conversation
+    setConversations(prevConvos =>
+      prevConvos.map(convo =>
+        convo.id === activeConversationId
+          ? { ...convo, lastMessage: { text, timestamp: 'Just now' } }
+          : convo
+      )
+    );
   };
 
-  if (!currentUserId) {
-    return (
-      <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
-        <div className="text-center">
-          <p className="text-gray-500">Please log in to access messages</p>
-        </div>
-      </div>
-    );
-  }
+  const activeConversation = useMemo(
+    () => conversations.find(c => c.id === activeConversationId),
+    [conversations, activeConversationId]
+  );
 
-  if (!firebaseAvailable) {
-    return (
-      <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
-        <div className="text-center">
-          <p className="text-gray-500">Chat feature is not available</p>
-        </div>
-      </div>
-    );
-  }
+  const activeMessages = useMemo(
+    () => messages[activeConversationId || ''] || [],
+    [messages, activeConversationId]
+  );
 
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
-      {/* Chat List */}
-      <ChatList
-        chats={chatRooms.map(mapChatRoomToChat)}
-        activeChatId={activeChatRoomIdHook}
-        onSelectChat={handleSelectChat}
-        onCreateChat={() => { }}
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5">
+      {' '}
+      {/* Điều chỉnh chiều cao */}
+      <ConversationList
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={handleSelectConversation}
       />
-
-      {/* Chat Room */}
-      {(!usersLoading && activeChatRoomIdHook && !isChatLoading) ? (
-        <ChatRoom
-          chat={chatRooms.find(room => room.id === activeChatRoomIdHook) ? mapChatRoomToChat(chatRooms.find(room => room.id === activeChatRoomIdHook)) : null}
-          currentUserId={currentUserId}
-          messages={messages}
-          sendMessage={sendMessage}
-          loading={loading}
-          error={error}
-        />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-          <span className="text-gray-400">Loading chat...</span>
-        </div>
-      )}
-
-      {/* Modal tạo chat */}
-      <CreateChatModal
-        open={/* trạng thái modal */ false}
-        onClose={() => { }}
-        currentUserId={currentUserId}
-        onChatCreated={handleChatCreated}
+      <ChatWindow
+        conversation={activeConversation}
+        messages={activeMessages}
+        currentUserId={CURRENT_USER_ID}
+        onSendMessage={handleSendMessage}
       />
     </div>
   );

@@ -6,7 +6,7 @@ import * as React from 'react';
 import type { ToastActionElement, ToastProps } from '@/components/common/ui/Toast';
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 3000; // Consider reducing this for faster actual removal if desired
+const TOAST_REMOVE_DELAY = 1000000; // Consider reducing this for faster actual removal if desired
 
 type ToasterToast = ToastProps & {
   id: string;

@@ -10,20 +10,29 @@ import { UserDropdown } from '../auth/UserDropDown';
 import SearchIcon from '@/public/assets/home/Search.svg';
 import BuyIcon from '@/public/assets/home/Buy.svg';
 import NotificationIcon from '@/public/assets/home/notification-black.svg'
-
+import ArrowDownIcon from '@/public/assets/home/arrow-top-down.svg';
 import LogoSVG from '@/public/assets/icons/logo.svg';
 import Image from 'next/image';
 import { RootState } from '@/lib/redux/store';
-import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
-import ExploreDropdown from '../home/ExploreDropdown';
 
+interface Category {
+  name: string;
+  href: string;
+}
 
 const Header: React.FC = () => {
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const { isLoading } = useLoadUserQuery(undefined);
-  const reduxUser = useSelector((state: RootState) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const categories: Category[] = [
+    { name: 'Programming', href: '/categories/programming' },
+    { name: 'Business', href: '/categories/business' },
+    { name: 'Design', href: '/categories/design' },
+    { name: 'Marketing', href: '/categories/marketing' },
+  ];
 
   useEffect(() => {
     if (isSearchActive && searchRef.current) {
@@ -38,56 +47,6 @@ const Header: React.FC = () => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
-  let userSection = null;
-
-  if (!isLoading) {
-    if (!reduxUser) {
-      userSection = (
-        <>
-          {/* Group 237 – Login */}
-          <button
-            onClick={() => showModal('login')}
-            className="
-              w-[124px] h-[56px]
-              bg-white rounded-[120px]
-              text-[16px] font-medium text-[#0D0D0D]
-              hover:bg-gray-100 transition
-            "
-          >
-            Log In
-          </button>
-
-          {/* Group 236 – Sign up */}
-          <button
-            onClick={() => showModal('signup')}
-            className="
-              w-[124px] h-[56px]
-              bg-[#3858F8] rounded-[120px]
-              text-[16px] font-medium text-white
-              hover:bg-blue-700 transition
-            "
-          >
-            Sign Up
-          </button>
-        </>
-      );
-    } else {
-      userSection = (
-        <>
-          <button
-            className="
-              bg-white rounded-full
-              p-[16px]
-              flex items-center justify-center color-black
-            "
-          >
-            <Image src={NotificationIcon} alt="Notification" width={20} height={20} />
-          </button>
-          <UserDropdown />
-        </>
-      );
-    }
-  }
 
   return (
     <>
@@ -116,7 +75,42 @@ const Header: React.FC = () => {
             </Link>
 
             {/* Group 228 – Explore button */}
-            <ExploreDropdown />
+            <div className="relative">
+              <button
+                onClick={() => setIsExploreOpen(open => !open)}
+                className="
+                px-2 py-2
+                bg-white rounded-4xl
+                flex items-center justify-center gap-4
+                text-[16px] font-medium text-[#0D0D0D]
+                hover:bg-blue-50 transition
+              "
+              >
+                <span>Explore</span>
+                <Image
+                  src={ArrowDownIcon}
+                  alt=""
+                  width={33}
+                  height={21}
+                />
+              </button>
+
+              {/* Dropdown menu */}
+              {isExploreOpen && (
+                <div className="absolute left-0 mt-2 w-[168px] bg-white border border-gray-200 shadow-lg rounded z-10">
+                  {categories.map(cat => (
+                    <Link
+                      key={cat.name}
+                      href={cat.href}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+                      onClick={() => setIsExploreOpen(false)}
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right group: Search – Buy – (Login/Signup or Cart + User) */}
@@ -173,9 +167,55 @@ const Header: React.FC = () => {
             </button>
 
             {/* Not logged in */}
-            {userSection}
+            {!user ? (
+              <>
+                {/* Group 237 – Login */}
 
+                <button
+                  onClick={() => showModal('login')}
+                  className="
+                  w-[124px] h-[56px]
+                  bg-white rounded-[120px]
+                  text-[16px] font-medium text-[#0D0D0D]
+                  hover:bg-gray-100 transition
+                "
+                >
+                  Log In
+                </button>
 
+                {/* Group 236 – Sign up */}
+                <button
+                  onClick={() => showModal('signup')}
+                  className="
+                  w-[124px] h-[56px]
+                  bg-[#3858F8] rounded-[120px]
+                  text-[16px] font-medium text-white
+                  hover:bg-blue-700 transition
+                "
+                >
+                  Sign Up
+                </button>
+              </>
+            ) : (
+              /* Nếu đã login, giữ lại Cart + UserDropdown như cũ */
+              <>
+                <button
+                  // onClick={() => showModal('notification')}
+                  className="
+                  bg-white rounded-full
+                  p-[16px]
+                  flex items-center justify-center color-black"
+                >
+                  <Image
+                    src={NotificationIcon}
+                    alt="Notification"
+                    width={20}
+                    height={20}
+                  />
+                </button>
+                <UserDropdown />
+              </>
+            )}
           </div>
         </div>
       </header>

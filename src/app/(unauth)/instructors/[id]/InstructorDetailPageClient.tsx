@@ -9,29 +9,50 @@ import ReviewList from '@/components/instructor-detail/ReviewList';
 import { Course, IReview } from '@/types/course';
 import { User } from '@/types/user';
 import Link from 'next/link';
-import { getUserById } from '@/lib/services/user';
+
+// --- Mockup hàm lấy dữ liệu ---
+const fetchInstructorById = (id: string): User | undefined => {
+  console.log(`Fetching instructor with ID: ${id}`);
+  return {
+    _id: id,
+    name: `Le Xuan Huy`,
+    profession: 'Web Designer & Best-Selling Instructor',
+    avatar: { url: '/assets/images/avatar.png' },
+    rating: 4.5,
+    student: 500,
+    introduce:
+      'One day Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case,  Yako had enough with the 9-to-5 grind, or more like 9-to-9 in his case, and quit his job, or more like got himself fired from his own startup. He decided to work on his dream: be his own boss, travel the world, only do the work he enjoyed, and make a lot more money in the process...',
+    socialLinks: { facebook: '#', twitter: '#', instagram: '#' },
+    email: 'lexuanhuy@example.com',
+    role: 'instructor',
+  };
+};
 
 const fetchCoursesByInstructorId = (instructorId: string): Course[] => {
   console.log(`Fetching courses for instructor ID: ${instructorId}`);
-  // Mock author data for now
-  const author = {
-    _id: instructorId,
-    name: 'Instructor',
-    email: '',
-    avatar: {
-      public_id: '',
-      url: '',
-    },
-    profession: '',
-  };
+  const instructor = fetchInstructorById(instructorId);
+
+  if (!instructor) {
+    return [];
+  }
+
   return Array.from({ length: 8 }, (_, i) => ({
     _id: `course_${i + 1}_${instructorId}`,
     name: 'USER INTERFACE DESIGN COURSE (APP/WEBSITE)',
     subTitle:
       'Quickly Master Adobe Photoshop: Beginner to Advanced Graphic Design, Photo Editing...',
-    thumbnail: { url: '/assets/create-quiz/thumbnail.png' },
+    thumbnail: '/assets/create-quiz/thumbnail.png',
     authorId: instructorId,
-    author,
+    author: {
+      _id: instructor._id || '',
+      name: instructor.name,
+      email: instructor.email,
+      avatar: {
+        public_id: '',
+        url: instructor.avatar?.url || '',
+      },
+      profession: instructor.profession || '',
+    },
     level: 'Beginner',
     rating: 4.5,
     reviews: [],
@@ -87,24 +108,19 @@ const InstructorDetailPageClient: React.FC<InstructorDetailPageClientProps> = ({
   useEffect(() => {
     if (id) {
       setIsLoading(true);
-      (async () => {
-        try {
-          const response = await getUserById(id);
-          if (response && response.success && response.data && response.data.user) {
-            setInstructor(response.data.user);
-            const courseData = fetchCoursesByInstructorId(id);
-            const reviewData = fetchReviewsByInstructorId(id);
-            setCourses(courseData);
-            setAllReviews(reviewData);
-          } else {
-            setInstructor(null);
-          }
-        } catch (error) {
-          setInstructor(null);
-        } finally {
-          setIsLoading(false);
+      const timer = setTimeout(() => {
+        const instructorData = fetchInstructorById(id);
+        if (instructorData) {
+          setInstructor(instructorData);
+          const courseData = fetchCoursesByInstructorId(id);
+          const reviewData = fetchReviewsByInstructorId(id);
+          setCourses(courseData);
+          setAllReviews(reviewData);
         }
-      })();
+        setIsLoading(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
     }
   }, [id]);
 

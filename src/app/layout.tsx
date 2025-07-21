@@ -18,9 +18,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Academix',
   description: 'AI-Powered Training & Market',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({

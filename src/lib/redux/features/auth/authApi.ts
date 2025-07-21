@@ -53,19 +53,14 @@ export const authApi = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-
-          // Try different ways to access the token
-          const accessToken = result.data?.accessToken;
-          const user = result.data?.user;
-
           dispatch(
             userLoggerIn({
-              accessToken: accessToken,
-              user: user,
+              accessToken: result.data.accessToken,
+              user: result.data.user,
             })
           );
         } catch (error) {
-          console.log('Login error:', error);
+          console.log(error);
         }
       },
     }),

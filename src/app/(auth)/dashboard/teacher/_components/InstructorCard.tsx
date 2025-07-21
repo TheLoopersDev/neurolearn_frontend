@@ -23,7 +23,8 @@ const InstructorCard: React.FC<InstructorCardProps> = ({ instructor }) => {
       {/* Avatar */}
       <div className="relative w-24 h-24 mb-4">
         <Image
-          src={instructor.avatar?.url || '/assets/images/avatar.png'}
+          //   src={instructor.avatar?.url || '/assets/images/avatar.png'}
+          src={'/assets/images/avatar.png'}
           alt={`Profile photo of ${instructor.name}`}
           fill
           sizes="96px"

@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Sidebar />
         </div>
         {/* Nội dung chiếm 5/6 */}
-        <div className="w-5/6 p-6">{children}</div>
+        <div className="w-5/6 p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -42,6 +42,7 @@ interface InstructorStatsProps {
 }
 
 const InstructorStats: React.FC<InstructorStatsProps> = ({ instructor, totalCourses }) => {
+  const reviewCount = Math.round(Math.random() * 200) + 50;
 
   return (
     <div className="bg-white rounded-2xl  p-6 sm:p-8 flex flex-col h-full">
@@ -61,12 +62,12 @@ const InstructorStats: React.FC<InstructorStatsProps> = ({ instructor, totalCour
           value={
             <div className="flex items-center gap-2">
               <span className="text-3xl font-semibold text-blue-500">
-                {typeof instructor.rating === 'number' ? instructor.rating.toFixed(1) : '0'}
+                {instructor.rating?.toFixed(1) || 'N/A'}
               </span>
               {/* Sử dụng Image cho icon ngôi sao màu xanh */}
               <Image src="/assets/icons/blue-star.svg" alt="Star" width={20} height={20} />
               <span className="text-sm text-gray-500 self-end pb-2">
-
+                ({reviewCount} Review Rating)
               </span>
             </div>
           }

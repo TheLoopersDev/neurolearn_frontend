@@ -1,9 +1,9 @@
 'use client';
 
-import type { Course } from '@/types/course';
+import type { CourseDetail } from '@/types/course';
 import Image from 'next/image';
 
-export default function CourseDetail({ course }: { course: Course }) {
+export default function CourseDetail({ course }: { course: CourseDetail }) {
   return (
     <div className="text-3xl font-bold text-black max-w-full mx-auto bg-[#F7F8FA] rounded-xl">
       <div className="pb-4">Course detail</div>
@@ -12,21 +12,21 @@ export default function CourseDetail({ course }: { course: Course }) {
           Lesson
           <div className="flex items-center gap-2 text-black mt-2">
             <Image src="/assets/icons/play.svg" alt="Play Icon" width={24} height={24} />
-            <span>{course?.sections?.length ?? 0}</span>
+            <span>{course?.totalLessons ?? 0}</span>
           </div>
         </div>
         <div className="flex-1 text-base h-[116px] bg-[#FFFFFF] text-[#6B6B6B] rounded-lg p-6">
           Duration
           <div className="flex items-center gap-2 text-black mt-2">
             <Image src="/assets/icons/clock.svg" alt="Clock Icon" width={24} height={24} />
-            <span>{course?.duration ? course.duration + ' hours' : 'N/A'}</span>
+            <span>{course?.durationText || 'N/A'}</span>
           </div>
         </div>
         <div className="flex-1 text-base h-[116px] bg-[#FFFFFF] text-[#6B6B6B] rounded-lg p-6">
           Skill level
           <div className="flex items-center gap-2 text-black mt-2">
             <Image src="/assets/icons/sort.svg" alt="Sort Icon" width={24} height={24} />
-            <span>{typeof course?.level === 'object' && course?.level !== null ? course.level.name : (course?.level || 'All levels')}</span>
+            <span>{course?.level?.name ?? 'All levels'}</span>
           </div>
         </div>
         <div className="flex-1 text-base h-[116px] bg-[#FFFFFF] text-[#6B6B6B] rounded-lg p-6">

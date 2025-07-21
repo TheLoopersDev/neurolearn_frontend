@@ -1,35 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'example.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img.mservice.com.vn',
-      },
-      {
-        protocol: 'https',
-        hostname: 'vietqr.net',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.vietqr.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.pravatar.cc',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['res.cloudinary.com','example.com'], // Remove example.com and localhost since they're not needed
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig 

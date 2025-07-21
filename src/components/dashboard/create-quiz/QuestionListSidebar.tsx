@@ -1,6 +1,6 @@
 // QuestionListSidebar.tsx
 import React from 'react';
-import { QuestionSummary } from '../../../types/quiz'; // Đảm bảo đường dẫn đúng
+import { QuestionSummary } from './types'; // Đảm bảo đường dẫn đúng
 
 interface QuestionListSidebarProps {
   questions: QuestionSummary[];
@@ -72,6 +72,10 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
               </div>
               <button
                 className="ml-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                onClick={e => {
+                  e.stopPropagation();
+                  console.log('Show menu for question:', q.id);
+                }}
                 title="More options"
               >
                 <svg

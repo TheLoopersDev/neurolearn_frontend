@@ -22,11 +22,9 @@ export interface QuestionData {
 }
 
 export interface Quiz {
-  _id: string;
+  id: string;
   name: string;
   questions: QuestionData[];
-  passingScore?: number;
-  maxAttempts?: number;
   createdAt?: string;
   examTitle?: string;
   totalQuestions?: number;
@@ -60,30 +58,3 @@ export interface AICreationDetails {
   questionConfigs: Array<{ type: string; count: number }>;
 }
 // >>> -------------------------------------------------- <<<
-
-export interface UserAnswer {
-  questionId: string; // ID của câu hỏi
-  selectedOptionIds: Set<string>; // Tập hợp các ID lựa chọn mà người dùng đã chọn
-}
-
-export interface QuestionResultItemData {
-  questionNumber: number; // Số thứ tự câu hỏi (1, 2, 3...)
-  status: 'correct' | 'incorrect' | 'skipped'; // Trạng thái: đúng, sai, bỏ qua
-  questionData: QuestionData; // Dữ liệu gốc của câu hỏi
-  userAnswer: UserAnswer; // Câu trả lời của người dùng
-  pointsEarned: number; // Điểm đạt được cho câu hỏi này
-  maxPoints: number; // Tổng điểm tối đa của câu hỏi này
-  rationale?: string; // Tùy chọn: giải thích đáp án đúng
-}
-
-export interface QuizResultsSummary {
-  totalQuestions: number;
-  attemptedQuestions: number; // Số câu đã cố gắng trả lời
-  correctQuestions: number; // Số câu đúng
-  incorrectQuestions: number; // Số câu sai
-  skippedQuestions: number; // Số câu bỏ qua
-  totalScore: number; // Tổng điểm người dùng đạt được
-  maxPossibleScore: number; // Tổng điểm tối đa của toàn bài quiz
-  overallStatus: 'completed' | 'submitted' | 'time-out'; // Trạng thái chung của bài quiz
-  resultsBreakdown: QuestionResultItemData[]; // Chi tiết kết quả từng câu hỏi
-}
