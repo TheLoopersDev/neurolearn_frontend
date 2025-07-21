@@ -16,14 +16,23 @@ import Image from 'next/image';
 import { RootState } from '@/lib/redux/store';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
+import { userLoggerOut } from '@/lib/redux/features/auth/authSlice';
+import { useAppDispatch } from '@/lib/redux/hooks';
 
 
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const { isLoading } = useLoadUserQuery(undefined);
+  const { error, isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (error && 'status' in error && error.status === 400) {
+      dispatch(userLoggerOut());
+    }
+  }, [error]);
 
   useEffect(() => {
     if (isSearchActive && searchRef.current) {
