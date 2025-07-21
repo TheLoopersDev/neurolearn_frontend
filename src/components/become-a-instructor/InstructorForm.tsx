@@ -9,7 +9,7 @@ export default function InstructorForm() {
     // State cho từng trường
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [dob, setDob] = useState('');
     const [address, setAddress] = useState('');
     const [category, setCategory] = useState('');
@@ -25,7 +25,7 @@ export default function InstructorForm() {
 
     // Validate các trường bắt buộc
     const validate = () => {
-        if (!fullName || !email || !phone || !dob || !address || !category || !description) {
+        if (!fullName || !email || !phoneNumber || !dob || !address || !category || !description) {
             toast({
                 title: 'Missing information',
                 description: 'Please fill in the information completely.',
@@ -54,7 +54,7 @@ export default function InstructorForm() {
         const body = {
             fullName,
             email,
-            phone,
+            phoneNumber,
             dob,
             address,
             category,
@@ -83,7 +83,7 @@ export default function InstructorForm() {
                 // Reset form
                 setFullName('');
                 setEmail('');
-                setPhone('');
+                setPhoneNumber('');
                 setDob('');
                 setAddress('');
                 setCategory('');
@@ -143,8 +143,8 @@ export default function InstructorForm() {
                                             type="text"
                                             placeholder="Enter your phone number"
                                             className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
-                                            value={phone}
-                                            onChange={e => setPhone(e.target.value)}
+                                            value={phoneNumber}
+                                            onChange={e => setPhoneNumber(e.target.value)}
                                         />
                                     </div>
                                     <div className="flex flex-col space-y-1">
