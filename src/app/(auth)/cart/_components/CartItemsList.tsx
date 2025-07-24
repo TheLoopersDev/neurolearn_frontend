@@ -1,15 +1,16 @@
 import { CartItem } from './CartItem';
-import type { CartCourse } from '../page';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface CartItemListProps {
-  courses: CartCourse[];
+  courses: any[];
   onRemoveItem: (courseId: string) => void;
   onQuantityChange: (courseId: string, newQuantity: number) => void;
+  role: string | undefined;
 }
 
-export function CartItemList({ courses, onRemoveItem, onQuantityChange }: CartItemListProps) {
+export function CartItemList({ courses, onRemoveItem, onQuantityChange, role }: CartItemListProps) {
+  const isBusinessRole = role === 'admin' || role === 'manager';
   if (courses.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-secondary p-12 text-center">
@@ -25,7 +26,7 @@ export function CartItemList({ courses, onRemoveItem, onQuantityChange }: CartIt
       {/* Header Row - visible on medium screens and up */}
       <div className="hidden rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-600 md:grid md:grid-cols-6 md:gap-4">
         <h3 className="col-span-3">Product Details</h3>
-        <h3 className="text-center">Quantity</h3>
+        {isBusinessRole && <h3 className="text-center">Quantity</h3>}
         <h3 className="text-center">Price</h3>
         <h3 className="text-center">Total</h3>
       </div>
@@ -34,10 +35,12 @@ export function CartItemList({ courses, onRemoveItem, onQuantityChange }: CartIt
       <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-background md:rounded-none md:border-x md:border-b md:border-t-0">
         {courses.map(course => (
           <CartItem
+            quantity={course.quantity}
             key={course._id}
             course={course}
             onRemove={onRemoveItem}
             onQuantityChange={onQuantityChange}
+            showQuantity={isBusinessRole}
           />
         ))}
       </div>

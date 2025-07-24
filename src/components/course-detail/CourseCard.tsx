@@ -25,7 +25,6 @@ interface CourseCardProps {
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
-  console.log(user?.businessInfo?.role);
   const [isOpen, setIsOpen] = useState(false);
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
