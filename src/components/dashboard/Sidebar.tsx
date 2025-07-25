@@ -16,6 +16,10 @@ import teacher from '@/public/assets/icons/teacher.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 import certificate from '@/public/assets/icons/award.svg';
 import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
+import reviewIcon from '@/public/assets/icons/book.svg';
+import withdrawIcon from '@/public/assets/review/withdrawal.svg';
+import businessIcon from '@/public/assets/review/business.svg';
+import peopleIcon from '@/public/assets/icons/teacher.svg';
 
 const menuItems = [
   { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
@@ -29,6 +33,10 @@ const menuItems = [
   { icon: earning, label: 'Earning', path: '/dashboard/earning' },
   { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
   { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
+  { icon: reviewIcon, label: 'Review Courses', path: '/dashboard/review-courses' },
+  { icon: peopleIcon, label: 'Review Instructor', path: '/dashboard/review-instructor' },
+  { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+  { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
   { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
   { icon: message, label: 'Message', path: '/dashboard/message' },
   { icon: setting, label: 'Setting', path: '/dashboard/setting' },
