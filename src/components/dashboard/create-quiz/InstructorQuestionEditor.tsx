@@ -1,6 +1,6 @@
 // InstructorQuestionEditor.tsx
 'use client';
-import React, { useState, useEffect, useMemo } from 'react'; // Thêm useCallback, useMemo
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback instead of useMemo
 import QuizAnswerOption from './QuizAnswerOption';
 import ToggleSwitch from './ToggleSwitch';
 import { QuestionData, AnswerOptionData } from '../../../types/quiz';
@@ -19,6 +19,19 @@ const initialOptionsDataForEditor: AnswerOptionData[] = [
   { id: 'default_opt1_editor', text: 'Default Option A' },
   { id: 'default_opt2_editor', text: 'Default Option B' },
 ];
+
+// Helper function for shallow equality
+function shallowEqual(objA: any, objB: any) {
+  if (objA === objB) return true;
+  if (!objA || !objB) return false;
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
+  if (keysA.length !== keysB.length) return false;
+  for (let key of keysA) {
+    if (objA[key] !== objB[key]) return false;
+  }
+  return true;
+}
 
 const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   questionToLoad,
@@ -45,24 +58,40 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   // Effect để tải dữ liệu câu hỏi mới khi `questionToLoad` (từ props) thay đổi
   useEffect(() => {
     if (questionToLoad) {
-      setInternalId(questionToLoad.id);
-      setQuestionText(questionToLoad.title);
-      setIsQuestionRequired(questionToLoad.isRequired);
-      setQuestionNumber(questionToLoad.questionNumber);
-      setQuestionTypeLocal(questionToLoad.questionType);
-      setOptions(questionToLoad.options || []);
-      setCorrectAnswerIds(questionToLoad.correctAnswerIds || []);
-      setIsMultipleAnswerLocal(questionToLoad.choicesConfig.isMultipleAnswer);
-      setIsAnswerWithImage(questionToLoad.choicesConfig.isAnswerWithImageEnabled);
-      setPoints(questionToLoad.points);
-      setQuestionImageFile(null);
-      if (typeof questionToLoad.questionImage === 'string') {
-        setQuestionImageUrl(questionToLoad.questionImage);
-      } else {
-        setQuestionImageUrl(null);
+      // Only update if questionToLoad is different from current state
+      if (
+        internalId !== questionToLoad.id ||
+        questionText !== questionToLoad.title ||
+        isQuestionRequired !== questionToLoad.isRequired ||
+        questionNumber !== questionToLoad.questionNumber ||
+        questionTypeLocal !== questionToLoad.questionType ||
+        !shallowEqual(options, questionToLoad.options || []) ||
+        !shallowEqual(correctAnswerIds, questionToLoad.correctAnswerIds || []) ||
+        isMultipleAnswerLocal !== questionToLoad.choicesConfig.isMultipleAnswer ||
+        isAnswerWithImage !== questionToLoad.choicesConfig.isAnswerWithImageEnabled ||
+        points !== questionToLoad.points ||
+        (typeof questionToLoad.questionImage === 'string'
+          ? questionImageUrl !== questionToLoad.questionImage
+          : questionImageUrl !== null)
+      ) {
+        setInternalId(questionToLoad.id);
+        setQuestionText(questionToLoad.title);
+        setIsQuestionRequired(questionToLoad.isRequired);
+        setQuestionNumber(questionToLoad.questionNumber);
+        setQuestionTypeLocal(questionToLoad.questionType);
+        setOptions(questionToLoad.options || []);
+        setCorrectAnswerIds(questionToLoad.correctAnswerIds || []);
+        setIsMultipleAnswerLocal(questionToLoad.choicesConfig.isMultipleAnswer);
+        setIsAnswerWithImage(questionToLoad.choicesConfig.isAnswerWithImageEnabled);
+        setPoints(questionToLoad.points);
+        setQuestionImageFile(null);
+        if (typeof questionToLoad.questionImage === 'string') {
+          setQuestionImageUrl(questionToLoad.questionImage);
+        } else {
+          setQuestionImageUrl(null);
+        }
       }
     } else {
-      // Reset về trạng thái ban đầu nếu không có câu hỏi nào được chọn
       setInternalId(null);
       setQuestionText('Select or add a new question.');
       setOptions(initialOptionsDataForEditor);
@@ -77,21 +106,19 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
     }
   }, [questionToLoad]);
 
-  // Tạo hàm debounced để gọi onQuestionDataChange
-  const debouncedOnQuestionDataChange = useMemo(
-    () =>
-      debounce((data: QuestionData) => {
-        if (onQuestionDataChange) {
-          onQuestionDataChange(data);
-        }
-      }, 500), // Đợi 500ms sau khi không có thay đổi trước khi gọi
-    [onQuestionDataChange] // Tạo lại hàm debounce nếu onQuestionDataChange thay đổi (quan trọng)
+  // Refactor debounced function to use useCallback
+  const debouncedOnQuestionDataChange = useCallback(
+    debounce((data: QuestionData) => {
+      if (onQuestionDataChange) {
+        onQuestionDataChange(data);
+      }
+    }, 500),
+    [onQuestionDataChange]
   );
 
   // useEffect để theo dõi state nội bộ và gọi hàm debounced
   useEffect(() => {
     if (internalId) {
-      // Chỉ kích hoạt nếu có câu hỏi đang được chỉnh sửa
       const currentData: QuestionData = {
         id: internalId,
         questionNumber,
@@ -109,7 +136,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
       };
       debouncedOnQuestionDataChange(currentData);
     }
-    // Hủy debounce timer khi component unmount hoặc trước khi effect chạy lại
+    // Cleanup debounce on unmount or before rerun
     return () => {
       debouncedOnQuestionDataChange.cancel();
     };
@@ -126,7 +153,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
     correctAnswerIds,
     points,
     isQuestionRequired,
-    debouncedOnQuestionDataChange, // Phụ thuộc vào phiên bản ổn định của hàm debounced
+    debouncedOnQuestionDataChange,
   ]);
 
   // Các hàm handler giờ chỉ cập nhật state nội bộ. useEffect ở trên sẽ xử lý việc gọi onQuestionDataChange.
