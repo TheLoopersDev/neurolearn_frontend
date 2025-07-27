@@ -49,6 +49,27 @@ export const apiSlice = createApi({
         method: 'GET',
       }),
     }),
+    getPendingRequests: builder.query<any[], { type: string }>({
+      query: ({ type }) => ({
+        url: `/api/request/get-request-pending?type=${type}`,
+        method: 'GET',
+        headers: {},
+      }),
+    }),
+    handleRequest: builder.mutation<any, { type: string; requestId: string; action: 'approve' | 'reject' }>({
+      query: ({ type, requestId, action }) => {
+        let url = '';
+        if (type === 'course_approval') url = `/api/request/handle-request-course/${requestId}`;
+        else if (type === 'business_verification') url = `/api/request/handle-request-business/${requestId}`;
+        else if (type === 'instructor_verification') url = `/api/request/instructor-verification/${requestId}/action`;
+        return {
+          url,
+          method: 'PUT',
+          body: { action },
+          headers: {},
+        };
+      },
+    }),
   }),
 });
 
@@ -56,4 +77,6 @@ export const {
   useRefreshTokenQuery,
   useLoadUserQuery,
   useGetInstructorsQuery,
+  useGetPendingRequestsQuery,
+  useHandleRequestMutation,
 } = apiSlice;

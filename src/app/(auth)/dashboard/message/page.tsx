@@ -130,8 +130,10 @@ const MessagePage: React.FC = () => {
       .finally(() => setUsersLoading(false));
     dispatch(setActiveChat(chatRoomId));
     setActiveChatRoomId(chatRoomId);
-    // Đảm bảo join vào phòng chat vừa tạo
+    // Đảm bảo join vào phòng chat vừa tạo sau một delay nhỏ để Firestore cập nhật
+    setTimeout(() => {
     joinChat(chatRoomId);
+    }, 200);
   };
 
   if (!currentUserId) {

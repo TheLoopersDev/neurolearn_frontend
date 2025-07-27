@@ -7,6 +7,7 @@ import {
 import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { Course } from '@/types/course';
 import Image from 'next/image';
+import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -20,6 +21,11 @@ const CourseManagementSystem: React.FC = () => {
   // API call
   const { data, isLoading, isError } = useGetCoursesQuery();
   const courses: Course[] = data?.courses || [];
+
+  // API call cho request duyệt khóa học
+  const { data: requestData, isLoading: isRequestLoading, isError: isRequestError, refetch } = useGetPendingRequestsQuery({ type: 'course_approval' });
+  const [handleRequest, { isLoading: isActionLoading }] = useHandleRequestMutation();
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   // Debug log
   console.log('courses from API:', courses);
@@ -221,6 +227,7 @@ const CourseManagementSystem: React.FC = () => {
         {/* Tab content */}
         {activeTab === 'request' ? (
           <>
+            {actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div>}
             {/* Table Container */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               {/* Table Header */}
@@ -229,66 +236,92 @@ const CourseManagementSystem: React.FC = () => {
                 <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Course Title</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Category</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Progress</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide"></div>
+                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Duyệt</div>
+                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Từ chối</div>
               </div>
 
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
-                {currentCourses.map((course, index) => (
-                  <div key={course._id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                    {/* Instructor */}
-                    <div className="col-span-3 flex items-center gap-3">
-                      <Image 
-                        src={course.author?.avatar?.url || 'https://via.placeholder.com/56'} 
-                        alt="avatar"
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" 
-                      />
-                      <div>
-                        <div className="font-semibold text-gray-900">{authorNames[course.author?._id || (course as any).authorId?._id] || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{course.author?.email || 'N/A'}</div>
+                {isRequestLoading ? (
+                  <div className="text-center py-8">Đang tải...</div>
+                ) : isRequestError ? (
+                  <div className="text-center py-8 text-red-500">Lỗi tải request.</div>
+                ) : !requestData || requestData.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">Không có request nào.</div>
+                ) : (
+                  requestData.map((req: any, index: number) => (
+                    <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                      {/* Instructor */}
+                      <div className="col-span-3 flex items-center gap-3">
+                        <Image 
+                          src={req.author?.avatar?.url || 'https://via.placeholder.com/56'}
+                          alt="avatar"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
+                        />
+                        <div>
+                          <div className="font-semibold text-gray-900">{req.author?.name || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{req.author?.email || 'N/A'}</div>
+                        </div>
+                      </div>
+                      {/* Course Title */}
+                      <div className="col-span-3 flex items-center ml-4">
+                        <div className="font-medium text-gray-900 line-clamp-2">{req.name}</div>
+                      </div>
+                      {/* Category */}
+                      <div className="col-span-2 flex items-center ml-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {Array.isArray(req.tags)
+                            ? req.tags.join(', ')
+                            : (typeof req.tags === 'string' ? (req.tags as string).split(',').map((tag: string) => tag.trim()).join(', ') : '')}
+                        </span>
+                      </div>
+                      {/* Request Date */}
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                      {/* Duyệt */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <button
+                          className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
+                          disabled={isActionLoading}
+                          onClick={async () => {
+                            setActionMessage(null);
+                            try {
+                              await handleRequest({ type: 'course_approval', requestId: req._id || req.id, action: 'approve' }).unwrap();
+                              setActionMessage('Duyệt thành công!');
+                              refetch();
+                            } catch (err: any) {
+                              setActionMessage('Duyệt thất bại!');
+                            }
+                          }}
+                        >
+                          {isActionLoading ? 'Đang duyệt...' : 'Duyệt'}
+                        </button>
+                      </div>
+                      {/* Từ chối */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <button
+                          className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
+                          disabled={isActionLoading}
+                          onClick={async () => {
+                            setActionMessage(null);
+                            try {
+                              await handleRequest({ type: 'course_approval', requestId: req._id || req.id, action: 'reject' }).unwrap();
+                              setActionMessage('Từ chối thành công!');
+                              refetch();
+                            } catch (err: any) {
+                              setActionMessage('Từ chối thất bại!');
+                            }
+                          }}
+                        >
+                          {isActionLoading ? 'Đang từ chối...' : 'Từ chối'}
+                        </button>
                       </div>
                     </div>
-                    {/* Course Title */}
-                    <div className="col-span-3 flex items-center ml-4">
-                      <div className="font-medium text-gray-900 line-clamp-2">{course.name}</div>
-                    </div>
-                    {/* Category */}
-                    <div className="col-span-2 flex items-center ml-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {Array.isArray(course.tags)
-                          ? course.tags.join(', ')
-                          : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
-                      </span>
-                    </div>
-                    {/* Request Date */}
-                    <div className="col-span-2 flex items-center">
-                      <span className="text-gray-700 font-medium">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                    {/* Progress (Eye Icon) */}
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button 
-                        onClick={() => handleViewProgress(course._id)}
-                        className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
-                        title="View Progress"
-                      >
-                        <Eye className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
-                      </button>
-                    </div>
-                    {/* Actions (Delete Icon) */}
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button 
-                        onClick={() => handleDeleteCourse(course._id)}
-                        className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
-                        title="Delete Course"
-                      >
-                        <Trash2 className="w-5 h-5 text-orange-400 group-hover:text-orange-500" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </>
