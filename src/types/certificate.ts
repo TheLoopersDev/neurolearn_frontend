@@ -4,6 +4,10 @@ export interface Certificate {
     _id: string;
     name: string;
     email: string;
+    avatar?: {
+      public_id?: string;
+      url?: string | null;
+    };
   };
   course: {
     _id: string;
