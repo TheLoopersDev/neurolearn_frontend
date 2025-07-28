@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Banner from './_components/Banner';
 import FilterSection from './_components/FilterSection';
@@ -27,8 +27,11 @@ const CoursesPage: React.FC = () => {
     return (
         <div className="min-h-screen pb-10 bg-[var(--background)]">
             <Banner />
+
             <div className="relative z-80 -mt-[64px]">
-                <FilterSection />
+                <Suspense fallback={<div>Loading filters...</div>}>
+                    <FilterSection />
+                </Suspense>
             </div>
             <div className="max-w-[1380px] mx-auto px-4 space-y-10 mt-8">
                 <CourseGrid

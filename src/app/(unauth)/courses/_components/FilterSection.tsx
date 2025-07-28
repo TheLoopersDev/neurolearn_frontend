@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaSearch } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -66,7 +66,9 @@ const FilterSection = () => {
                                         transition={{ duration: 0.2 }}
                                         className="absolute inset-0 items-center flex justify-center"
                                     >
+                                        <Suspense fallback={<div>Loading filters...</div>}>
                                         <SearchBarInline onClose={() => setSearching(false)} />
+                                        </Suspense>
                                     </motion.div>
                                 ) : (
                                         <motion.div
