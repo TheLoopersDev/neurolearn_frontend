@@ -14,6 +14,14 @@ interface RootState {
   };
 }
 
+interface PaginatedCourses {
+  page: number;
+  totalCourses: number;
+  totalPages: number;
+  limit: number;
+  courses: Course[];
+}
+
 export const courseApi = createApi({
   reducerPath: 'courseApi',
   baseQuery: fetchBaseQuery({
@@ -110,6 +118,57 @@ export const courseApi = createApi({
       }),
       providesTags: ['Course'],
     }),
+    getCoursesPaginated: builder.query<
+      PaginatedCourses,
+      {
+        page?: number;
+        limit?: number;
+        category?: string;
+        level?: string;
+        subCategory?: string;
+        price?: 'Free' | 'Paid';
+        rating?: number;
+        language?: string;
+        authorId?: string;
+        search?: string;
+      }
+    >({
+      query: params => ({
+        url: '/courses/pagination',
+        method: 'GET',
+        params,
+      }),
+
+      transformResponse: (response: PaginatedCourses & { success: boolean }) => {
+        return {
+          page: response.page,
+          limit: response.limit,
+          totalCourses: response.totalCourses,
+          totalPages: response.totalPages,
+          courses: response.courses,
+        };
+      },
+
+      serializeQueryArgs: ({ queryArgs }) => {
+        const {
+          page = 1,
+          limit = 12,
+          category = '',
+          level = '',
+          price = '',
+          rating = '',
+          subCategory = '',
+          language = '',
+          authorId = '',
+          search = '',
+        } = queryArgs;
+
+        return `courses-${page}-${limit}-${category}-${level}-${price}-${rating}-${subCategory}-${language}-${authorId}-${search}`;
+      },
+
+      keepUnusedDataFor: 60,
+      providesTags: ['Course'],
+    }),
   }),
 });
 
@@ -124,4 +183,5 @@ export const {
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useSearchCoursesQuery,
+  useGetCoursesPaginatedQuery,
 } = courseApi;

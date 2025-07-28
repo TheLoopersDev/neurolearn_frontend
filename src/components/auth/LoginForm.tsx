@@ -9,6 +9,7 @@ import SocialLogin from './SocialLogin';
 import { useModal } from '@/context/ModalContext';
 import { useLoginMutation } from '@/lib/redux/features/auth/authApi';
 import { X } from 'lucide-react';
+import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
 interface LoginFormProps {
   onClose: () => void;
@@ -19,11 +20,13 @@ const LoginForm = ({ onClose }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [login, { isLoading, error }] = useLoginMutation();
+  const { refetch } = useLoadUserQuery({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login({ email, password }).unwrap();
+      await refetch();
       onClose();
     } catch (err) {
       console.error('Login error:', err);

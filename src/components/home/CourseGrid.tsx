@@ -73,7 +73,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
           ))}
           <div
             className="text-blue cursor-pointer hover:underline"
-            onClick={() => router.push('/courses')}
+            onClick={() => router.push('/courses?page=1')}
           >
             View More
           </div>

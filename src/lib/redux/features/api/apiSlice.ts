@@ -8,6 +8,7 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000',
   }),
+  tagTypes: ['User'],
   endpoints: builder => ({
     refreshToken: builder.query({
       query: () => ({
@@ -22,6 +23,7 @@ export const apiSlice = createApi({
         method: 'GET',
         credentials: 'include' as const,
       }),
+      providesTags: ['User'],
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;

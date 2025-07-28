@@ -1,55 +1,93 @@
 'use client';
 
 import React from 'react';
-import { Course } from '@/types/course';
-import CourseCard from '@/components/common/CourseCard';
-import AnimatedSection from '@/components/animations/AnimatedSection';
 import { motion } from 'framer-motion';
+import { useGetCoursesPaginatedQuery } from '@/lib/redux/features/course/courseApi';
+import CourseCard from '@/components/common/CourseCard';
+import CoursePagination from './CoursePagination';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 
 interface CourseGridProps {
-    courses: Course[];
-    title?: string; // Optional nếu bạn muốn hiển thị tiêu đề
+    page: number;
+    limit: number;
+    category?: string;
+    level?: string;
+    price?: 'Free' | 'Paid';
+    rating?: number;
+    search?: string;
+    onPageChange: (page: number) => void;
 }
 
-const CourseGrid: React.FC<CourseGridProps> = ({ courses, title }) => {
-    if (!courses || courses.length === 0) {
-        return (
-            <div className="py-10 bg-gray-50">
-                <div className="container mx-auto px-4">
-                    {title && <h2 className="text-4xl font-medium mb-6">{title}</h2>}
-                    <div className="text-center text-gray-500">No courses available</div>
-                </div>
-            </div>
-        );
-    }
+const CourseGrid: React.FC<CourseGridProps> = ({
+    page,
+    limit,
+    category,
+    level,
+    price,
+    rating,
+    search,
+    onPageChange,
+}) => {
+    const { data, isLoading, isFetching, isError } = useGetCoursesPaginatedQuery({
+        page,
+        limit,
+        category,
+        level,
+        price,
+        rating,
+        search,
+    });
 
+    const courses = Array.isArray(data?.courses) ? data?.courses : [];
+
+    const skeletonArray = new Array(limit).fill(null);
+    if (isError) {
+        return <div className="text-red-500 text-center mt-10">Unable to load courses.</div>;
+    }
     return (
-        <div className="py-10">
-            <div className="container mx-auto px-4">
-                {title && (
-                    <AnimatedSection variants={fadeIn}>
-                        <h2 className="text-4xl md:text-4xl text-[#0D0D0D] mb-6">{title}</h2>
-                    </AnimatedSection>
-                )}
+        <div className="space-y-10">
+            {(isLoading || isFetching) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {skeletonArray.map((_, index) => (
+                        <div
+                            key={`skeleton-${index}`}
+                            className="h-[280px] w-full bg-gray-100 rounded-xl animate-pulse"
+                        />
+                    ))}
+                </div>
+            )}
+
+            {!isLoading && courses.length === 0 && (
+                <div className="text-center text-gray-500 py-10">No courses available.</div>
+            )}
+
+            {!isLoading && courses.length > 0 && (
                 <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                    key={`page-${page}`}
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative"
                     variants={staggerContainer}
                     initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-50px" }}
+                    animate="visible"
+                    viewport={{ once: true, amount: 0.3 }}
                 >
-                    {courses.map((course: Course, index: number) => (
+                    {courses.map((course, index) => (
                         <motion.div
                             key={course._id}
                             variants={fadeIn}
-                            transition={{ delay: index * 0.1 }}
+                            transition={{ delay: index * 0.05 }}
                         >
                             <CourseCard course={course} />
                         </motion.div>
                     ))}
                 </motion.div>
-            </div>
+            )}
+
+            <CoursePagination
+                page={page}
+                totalPages={data?.totalPages ?? 1}
+                isFetching={isFetching}
+                onPageChange={onPageChange}
+            />
         </div>
     );
 };

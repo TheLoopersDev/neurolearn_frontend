@@ -1,101 +1,101 @@
-// components/courses/CoursePagination.tsx
-import React from "react";
+'use client';
 
-interface CoursePaginationProps {
-    currentPage: number;
+import React from 'react';
+
+interface Props {
+    page: number;
     totalPages: number;
+    isFetching?: boolean;
     onPageChange: (page: number) => void;
 }
 
-const CoursePagination: React.FC<CoursePaginationProps> = ({
-    currentPage,
-    totalPages,
-    onPageChange,
-}) => {
-    const getPageNumbers = () => {
-        const pageNumbers = [];
-        const maxPagesToShow = 5; // Number of page buttons to show around the current page
-
-        if (totalPages <= maxPagesToShow) {
-            for (let i = 1; i <= totalPages; i++) {
-                pageNumbers.push(i);
-            }
-        } else {
-            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-            let endPage = Math.min(totalPages, currentPage + Math.floor(maxPagesToShow / 2));
-
-            if (endPage - startPage + 1 < maxPagesToShow) {
-                if (startPage === 1) {
-                    endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-                } else if (endPage === totalPages) {
-                    startPage = Math.max(1, totalPages - maxPagesToShow + 1);
-                }
-            }
-
-            if (startPage > 1) {
-                pageNumbers.push(1);
-                if (startPage > 2) {
-                    pageNumbers.push("...");
-                }
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pageNumbers.push(i);
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    pageNumbers.push("...");
-                }
-                pageNumbers.push(totalPages);
-            }
+const CoursePagination: React.FC<Props> = ({ page, totalPages, isFetching, onPageChange }) => {
+    const handleChangePage = (newPage: number) => {
+        if (newPage !== page) {
+            onPageChange(newPage);
         }
-        return pageNumbers;
     };
 
-    const pageNumbers = getPageNumbers();
+    const renderPageNumbers = () => {
+        const pages = [];
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, page + 2);
+
+        if (start > 1) {
+            pages.push(
+                <button
+                    key={1}
+                    onClick={() => handleChangePage(1)}
+                    className={`w-10 h-10 rounded-full ${page === 1
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--primary-hover)/10]'} shadow transition`}
+                >
+                    1
+                </button>
+            );
+            if (start > 2) {
+                pages.push(<span key="start-ellipsis" className="text-gray-400 px-1">...</span>);
+            }
+        }
+
+        for (let i = start; i <= end; i++) {
+            pages.push(
+                <button
+                    key={i}
+                    onClick={() => handleChangePage(i)}
+                    className={`w-10 h-10 rounded-full ${i === page
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--primary-hover)/10]'} shadow transition`}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        if (end < totalPages) {
+            if (end < totalPages - 1) {
+                pages.push(<span key="end-ellipsis" className="text-gray-400 px-1">...</span>);
+            }
+
+            pages.push(
+                <button
+                    key={totalPages}
+                    onClick={() => handleChangePage(totalPages)}
+                    className={`w-10 h-10 rounded-full ${page === totalPages
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--primary-hover)/10]'} shadow transition`}
+                >
+                    {totalPages}
+                </button>
+            );
+        }
+
+        return pages;
+    };
 
     return (
-        <div className="flex justify-center items-center gap-2 mt-10">
-            {/* Previous Button */}
-            <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-                Trước
-            </button>
+        <div className="flex flex-col items-center mt-10 space-y-3">
+            {isFetching && <div className="text-gray-500">Đang tải trang {page}...</div>}
 
-            {/* Page Numbers */}
-            {pageNumbers.map((pageNumber, index) => (
-                <React.Fragment key={index}>
-                    {typeof pageNumber === "number" ? (
-                        <button
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-colors duration-200
-                                ${pageNumber === currentPage
-                                    ? "bg-black text-white shadow-md" // Active state: black background, white text
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300" // Inactive state
-                                }`}
-                            onClick={() => onPageChange(pageNumber)}
-                        >
-                            {pageNumber}
-                        </button>
-                    ) : (
-                        <span className="w-10 h-10 flex items-center justify-center text-gray-700">
-                            {pageNumber}
-                        </span>
-                    )}
-                </React.Fragment>
-            ))}
+            <div className="flex justify-center items-center gap-2 flex-wrap">
+                <button
+                    onClick={() => handleChangePage(page - 1)}
+                    disabled={page === 1}
+                    className="w-10 h-10 rounded-full bg-[var(--secondary)] shadow hover:bg-[var(--primary-hover)/10] disabled:opacity-50 transition"
+                >
+                    &larr;
+                </button>
 
-            {/* Next Button */}
-            <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-                Tiếp
-            </button>
+                {renderPageNumbers()}
+
+                <button
+                    onClick={() => handleChangePage(page + 1)}
+                    disabled={page === totalPages}
+                    className="w-10 h-10 rounded-full bg-[var(--secondary)] shadow hover:bg-[var(--primary-hover)/10] disabled:opacity-50 transition"
+                >
+                    &rarr;
+                </button>
+            </div>
         </div>
     );
 };
