@@ -5,6 +5,7 @@ import Image from 'next/image';
 import ShareModal from "./ShareModal";
 import { Certificate } from '@/types/certificate';
 import { format } from 'date-fns';
+import { getUserById } from '@/lib/services/user';
 
 interface CertificateDetailProps {
     certificate?: Certificate | null;
@@ -12,6 +13,25 @@ interface CertificateDetailProps {
 
 const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) => {
     const [showModal, setShowModal] = React.useState(false);
+    const [userAvatar, setUserAvatar] = React.useState<string>('/assets/images/avatar-default.png');
+
+    React.useEffect(() => {
+        const fetchUserAvatar = async () => {
+            if (!certificate?.user?._id) return;
+
+            try {
+                const userData = await getUserById(certificate.user._id);
+                const user = userData.user || userData;
+                if (user?.avatar?.url) {
+                    setUserAvatar(user.avatar.url);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user avatar:', error);
+            }
+        };
+
+        fetchUserAvatar();
+    }, [certificate?.user?._id]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -34,7 +54,6 @@ const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) =>
 
     return (
         <div className="relative">
-            {/* Nền trắng phủ full ngang, cao đúng bằng component */}
             <div className="absolute left-1/2 top-0 -translate-x-1/2 w-screen h-full bg-white -z-10"></div>
             <div className="flex flex-row gap-8 items-start w-full mt-25">
                 {/* Left Column */}
@@ -48,11 +67,11 @@ const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) =>
                     <div className="flex items-start gap-4 my-4">
                         <div>
                             <Image
-                                src="/assets/images/avatar-default.png"
+                                src={userAvatar}
                                 alt="avatar"
                                 width={88}
                                 height={88}
-                                className="rounded-full"
+                                className="rounded-full ring-2 ring-white object-cover w-22 h-22"
                             />
                         </div>
                         <div className="flex-1">
@@ -73,13 +92,20 @@ const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) =>
                 </div>
                 {/* Right Column */}
                 <div className="flex-1 flex flex-col items-center -mt-19">
-                    <Image
-                        src="/assets/images/certificate-default.png"
-                        alt="Certificate"
-                        width={648}
-                        height={456}
-                        className="rounded-2xl shadow border"
-                    />
+                    <div className="relative">
+                        <Image
+                            src="/assets/images/certificate.png"
+                            alt="Certificate"
+                            width={648}
+                            height={456}
+                            className="rounded-2xl shadow border"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-black font-semibold text-4xl drop-shadow-lg mt-8">
+                                {certificate.userName}
+                            </span>
+                        </div>
+                    </div>
                     <div className="flex gap-20 mt-6 w-full justify-between">
                         <button onClick={() => setShowModal(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold shadow hover:bg-blue-700 transition w-1/2">
                             <Image src="/assets/icons/share.svg" alt='Share' width={30} height={30} /> Share certificate

@@ -1,9 +1,6 @@
-const USER_BASE_URL = `${process.env.BACKEND_BASE_URL}/user`;
-const USER_API_URL = `${process.env.NEXT_PUBLIC_SERVER_URI}/users`;
-
 export async function getUserByEmail(email: string) {
     try {
-        const res = await fetch(`${USER_BASE_URL}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/user}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -19,7 +16,7 @@ export async function getUserByEmail(email: string) {
 
 export async function createUser({ name, email, image }: { name: string; email: string; image: string }) {
     try {
-        const res = await fetch(`${USER_BASE_URL}/create`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -35,10 +32,16 @@ export async function createUser({ name, email, image }: { name: string; email: 
 
 export async function getUserById(id: string) {
     try {
-        const res = await fetch(`${USER_API_URL}/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/users/${id}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         if (!res.ok) throw new Error('Failed to fetch user by ID');
         const data = await res.json();
-        return data;
+        return data.data?.user || data.user || data;
     } catch (error) {
         throw new Error('Could not fetch user by ID');
     }
