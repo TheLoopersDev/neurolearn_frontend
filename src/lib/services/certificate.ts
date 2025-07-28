@@ -13,14 +13,11 @@ export const certificateService = {
         credentials: 'include',
       }
     );
-
     if (!response.ok) {
       throw new Error('Failed to fetch certificate');
     }
-
     return response.json();
   },
-
   // Get certificates for a specific user and course
   async getCertificateByUser(userId: string, courseId: string): Promise<Certificate> {
     const response = await fetch(
@@ -33,14 +30,11 @@ export const certificateService = {
         credentials: 'include',
       }
     );
-
     if (!response.ok) {
       throw new Error('Failed to fetch certificate');
     }
-
     return response.json();
   },
-
   // Get all certificates for a course
   async getCertificatesByCourse(courseId: string): Promise<Certificate[]> {
     const response = await fetch(
@@ -57,10 +51,8 @@ export const certificateService = {
     if (!response.ok) {
       throw new Error('Failed to fetch certificates');
     }
-
     return response.json();
   },
-
   // Get all certificates
   async getAllCertificates(): Promise<Certificate[]> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/certificate`, {
@@ -74,7 +66,6 @@ export const certificateService = {
     if (!response.ok) {
       throw new Error('Failed to fetch certificates');
     }
-
     return response.json();
   },
 };
