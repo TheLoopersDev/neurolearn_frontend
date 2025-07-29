@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { UserRoundPlus } from 'lucide-react';
 
 
 interface CourseDetailsCardProps {
