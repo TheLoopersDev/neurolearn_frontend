@@ -78,14 +78,12 @@ const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
         className="col-span-3 text-sm font-medium text-gray-900"
         title={learner.lastOpenedContent}
       >
-        {learner?.lastOpenedContent?.length > 20
-          ? `${learner.lastOpenedContent.slice(0, 20)}...`
-          : learner.lastOpenedContent}
+        {formatDate(learner.enrollmentDate)}
       </div>
 
       {/* Enrollment Date */}
       <div className="col-span-2 text-[14px] font-medium text-gray-900 pl-2">
-        {formatDate(learner.enrollmentDate)}
+        {formatDate(learner.dueDate)}
       </div>
 
       {/* Progress */}

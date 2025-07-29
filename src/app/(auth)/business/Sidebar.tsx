@@ -21,7 +21,6 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: dashboard, label: 'Dashboard', path: `/business/dashboard/${user?.businessInfo?.businessId}` },
-    { icon: dashboard, label: 'Explore', path: '/business/explore' },
     {
       icon: courses,
       label: 'My Courses',

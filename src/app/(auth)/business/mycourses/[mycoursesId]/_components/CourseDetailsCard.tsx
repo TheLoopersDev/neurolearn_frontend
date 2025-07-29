@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { UserRoundPlus } from 'lucide-react';
 
 
 interface CourseDetailsCardProps {
@@ -54,9 +53,6 @@ const CourseDetailsCard: React.FC<CourseDetailsCardProps> = ({
               <span className="text-[#3858F8] font-medium text-xl">{progress}%</span>
             </div>
           </div> */}
-          <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-            <UserRoundPlus className="w-6 h-6 text-[#3858F8]" />
-          </button>
         </div>
       </div>
     </div>
