@@ -1,6 +1,6 @@
 'use client';
 
-import InstructorForm from '@/components/become-a-instructor/InstructorForm';
+import InstructorForm from '@/components/become-an-instructor/InstructorForm';
 import React from 'react';
 
 export default function Page() {

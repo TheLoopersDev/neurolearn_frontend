@@ -197,7 +197,6 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
             <Image src="/assets/icons/article.svg" alt="Article" width={20} height={20} />
             {course.totalLessons || 0} lessons
           </div>
-
           <div className="flex items-center gap-3">
             <Image src="/assets/icons/download-file.svg" alt="Download" width={20} height={20} />
             Downloadable resources

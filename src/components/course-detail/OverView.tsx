@@ -6,9 +6,10 @@ interface OverViewProps {
   title?: string
   overview?: string;
   topics?: string[];
+  sectionsCount?: number;
 }
 
-export default function OverView({ title = '', overview = '', topics = [] }: OverViewProps) {
+export default function OverView({ title = '', overview = '', topics = [], sectionsCount = 0 }: OverViewProps) {
   return (
     <div className="max-w-full p-4 bg-white rounded-2xl shadow-md border border-gray-200 mx-auto w-[395px]">
       <div className="flex justify-between items-start mb-3">
@@ -41,20 +42,24 @@ export default function OverView({ title = '', overview = '', topics = [] }: Ove
 
       <div className="text-black font-bold text-xl">The course will have stages:</div>
       <div className="space-y-4 mt-4 ">
-        {[...Array(5)].map((_, index) => (
-          <div
-            key={index}
-            className="flex items-center text-sm text-black gap-3"
-          >
-            <Image
-              src={`/assets/icons/number-${index + 1}.svg`}
-              alt={`Stage ${index + 1}`}
-              width={20}
-              height={20}
-            />
-            <span>Stage {index + 1}</span>
-          </div>
-        ))}
+        {sectionsCount > 0 ? (
+          [...Array(sectionsCount)].map((_, index) => (
+            <div
+              key={index}
+              className="flex items-center text-sm text-black gap-3"
+            >
+              <Image
+                src={`/assets/icons/number-${index + 1}.svg`}
+                alt={`Stage ${index + 1}`}
+                width={20}
+                height={20}
+              />
+              <span>Stage {index + 1}</span>
+            </div>
+          ))
+        ) : (
+          <span className="text-sm text-gray-500">No stages</span>
+        )}
       </div>
     </div>
   );
