@@ -30,6 +30,18 @@ const BusinessRequestsPage = () => {
     setOpen(true);
   };
 
+  const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
+    setActionMessage(null);
+    try {
+      await handleRequest({ type: 'business_verification', requestId, action }).unwrap();
+      setCurrentPage(1);
+      refetch();
+      setActionMessage(`${action} thành công!`);
+    } catch (err: any) {
+      setActionMessage(`${action} thất bại!`);
+    }
+  };
+
   const headers = [
     { label: 'User', className: 'col-span-3' },
     { label: 'Company Name', className: 'col-span-3' },
@@ -67,11 +79,9 @@ const BusinessRequestsPage = () => {
             {actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div>}
             <ReviewTable headers={headers}>
               {isRequestLoading ? (
-                <div className="text-center py-8 col-span-12">Đang tải...</div>
-              ) : isRequestError ? (
-                <div className="text-center py-8 col-span-12 text-red-500">Lỗi tải request.</div>
-              ) : !requestData || requestData.length === 0 ? (
-                <div className="text-center py-8 col-span-12 text-gray-500">Không có request nào.</div>
+                <div className="text-center py-8 col-span-12">Loading...</div>
+              ) : (Array.isArray(requestData) ? false : (requestData && requestData.success === false && requestData.message === 'No pending requests found')) || !requestData || requestData.length === 0 ? (
+                <div className="text-center py-8 col-span-12 text-gray-500">No data</div>
               ) : (
                 currentRequests.map((request: any, index: number) => (
                   <ReviewTableRow key={request._id || request.id} index={index}>
@@ -96,16 +106,7 @@ const BusinessRequestsPage = () => {
                       <button
                         className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
                         disabled={isActionLoading}
-                        onClick={async () => {
-                          setActionMessage(null);
-                          try {
-                            await handleRequest({ type: 'business_verification', requestId: request._id || request.id, action: 'approve' }).unwrap();
-                            setActionMessage('Duyệt thành công!');
-                            refetch();
-                          } catch (err: any) {
-                            setActionMessage('Duyệt thất bại!');
-                          }
-                        }}
+                        onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
                       >
                         {isActionLoading ? 'Đang duyệt...' : 'Duyệt'}
                       </button>
@@ -115,16 +116,7 @@ const BusinessRequestsPage = () => {
                       <button
                         className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
                         disabled={isActionLoading}
-                        onClick={async () => {
-                          setActionMessage(null);
-                          try {
-                            await handleRequest({ type: 'business_verification', requestId: request._id || request.id, action: 'reject' }).unwrap();
-                            setActionMessage('Từ chối thành công!');
-                            refetch();
-                          } catch (err: any) {
-                            setActionMessage('Từ chối thất bại!');
-                          }
-                        }}
+                        onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
                       >
                         {isActionLoading ? 'Đang từ chối...' : 'Từ chối'}
                       </button>

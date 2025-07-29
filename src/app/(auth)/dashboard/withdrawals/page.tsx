@@ -61,45 +61,49 @@ const WithdrawalsPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The User</h1>
 
         <ReviewTable headers={headers}>
-          {currentUsers.map((user, index) => (
-            <ReviewTableRow key={index} index={index}>
-              {/* User */}
-              <div className="col-span-3 flex items-center gap-3">
-                <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" />
-                <div>
-                  <div className="font-semibold text-gray-900">{user.name}</div>
-                  <div className="text-sm text-gray-500">{user.email}</div>
+          {currentUsers.length === 0 ? (
+            <div className="text-center py-8 col-span-12 text-gray-500">No data</div>
+          ) : (
+            currentUsers.map((user, index) => (
+              <ReviewTableRow key={index} index={index}>
+                {/* User */}
+                <div className="col-span-3 flex items-center gap-3">
+                  <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                  <div>
+                    <div className="font-semibold text-gray-900">{user.name}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
+                  </div>
                 </div>
-              </div>
-              {/* Request Date */}
-              <div className="col-span-3 flex items-center">
-                <span className="text-gray-700 font-medium">{user.requestDate}</span>
-              </div>
-              {/* Requested Amount */}
-              <div className="col-span-3 flex items-center">
-                <span className="text-gray-700 font-medium">{user.requestedAmount}</span>
-              </div>
-              {/* Progress (Eye Icon) */}
-              <div className="col-span-2 flex items-center justify-center">
-                <button 
-                  onClick={() => handleView(user)}
-                  className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
-                  title="View Details"
-                >
-                  <Eye className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
-                </button>
-              </div>
-              {/* Actions (Delete Icon) */}
-              <div className="col-span-1 flex items-center justify-center">
-                <button 
-                  className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
-                  title="Delete Request"
-                >
-                  <Trash2 className="w-5 h-5 text-orange-400 group-hover:text-orange-500" />
-                </button>
-              </div>
-            </ReviewTableRow>
-          ))}
+                {/* Request Date */}
+                <div className="col-span-3 flex items-center">
+                  <span className="text-gray-700 font-medium">{user.requestDate}</span>
+                </div>
+                {/* Requested Amount */}
+                <div className="col-span-3 flex items-center">
+                  <span className="text-gray-700 font-medium">{user.requestedAmount}</span>
+                </div>
+                {/* Progress (Eye Icon) */}
+                <div className="col-span-2 flex items-center justify-center">
+                  <button
+                    onClick={() => handleView(user)}
+                    className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
+                    title="View Details"
+                  >
+                    <Eye className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
+                  </button>
+                </div>
+                {/* Actions (Delete Icon) */}
+                <div className="col-span-1 flex items-center justify-center">
+                  <button
+                    className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
+                    title="Delete Request"
+                  >
+                    <Trash2 className="w-5 h-5 text-orange-400 group-hover:text-orange-500" />
+                  </button>
+                </div>
+              </ReviewTableRow>
+            ))
+          )}
         </ReviewTable>
 
         <ReviewPagination

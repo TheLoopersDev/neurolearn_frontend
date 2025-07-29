@@ -8,6 +8,13 @@ import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { Course } from '@/types/course';
 import Image from 'next/image';
 import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import CourseDetail from '@/components/course-detail/CourseDetail';
+import CourseContent from '@/components/course-detail/CourseContent';
+import PublisherCard from '@/components/course-detail/PublisherCard';
+import Rating from '@/components/course-detail/Rating';
+import OverView from '@/components/course-detail/OverView';
+import InstructorInfo from '@/components/common/ui/InstuctorInfo';
+import { useToast } from '@/hooks/use-toast';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -17,6 +24,9 @@ const CourseManagementSystem: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'request' | 'courses'>('request');
   const [authorNames, setAuthorNames] = useState<{ [id: string]: string }>({});
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // API call
   const { data, isLoading, isError } = useGetCoursesQuery();
@@ -25,10 +35,9 @@ const CourseManagementSystem: React.FC = () => {
   // API call cho request duyệt khóa học
   const { data: requestData, isLoading: isRequestLoading, isError: isRequestError, refetch } = useGetPendingRequestsQuery({ type: 'course_approval' });
   const [handleRequest, { isLoading: isActionLoading }] = useHandleRequestMutation();
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
-  // Debug log
-  console.log('courses from API:', courses);
+  // Ensure requestData is always an array
+  const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
 
   // Filter and map data
   const filteredCourses = courses.filter(course => {
@@ -38,9 +47,6 @@ const CourseManagementSystem: React.FC = () => {
     const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  // Debug log
-  console.log('filteredCourses:', filteredCourses);
 
   const requestItemsPerPage = 10;
   const coursesItemsPerPage = 9;
@@ -86,6 +92,25 @@ const CourseManagementSystem: React.FC = () => {
   const handleTabChange = (tab: 'request' | 'courses') => {
     setActiveTab(tab);
     setCurrentPage(1);
+  };
+
+  const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      await handleRequest({ type: 'course_approval', requestId, action }).unwrap();
+      setCurrentPage(1);
+      refetch();
+      toast({
+        title: action === 'approve' ? 'Course Approved' : 'Request Rejected',
+        description: `${action === 'approve' ? 'The course request has been approved.' : 'The course request has been rejected successfully.'}`,
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: action === 'approve' ? 'Approval Failed' : 'Rejection Failed',
+        description: err?.data?.message || err?.error || 'An error occurred while approving/rejecting the request.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Pagination component
@@ -227,7 +252,6 @@ const CourseManagementSystem: React.FC = () => {
         {/* Tab content */}
         {activeTab === 'request' ? (
           <>
-            {actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div>}
             {/* Table Container */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               {/* Table Header */}
@@ -236,87 +260,74 @@ const CourseManagementSystem: React.FC = () => {
                 <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Course Title</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Category</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Duyệt</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Từ chối</div>
+                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
               </div>
 
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
-                  <div className="text-center py-8">Đang tải...</div>
-                ) : isRequestError ? (
-                  <div className="text-center py-8 text-red-500">Lỗi tải request.</div>
-                ) : !requestData || requestData.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">Không có request nào.</div>
+                  <div className="text-center py-8">Loading...</div>
+                ) : (Array.isArray(requestData) ? false : (requestData && requestData.success === false && requestData.message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No data</div>
                 ) : (
-                  requestData.map((req: any, index: number) => (
+                      requestArray.map((req: any, index: number) => (
                     <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                       {/* Instructor */}
                       <div className="col-span-3 flex items-center gap-3">
                         <Image 
-                          src={req.author?.avatar?.url || 'https://via.placeholder.com/56'}
+                              src={req.userId?.avatar?.url || 'https://via.placeholder.com/56'}
                           alt="avatar"
                           width={48}
                           height={48}
                           className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
                         />
                         <div>
-                          <div className="font-semibold text-gray-900">{req.author?.name || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{req.author?.email || 'N/A'}</div>
+                              <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
                         </div>
                       </div>
                       {/* Course Title */}
                       <div className="col-span-3 flex items-center ml-4">
-                        <div className="font-medium text-gray-900 line-clamp-2">{req.name}</div>
+                            <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
                       </div>
                       {/* Category */}
                       <div className="col-span-2 flex items-center ml-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                          {Array.isArray(req.tags)
-                            ? req.tags.join(', ')
-                            : (typeof req.tags === 'string' ? (req.tags as string).split(',').map((tag: string) => tag.trim()).join(', ') : '')}
+                              {req.courseId?.tags ?
+                                (typeof req.courseId.tags === 'string' ? req.courseId.tags : req.courseId.tags.join(', ')) :
+                                'N/A'}
                         </span>
                       </div>
                       {/* Request Date */}
                       <div className="col-span-2 flex items-center">
                         <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
                       </div>
-                      {/* Duyệt */}
-                      <div className="col-span-1 flex items-center justify-center">
+                          {/* Action */}
+                          <div className="col-span-1 flex items-center justify-center gap-2">
                         <button
-                          className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
-                          disabled={isActionLoading}
-                          onClick={async () => {
-                            setActionMessage(null);
+                              className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                              onClick={() => {
+                                setSelectedRequest(req);
+                                setIsModalOpen(true);
+                          }}
+                        >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                        <button
+                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                              onClick={async () => {
                             try {
-                              await handleRequest({ type: 'course_approval', requestId: req._id || req.id, action: 'approve' }).unwrap();
-                              setActionMessage('Duyệt thành công!');
-                              refetch();
+                              await handleApproveOrReject(req._id || req.id, 'reject');
                             } catch (err: any) {
-                              setActionMessage('Duyệt thất bại!');
+                              toast({
+                                title: 'Rejection Failed',
+                                description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                                variant: 'destructive',
+                              });
                             }
                           }}
                         >
-                          {isActionLoading ? 'Đang duyệt...' : 'Duyệt'}
-                        </button>
-                      </div>
-                      {/* Từ chối */}
-                      <div className="col-span-1 flex items-center justify-center">
-                        <button
-                          className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
-                          disabled={isActionLoading}
-                          onClick={async () => {
-                            setActionMessage(null);
-                            try {
-                              await handleRequest({ type: 'course_approval', requestId: req._id || req.id, action: 'reject' }).unwrap();
-                              setActionMessage('Từ chối thành công!');
-                              refetch();
-                            } catch (err: any) {
-                              setActionMessage('Từ chối thất bại!');
-                            }
-                          }}
-                        >
-                          {isActionLoading ? 'Đang từ chối...' : 'Từ chối'}
+                              <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -413,6 +424,126 @@ const CourseManagementSystem: React.FC = () => {
         {/* Pagination */}
         <PaginationComponent />
       </div>
+
+      {/* Preview Modal */}
+      {isModalOpen && selectedRequest && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-40 p-4">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-2xl font-bold text-gray-900">Course Preview</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Course Preview Content using course-detail components */}
+            <div className="p-6">
+              <div className="flex flex-col lg:flex-row gap-20">
+                {/* LEFT COLUMN */}
+                <div className="w-full lg:w-[70%] space-y-10">
+                  {/* Course Thumbnail */}
+                  <div className="w-full">
+                    <Image
+                      src={selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg'}
+                      alt={selectedRequest.courseId?.name || 'Course thumbnail'}
+                      width={1200}
+                      height={480}
+                      className="w-full h-64 object-cover rounded-4xl"
+                    />
+                  </div>
+
+                  {/* Instructor Info */}
+                  <InstructorInfo
+                    courseName={selectedRequest.courseId?.name}
+                    instructor={selectedRequest.userId}
+                  />
+
+                  {/* Description Section */}
+                  <div>
+                    <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
+                    <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
+                      <p>{selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
+                      <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
+                        View all &gt;
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Course Detail */}
+                  <CourseDetail course={selectedRequest.courseId} />
+
+                  {/* Course Content */}
+                  <CourseContent sections={selectedRequest.courseId?.sections || []} />
+
+                </div>
+
+                {/* RIGHT SIDEBAR */}
+                <div className="w-full lg:w-[30%] space-y-15">
+                  <PublisherCard
+                    author={selectedRequest.userId}
+                    updatedAt={selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined}
+                  />
+                  <Rating rating={selectedRequest.courseId?.rating || 0} />
+                  <OverView
+                    title={selectedRequest.courseId?.name}
+                    overview={selectedRequest.courseId?.description}
+                    topics={selectedRequest.courseId?.tags ? (typeof selectedRequest.courseId.tags === 'string' ? selectedRequest.courseId.tags.split(',').map((tag: string) => tag.trim()) : selectedRequest.courseId.tags) : []}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 pt-6 border-t mt-10">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'reject');
+                    } catch (err: any) {
+                      toast({
+                        title: 'Rejection Failed',
+                        description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  disabled={isActionLoading}
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isActionLoading ? 'Rejecting...' : 'Reject'}
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'approve');
+                    } catch (err: any) {
+                      toast({
+                        title: 'Approval Failed',
+                        description: err?.data?.message || err?.error || 'An error occurred while approving the course.',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  disabled={isActionLoading}
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                >
+                  {isActionLoading ? 'Approving...' : 'Approve'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
