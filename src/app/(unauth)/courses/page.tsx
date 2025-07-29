@@ -25,7 +25,7 @@ const CoursesPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen pb-10 bg-[var(--background)]">
+        <div className="min-h-screen pb-10">
             <Banner />
 
             <div className="relative z-80 -mt-[64px]">
