@@ -72,7 +72,7 @@ function CoursePage() {
         );
         markLessonCompleted(currentLessonId);
       } catch (error) {
-        console.error('❌ Failed to update progress:', error);
+        console.error('Failed to update progress:', error);
       }
     }
   };

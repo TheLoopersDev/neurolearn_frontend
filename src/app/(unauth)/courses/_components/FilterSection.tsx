@@ -67,69 +67,69 @@ const FilterSection = () => {
                                         className="absolute inset-0 items-center flex justify-center"
                                     >
                                         <Suspense fallback={<div>Loading filters...</div>}>
-                                        <SearchBarInline onClose={() => setSearching(false)} />
+                                            <SearchBarInline onClose={() => setSearching(false)} />
                                         </Suspense>
                                     </motion.div>
                                 ) : (
-                                        <motion.div
-                                            key="filters"
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="absolute inset-0 flex gap-[32px] flex-wrap md:flex-nowrap"
-                                        >
-                                            {/* Category */}
-                                            <div className="flex flex-col gap-2 min-w-[200px] flex-1">
-                                                <label className="text-base font-medium text-black">Type of Category</label>
-                                                <FilterDropdown
-                                                    options={categoryOptions}
-                                                    value={category}
-                                                    onSelect={(val) => {
-                                                        setCategory(val);
-                                                        updateURL('category', val);
-                                                    }}
-                                                />
-                                            </div>
+                                    <motion.div
+                                        key="filters"
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute inset-0 flex gap-[32px] flex-wrap md:flex-nowrap"
+                                    >
+                                        {/* Category */}
+                                        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+                                            <label className="text-base font-medium text-black">Type of Category</label>
+                                            <FilterDropdown
+                                                options={categoryOptions}
+                                                value={category}
+                                                onSelect={(val) => {
+                                                    setCategory(val);
+                                                    updateURL('category', val);
+                                                }}
+                                            />
+                                        </div>
 
-                                            {/* Price */}
-                                            <div className="flex flex-col gap-2 min-w-[160px] flex-1">
-                                                <label className="text-base font-medium text-black">Price</label>
-                                                <FilterDropdown
-                                                    options={['All Prices', 'Free', 'Paid']}
-                                                    value={price}
-                                                    onSelect={(val) => {
-                                                        setPrice(val);
-                                                        updateURL('price', val);
-                                                    }}
-                                                />
-                                            </div>
+                                        {/* Price */}
+                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <label className="text-base font-medium text-black">Price</label>
+                                            <FilterDropdown
+                                                options={['All Prices', 'Free', 'Paid']}
+                                                value={price}
+                                                onSelect={(val) => {
+                                                    setPrice(val);
+                                                    updateURL('price', val);
+                                                }}
+                                            />
+                                        </div>
 
-                                            {/* Level */}
-                                            <div className="flex flex-col gap-2 min-w-[160px] flex-1">
-                                                <label className="text-base font-medium text-black">Level</label>
-                                                <FilterDropdown
-                                                    options={['All Levels', 'Beginner', 'Intermediate', 'Advanced']}
-                                                    value={level}
-                                                    onSelect={(val) => {
-                                                        setLevel(val);
-                                                        updateURL('level', val);
-                                                    }}
-                                                />
-                                            </div>
+                                        {/* Level */}
+                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <label className="text-base font-medium text-black">Level</label>
+                                            <FilterDropdown
+                                                options={['All Levels', 'Beginner', 'Intermediate', 'Advanced']}
+                                                value={level}
+                                                onSelect={(val) => {
+                                                    setLevel(val);
+                                                    updateURL('level', val);
+                                                }}
+                                            />
+                                        </div>
 
-                                            {/* Rating */}
-                                            <div className="flex flex-col gap-2 min-w-[160px] flex-1">
-                                                <label className="text-base font-medium text-black">Rating</label>
-                                                <FilterDropdown
-                                                    options={['All Ratings', '4★ & up', '3★ & up', '2★ & up']}
-                                                    value={rating}
-                                                    onSelect={(val) => {
-                                                        setRating(val);
-                                                        updateURL('rating', val);
-                                                    }}
-                                                />
-                                            </div>
+                                        {/* Rating */}
+                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <label className="text-base font-medium text-black">Rating</label>
+                                            <FilterDropdown
+                                                options={['All Ratings', '4★ & up', '3★ & up', '2★ & up']}
+                                                value={rating}
+                                                onSelect={(val) => {
+                                                    setRating(val);
+                                                    updateURL('rating', val);
+                                                }}
+                                            />
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>

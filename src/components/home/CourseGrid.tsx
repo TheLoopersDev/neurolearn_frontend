@@ -16,6 +16,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
   const { data, isLoading, error } = useGetTopCoursesQuery();
   const router = useRouter();
 
+
   // Get courses from response
 
   const courses = data?.success && Array.isArray(data.courses)
