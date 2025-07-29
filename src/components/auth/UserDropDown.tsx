@@ -14,7 +14,7 @@ import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.sv
 import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
 import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
 import LogoutIcon from '@/public/assets/home/user-dropdown/logout.svg';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import {
   DropdownMenu,
