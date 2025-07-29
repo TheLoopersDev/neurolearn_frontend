@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import InstructorInfoCard from '@/components/instructor-detail/InstructorInfoCard';
 import InstructorAbout from '@/components/instructor-detail/InstructorAbout';
 import InstructorStats from '@/components/instructor-detail/InstructorStats';
