@@ -32,9 +32,6 @@ export default function Rating({ rating }: { rating: number }) {
         {/* Right: Stars + Rating */}
         <div className="flex flex-col items-end">
           <div className="flex items-center space-x-1">
-            <div className="text-black text-lg mt-1">
-              {rating.toFixed(1)}
-            </div>
             {stars.map((filled, idx) => (
               <Image
                 key={idx}

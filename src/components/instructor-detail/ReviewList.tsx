@@ -16,11 +16,10 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
       </div>
     );
   }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
       {reviews.map(review => (
-        <ReviewCard key={review._id + review.createdAt} review={review} /> // Sử dụng key duy nhất
+        <ReviewCard key={review._id + review.createdAt} review={review} />
       ))}
     </div>
   );

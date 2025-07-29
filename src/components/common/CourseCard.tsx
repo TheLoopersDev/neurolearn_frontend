@@ -34,7 +34,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
               src={
                 imageError
                   ? '/assets/images/placeholder-teacher.jpg'
-                  : course.author?.avatar?.url || '/assets/images/teacher.jpg'
+                  : course.publisher?.avatar?.url || '/assets/images/teacher.jpg'
               }
               alt="Instructor"
               width={32}
@@ -44,8 +44,8 @@ const CourseCard = ({ course }: CourseCardProps) => {
             />
           </div>
           <div className="leading-tight text-sm">
-            <p className="text-gray-900 font-semibold">{course?.author?.name}</p>
-            <p className="text-xs text-gray-700">{course?.author?.profession || 'Instructor'}</p>
+            <p className="text-gray-900 font-semibold">{course?.publisher?.name}</p>
+            <p className="text-xs text-gray-700">{course?.publisher?.profession || 'Instructor'}</p>
           </div>
         </div>
 

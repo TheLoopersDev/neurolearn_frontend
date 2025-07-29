@@ -11,10 +11,9 @@ import OverView from '@/components/course-detail/OverView';
 import PublisherCard from '@/components/course-detail/PublisherCard';
 import Rating from '@/components/course-detail/Rating';
 import Review from '@/components/course-detail/Review';
-import SuggestedCourse from '@/components/common/ui/SuggestedCourse';
 import CourseCard from '@/components/course-detail/CourseCard';
-import CourseGrid from '@/components/home/CourseGrid';
 import { IReview, ISection } from '@/types/course';
+import CourseGrid from '@/components/course-detail/CourseGrid';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -58,40 +57,31 @@ export default function CourseDetailsPage() {
               height={480}
               className="rounded-4xl object-cover"
             />
-
             {/* Instructor Info */}
-            <InstructorInfo courseName={course.name} instructor={course.author} />
+            <InstructorInfo courseName={course.name} instructor={course.publisher} />
             {/* Description Section */}
             <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
             <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
               <p>{course?.description || 'No description provided by instructor.'}</p>
-              <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
+              <a href="#" className="inline-block text-blue-600 font-medium hover:bg-blue-600 hover:text-white rounded p-1">
                 View all &gt;
               </a>
             </div>
-
             {/* Course Detail */}
             <CourseDetail course={course} />
-
             {/* Course Content */}
             <CourseContent sections={course.sections as ISection[]} />
-
             {/* Reviews */}
             <Review reviews={course.reviews as IReview[]} />
-
           </div>
-
           {/* RIGHT SIDEBAR */}
           <div className="w-full lg:w-[30%] space-y-15">
             <CourseCard course={course} />
             <Rating rating={course.rating as number} />
-            <PublisherCard author={course.author} updatedAt={course.updatedAt ? new Date(course.updatedAt) : undefined} />
-            <OverView title={course.name} overview={course.overview} topics={course.tags || []} />
-            <SuggestedCourse />
+            <PublisherCard author={course.publisher} updatedAt={course.updatedAt ? new Date(course.updatedAt) : undefined} />
+            <OverView title={course.name} overview={course.overview} topics={course.tags || []} sectionsCount={course.sections?.length || 0} />
             {/* Learners are viewing */}
-
           </div>
-
         </div>
       </div>
       <CourseGrid title="Learners are viewing" />
