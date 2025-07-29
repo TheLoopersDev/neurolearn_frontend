@@ -34,7 +34,7 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
             alt="Instructor"
             width={50}
             height={50}
-            className="rounded-full object-cover"
+            className="rounded-full ring-2 ring-white object-cover w-15 h-15"
             onError={() => setImageError(true)}
           />
           <div>
@@ -47,7 +47,7 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 text-sm text-black">
             <Image src="/assets/icons/heart.svg" alt="Heart Icon" width={20} height={20} />
-            <span>{instructor?.likes || 300} Likes</span>
+            <span>{instructor?.likes || 0} Likes</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-black">
             <Image src="/assets/icons/upload-file.svg" alt="Share Icon" width={20} height={20} />

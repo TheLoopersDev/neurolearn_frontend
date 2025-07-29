@@ -27,7 +27,7 @@ const CourseManagementSystem: React.FC = () => {
   // Filter and map data
   const filteredCourses = courses.filter(course => {
     const matchesSearch = (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (course.publisher?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const categoryName = typeof course.category === 'string' ? course.category : course.category?.title || '';
     const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -45,7 +45,7 @@ const CourseManagementSystem: React.FC = () => {
 
   useEffect(() => {
     const ids = currentCourses
-      .map(course => course.author?._id || (course as any).authorId?._id)
+      .map(course => course.publisher?._id || (course as any).authorId?._id)
       .filter(Boolean);
     const idsToFetch = ids.filter(id => !(id in authorNames));
     if (idsToFetch.length === 0) return;
@@ -240,15 +240,15 @@ const CourseManagementSystem: React.FC = () => {
                     {/* Instructor */}
                     <div className="col-span-3 flex items-center gap-3">
                       <Image 
-                        src={course.author?.avatar?.url || 'https://via.placeholder.com/56'} 
+                        src={course.publisher?.avatar?.url || 'https://via.placeholder.com/56'} 
                         alt="avatar"
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" 
                       />
                       <div>
-                        <div className="font-semibold text-gray-900">{authorNames[course.author?._id || (course as any).authorId?._id] || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{course.author?.email || 'N/A'}</div>
+                        <div className="font-semibold text-gray-900">{authorNames[course.publisher?._id || (course as any).authorId?._id] || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">{course.publisher?.email || 'N/A'}</div>
                       </div>
                     </div>
                     {/* Course Title */}
@@ -296,7 +296,7 @@ const CourseManagementSystem: React.FC = () => {
           // Grid card view for Courses tab
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentCourses.map((course) => {
-                const authorId = course.author?._id || (course as any).authorId?._id;
+                const authorId = course.publisher?._id || (course as any).authorId?._id;
                 const authorName = authorId ? authorNames[authorId] || '...' : 'N/A';
                 return (
                   <div key={course._id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">

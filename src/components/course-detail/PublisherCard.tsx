@@ -24,12 +24,12 @@ export default function PublisherCard({ author, updatedAt }: PublisherCardProps)
   const {
     name,
     avatar,
-    profession = 'Instructor',
-    description = 'No bio available.',
-    rating = 4.8,
-    reviews = 889,
-    students = 4886,
-    courses = 8,
+    profession,
+    description,
+    rating,
+    reviews,
+    students,
+    courses,
   } = author || {};
 
   return (
@@ -58,7 +58,7 @@ export default function PublisherCard({ author, updatedAt }: PublisherCardProps)
       <div className="space-y-2">
         <div className="flex items-center text-sm text-black gap-3">
           <Image src="/assets/icons/blue-star.svg" alt="Star Icon" width={20} height={20} />
-          {rating} Instructor rating
+          {rating} 
         </div>
         <div className="flex items-center text-sm text-black gap-3">
           <Image src="/assets/icons/blue-completion.svg" alt="Review Icon" width={20} height={20} />
