@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import ArrowDownIcon from '@/public/assets/home/arrow-top-down.svg';
 
 interface Category {
@@ -43,44 +43,50 @@ export default function ExploreDropdown() {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<Category>(categories[0]);
 
-    // Animation variants
-    const dropdownVariants = {
+    // Define the animation variants with proper typing
+    const dropdownVariants: Variants = {
         hidden: { opacity: 0, y: -20, scale: 0.95 },
         visible: {
             opacity: 1,
             y: 0,
             scale: 1,
             transition: {
-                type: "spring",
+                type: "spring" as const, // Mark as const to ensure type safety
                 damping: 20,
                 stiffness: 300,
                 mass: 0.5
             }
         },
-        exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+        exit: {
+            opacity: 0,
+            y: -10,
+            transition: {
+                duration: 0.2
+            }
+        }
     };
 
-    const categoryItemVariants = {
+    const categoryItemVariants: Variants = {
         hidden: { opacity: 0, x: -10 },
         visible: (i: number) => ({
             opacity: 1,
             x: 0,
             transition: {
                 delay: i * 0.05,
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 300
             }
         })
     };
 
-    const subcategoryItemVariants = {
+    const subcategoryItemVariants: Variants = {
         hidden: { opacity: 0, y: 5 },
         visible: (i: number) => ({
             opacity: 1,
             y: 0,
             transition: {
                 delay: 0.2 + i * 0.03,
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 300
             }
         })
