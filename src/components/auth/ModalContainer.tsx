@@ -13,29 +13,10 @@ import AddBankCardModal from '../instructor/revenue/AddBankCardModal';
 import {
   AnimatePresence,
   motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
 } from 'framer-motion';
 
 export default function ModalContainer() {
   const { modalType, hideModal } = useModal();
-
-  // Animate shadow color + glow with velocity
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const velocityX = useSpring(x, { stiffness: 300, damping: 30 });
-  const velocityY = useSpring(y, { stiffness: 300, damping: 30 });
-
-  const scale = useTransform([velocityX, velocityY], ([vx, vy]) => {
-    const v = Math.sqrt((vx as any) * (vx as any) + (vy as any) * (vy as any));
-    return 1 + Math.min(v / 1000, 0.05);
-  });
-
-  const glow = useTransform([velocityX, velocityY], ([vx, vy]) => {
-    const glowStrength = Math.min(Math.abs(vx + (vy as any)) / 100, 0.3);
-    return `0 0 60px rgba(93, 163, 255, ${glowStrength})`;
-  });
 
   const renderModalContent = () => {
     switch (modalType) {
