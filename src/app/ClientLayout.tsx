@@ -6,6 +6,8 @@ import Header from '@/components/layout/Header';
 import ModalContainer from '@/components/auth/ModalContainer';
 import { ModalProvider } from '@/context/ModalContext';
 import '@/lib/fontawesome';
+import { Suspense } from 'react';
+import Loading from '@/components/common/Loading';
 
 export default function ClientLayout({ children }: { readonly children: React.ReactNode }) {
   return (
@@ -30,7 +32,9 @@ export default function ClientLayout({ children }: { readonly children: React.Re
         <div>
           <div className="max-w-7xl mx-auto ">
             {/* Main content area */}
-            {children}
+            <Suspense fallback={<Loading />}>
+              {children}
+            </Suspense>
           </div>
         </div>
         <Footer />

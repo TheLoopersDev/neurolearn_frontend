@@ -19,6 +19,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
+  tagTypes: ['User'],
   endpoints: builder => ({
     refreshToken: builder.query({
       query: () => ({

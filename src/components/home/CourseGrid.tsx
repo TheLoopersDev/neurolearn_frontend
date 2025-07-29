@@ -7,14 +7,15 @@ import { motion } from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 import Loading from '@/components/common/Loading';
 import { useGetTopCoursesQuery } from '@/lib/redux/features/course/courseApi';
-
+import { useRouter } from 'next/navigation';
 interface CourseGridProps {
   title: string;
 }
 
 const CourseGrid = ({ title }: CourseGridProps) => {
   const { data, isLoading, error } = useGetTopCoursesQuery();
-  
+  const router = useRouter();
+
   // Get courses from response
 
   const courses = data?.success && Array.isArray(data.courses)
@@ -54,7 +55,7 @@ const CourseGrid = ({ title }: CourseGridProps) => {
         <AnimatedSection variants={fadeIn}>
           <h2 className="text-4xl md:text-4xl text-[#0D0D0D] mb-6">{title}</h2>
         </AnimatedSection>
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           variants={staggerContainer}
           initial="hidden"
@@ -70,6 +71,12 @@ const CourseGrid = ({ title }: CourseGridProps) => {
               <CourseCard course={course} />
             </motion.div>
           ))}
+          <div
+            className="text-blue cursor-pointer hover:underline"
+            onClick={() => router.push('/courses?page=1')}
+          >
+            View More
+          </div>
         </motion.div>
       </div>
     </div>
