@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useModal } from '@/context/ModalContext';
 import { useSelector } from 'react-redux';
 import { UserDropdown } from '../auth/UserDropDown';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 // Import các icon SVG của bạn
 import SearchIcon from '@/public/assets/home/Search.svg';
@@ -30,16 +30,16 @@ const Header: React.FC = () => {
   const dispatch = useAppDispatch();
 
   // Animation variants
-  const headerVariants = {
+  const headerVariants : Variants = {
     hidden: { y: -100, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 20,
         stiffness: 100,
-        when: "beforeChildren"
+        when: "beforeChildren" 
       }
     },
     scrolled: {
@@ -53,11 +53,11 @@ const Header: React.FC = () => {
     }
   };
 
-  const buttonVariants = {
+  const buttonVariants: Variants = {
     hover: {
       scale: 1.05,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 400,
         damping: 10
       }
@@ -67,13 +67,13 @@ const Header: React.FC = () => {
     }
   };
 
-  const searchVariants = {
+  const searchVariants: Variants = {
     hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
       x: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 20,
         stiffness: 200
       }
