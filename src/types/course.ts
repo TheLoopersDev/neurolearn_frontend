@@ -217,6 +217,7 @@ export interface Course {
   createdAt: string;
   updatedAt: string;
   publisher: {
+    _id: string;
     name: string;
     avatar: {
       public_id: string;
