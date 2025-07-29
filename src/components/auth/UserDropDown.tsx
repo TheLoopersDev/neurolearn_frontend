@@ -177,18 +177,18 @@ export function UserDropdown() {
     exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: -10 },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
       transition: {
         delay: i * 0.05,
-        type: "spring",
+        type: "spring" as const, 
         stiffness: 300
       }
     })
-  };
+  }
 
   return (
     <DropdownMenu>
