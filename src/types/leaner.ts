@@ -6,6 +6,7 @@ export interface ILearner extends User {
   enrollmentDate: string;
   progress: number; // Phần trăm từ 0 đến 100
   quizResults: IQuizResult[]; // Thêm mảng kết quả quiz
+  dueDate: string; // Ngày hết hạn khóa học
 }
 
 export interface IQuizResult {

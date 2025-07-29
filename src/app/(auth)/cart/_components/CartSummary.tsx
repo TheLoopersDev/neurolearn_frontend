@@ -86,24 +86,6 @@ export function CartSummary({ courses }: CartSummaryProps) {
         </div>
       </div>
 
-      {/* Promo Code (hiện đang chưa áp dụng mã giảm giá thật) */}
-      <div className="mt-6 space-y-2">
-        <label htmlFor="promo-code" className="font-semibold text-gray-900">
-          Discount Code
-        </label>
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            id="promo-code"
-            placeholder="Enter your code"
-            className="w-full rounded-md text-gray-700 border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
-            disabled
-          />
-          <Button variant="outline" className="flex-shrink-0" disabled>
-            Apply
-          </Button>
-        </div>
-      </div>
 
       {/* Total */}
       <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
