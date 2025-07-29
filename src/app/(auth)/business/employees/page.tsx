@@ -1,66 +1,108 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import EmployeeTable from './_components/EmployeeTable';
-import { User } from './_components/EmployeeTableRow';
 import AddEmployeeModal from './_components/AddEmployeeModal';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { useToast } from '@/hooks/use-toast';
 
-const initialEmployees: User[] = [
-  {
-    _id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'admin',
-    avatar: { url: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-    phoneNumber: '555-0101',
-    createdAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    _id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    role: 'manager',
-    avatar: { url: 'https://i.pravatar.cc/150?u=a042581f4e29026705d' },
-    phoneNumber: '555-0102',
-    createdAt: '2024-02-20T14:30:00Z',
-  },
-  {
-    _id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@example.com',
-    role: 'employee',
-    avatar: { url: 'https://i.pravatar.cc/150?u=a042581f4e29026706d' },
-    phoneNumber: '555-0103',
-    createdAt: '2024-03-10T09:00:00Z',
-  },
-  {
-    _id: '4',
-    name: 'Emily Davis',
-    email: 'emily.davis@example.com',
-    role: 'employee',
-    avatar: { url: 'https://i.pravatar.cc/150?u=a042581f4e29026707d' },
-    phoneNumber: 'Not updated',
-    createdAt: '2024-05-01T11:45:00Z',
-  },
-];
 
 const EmployeePage = () => {
-  const [employees, setEmployees] = useState<User[]>(initialEmployees);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useSelector((state: any) => state.auth);
+  const businessId = user?.businessInfo?.businessId;
+  const { toast } = useToast();
 
-  const handleDeleteEmployee = (id: string) => {
-    setEmployees(currentEmployees => currentEmployees.filter(emp => emp._id !== id));
+  const fetchEmployees = async () => {
+    if (!businessId) return;
+
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${businessId}/visible-employees`,
+        { withCredentials: true }
+      );
+
+      const raw = res.data.employees;
+
+      const formatted: any[] = raw
+        .filter((emp: any) => emp.user)
+        .map((emp: any) => ({
+          _id: emp.user._id,
+          name: emp.user.name,
+          email: emp.user.email,
+          role: emp.role,
+          phoneNumber: emp.user.phoneNumber || 'Not updated',
+          avatar: emp.user.avatar,
+          createdAt: emp.createdAt,
+        }));
+      setEmployees(formatted);
+    } catch (error) {
+      console.error('Failed to fetch employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchEmployees();
+  }, [businessId]);
+
+  const handleDeleteEmployee = async (id: string) => {
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      toast({
+        title: 'Success',
+        description: 'Employee has been removed',
+        variant: 'success',
+      });
+
+      setEmployees(currentEmployees => currentEmployees.filter(emp => emp._id !== id));
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to delete employee',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleUpgradeEmployee = (id: string) => {
-    setEmployees(currentEmployees =>
-      currentEmployees.map(emp => (emp._id === id ? { ...emp, role: 'manager' } : emp))
-    );
+  const handleUpgradeEmployee = async (id: string) => {
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/${id}/up-role`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      toast({
+        title: 'Success',
+        description: 'Employee upgraded to manager',
+        variant: 'success',
+      });
+
+      setEmployees(currentEmployees =>
+        currentEmployees.map(emp => (emp._id === id ? { ...emp, role: 'manager' } : emp))
+      );
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to upgrade employee',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
     <>
-      <AddEmployeeModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+      <AddEmployeeModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onRefresh={fetchEmployees} />
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="sm:flex sm:items-center">
@@ -81,11 +123,15 @@ const EmployeePage = () => {
           </div>
         </div>
 
-        <EmployeeTable
-          employees={employees}
-          onUpgrade={handleUpgradeEmployee}
-          onDelete={handleDeleteEmployee}
-        />
+        {loading ? (
+          <p className="text-sm text-gray-500 mt-4">Loading employees...</p>
+        ) : (
+            <EmployeeTable
+              employees={employees}
+              onUpgrade={handleUpgradeEmployee}
+              onDelete={handleDeleteEmployee}
+            />
+        )}
       </div>
     </>
   );

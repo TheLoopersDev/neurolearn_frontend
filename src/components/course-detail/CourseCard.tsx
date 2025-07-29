@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { redirect } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import { Fragment, useState } from 'react';
+import { useModal } from '@/context/ModalContext';
 
 interface CourseCardProps {
   course: {
@@ -25,16 +26,16 @@ interface CourseCardProps {
 export default function CourseCard({ course }: { course: CourseCardProps['course'] }) {
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
-  console.log(user?.businessInfo?.role);
+  const { showModal } = useModal();
   const [isOpen, setIsOpen] = useState(false);
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
 
-  const isPurchased = user.purchasedCourses
-    .map((id: any) => id.toString())
-    .includes(course._id.toString());
+  const isPurchased = user?.purchasedCourses?.some(
+    (id: any) => id?.toString() === course._id.toString()
+  );
 
   const checkCourseExistInCart = async () => {
     try {
@@ -52,12 +53,12 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
   const addToCart = async () => {
     if (!user) {
       toast({
-        variant: 'success',
+        variant: 'destructive',
         title: 'You are not login now!',
         description: 'Please login to continue.',
         duration: 3000,
       });
-      redirect('/');
+      showModal('login');
       return;
     }
 
@@ -244,12 +245,12 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
             />
           </div>
 
-            <button
-              onClick={() => setIsOpen(true)}
-              className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition"
-            >
-              Buy now
-            </button>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-[calc(100%-32px)] h-14 mx-4 my-4 text-center text-xl text-[#3858F8] font-bold rounded-lg bg-[#ECECEC] hover:bg-gray-200 transition"
+          >
+            Buy now
+          </button>
         </>
       )}
 

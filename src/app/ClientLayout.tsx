@@ -8,8 +8,12 @@ import { ModalProvider } from '@/context/ModalContext';
 import '@/lib/fontawesome';
 import { Suspense } from 'react';
 import Loading from '@/components/common/Loading';
+import { AnimatePresence, motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({ children }: { readonly children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
     <ModalProvider>
       <div className="relative  bg-gray-50 min-h-screen overflow-hidden z-10">
@@ -32,9 +36,22 @@ export default function ClientLayout({ children }: { readonly children: React.Re
         <div>
           <div className="max-w-7xl mx-auto ">
             {/* Main content area */}
-            <Suspense fallback={<Loading />}>
-              {children}
-            </Suspense>
+            <AnimatePresence mode="sync" initial={false}>
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{
+                  duration: 0.4,
+                  ease: [0.4, 0, 0.2, 1],
+                }}
+              >
+                <Suspense fallback={<Loading />}>
+                  {children}
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
         <Footer />

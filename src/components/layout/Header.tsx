@@ -9,7 +9,7 @@ import { UserDropdown } from '../auth/UserDropDown';
 // Import các icon SVG của bạn
 import SearchIcon from '@/public/assets/home/Search.svg';
 import BuyIcon from '@/public/assets/home/Buy.svg';
-import NotificationIcon from '@/public/assets/home/notification-black.svg'
+import NotificationIcon from '@/public/assets/home/notification-black.svg';
 
 import LogoSVG from '@/public/assets/icons/logo.svg';
 import Image from 'next/image';
@@ -18,7 +18,6 @@ import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
 import { userLoggerOut } from '@/lib/redux/features/auth/authSlice';
 import { useAppDispatch } from '@/lib/redux/hooks';
-
 
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -107,21 +106,12 @@ const Header: React.FC = () => {
         "
       >
         <div className="container mx-auto px-4 flex justify-between items-center relative">
-
           {/* Left group: Logo + Explore */}
           <div className="flex items-center gap-[24px]">
             {/* Group 850 – Logo */}
             <Link href="/" className="flex gap-2">
-              <Image
-                src={LogoSVG}
-                alt="Academix Logo"
-                width={45}
-                height={45}
-                priority
-              />
-              <span className="text-3xl font-bold text-[#0D0D0D]">
-                Academix
-              </span>
+              <Image src={LogoSVG} alt="Academix Logo" width={45} height={45} priority />
+              <span className="text-3xl font-bold text-[#0D0D0D]">Academix</span>
             </Link>
 
             {/* Group 228 – Explore button */}
@@ -140,12 +130,7 @@ const Header: React.FC = () => {
                 flex items-center justify-center
               "
               >
-                <Image
-                  src={SearchIcon}
-                  alt="Search"
-                  width={20}
-                  height={20}
-                />
+                <Image src={SearchIcon} alt="Search" width={20} height={20} />
               </button>
               {isSearchActive && (
                 <div className="absolute left-full ml-2 top-0">
@@ -165,26 +150,19 @@ const Header: React.FC = () => {
             </div>
 
             {/* Frame 244 – Buy icon */}
-            <button
-              // onClick={() => showModal('buy')}
+            <Link
+              href="/cart"
               className="
-              bg-white rounded-full
-              p-[16px]
-              flex items-center justify-center
-            "
+                bg-white rounded-full
+                p-[16px]
+                flex items-center justify-center
+              "
             >
-              <Image
-                src={BuyIcon}
-                alt="Buy"
-                width={20}
-                height={20}
-              />
-            </button>
+              <Image src={BuyIcon} alt="Buy" width={20} height={20} />
+            </Link>
 
             {/* Not logged in */}
             {userSection}
-
-
           </div>
         </div>
       </header>
