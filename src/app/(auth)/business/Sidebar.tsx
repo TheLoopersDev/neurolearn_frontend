@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
 
 // Icons
 import dashboard from '@/public/assets/icons/dashboard.svg';
@@ -13,23 +14,24 @@ import setting from '@/public/assets/icons/setting.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
 
-const menuItems = [
-  { icon: dashboard, label: 'Dashboard', path: '/business/dashboard' },
-  { icon: dashboard, label: 'Explore', path: '/business/explore' },
-  {
-    icon: courses,
-    label: 'My Courses',
-    path: '/business/mycourses',
-  },
-  // 👇 Mục Employee mới được thêm vào đây
-  { icon: dashboard, label: 'Employee', path: '/business/employee' },
-  { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
-  { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
-  { icon: setting, label: 'Setting', path: '/business/setting' },
-];
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const { user } = useSelector((state: any) => state.auth);
+
+  const menuItems = [
+    { icon: dashboard, label: 'Dashboard', path: `/business/dashboard/${user?.businessInfo?.businessId}` },
+    {
+      icon: courses,
+      label: 'My Courses',
+      path: '/business/mycourses',
+    },
+    // 👇 Mục Employee mới được thêm vào đây
+    { icon: dashboard, label: 'Employee', path: '/business/employees' },
+    { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
+    { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
+    { icon: setting, label: 'Setting', path: '/business/setting' },
+  ];
 
   return (
     <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">

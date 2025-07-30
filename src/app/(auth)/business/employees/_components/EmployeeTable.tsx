@@ -1,9 +1,9 @@
 import React from 'react';
 import EmployeeTableHeader from './EmployeeTableHeader';
-import EmployeeTableRow, { User } from './EmployeeTableRow';
+import EmployeeTableRow from './EmployeeTableRow';
 
 interface EmployeeTableProps {
-  employees: User[];
+  employees: any[];
   onUpgrade: (id: string) => void;
   onDelete: (id: string) => void;
 }

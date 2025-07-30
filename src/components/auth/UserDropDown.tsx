@@ -8,12 +8,14 @@ import { useSession, signOut } from 'next-auth/react';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { PiBagBold } from 'react-icons/pi';
+import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave } from 'react-icons/fa';
 import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
 import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
 import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
 import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
 import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
 import LogoutIcon from '@/public/assets/home/user-dropdown/logout.svg';
+import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import {
   DropdownMenu,
@@ -30,85 +32,71 @@ import { signOutAction } from '@/lib/actions/auth';
 import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
-// Define a more specific type for the user object if possible
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'instructor' | 'user' | string; // Be more specific if roles are fixed
+  role: 'instructor' | 'user' | string;
   avatar?: {
     url?: string;
   };
-  // other user properties
+  businessInfo?: {
+    businessId?: string;
+    role?: string;
+  };
 }
 
 interface LoadUserResponse {
   user: User;
-  // other properties in the response
 }
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
-
-  // Provide a type for the data returned by useLoadUserQuery
   const { data, isLoading } = useLoadUserQuery(undefined) as {
     data?: LoadUserResponse;
     isLoading: boolean;
   };
-
-  // Type the refetch function if possible, or leave as any if its signature is complex/unknown
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
 
   const logoutHandler = async () => {
     if (session) {
       await signOut({ redirect: false });
     }
-    setLogoutTriggered(true); // Trigger API call
-    // await signOutAction(); // This might be redundant if next-auth signOut and API logout handle session clearing
-    // await logoutApi(); // This will be called due to logoutTriggered changing state if skip condition is met
-    // router.push('/'); // Let useEffect handle redirection based on session and logoutTriggered
+    setLogoutTriggered(true);
   };
 
   useEffect(() => {
-    // This effect handles the API call for logout when logoutTriggered becomes true
     if (logoutTriggered) {
       logoutApi()
         .then(() => {
           signOutAction().then(() => {
-            // Call signOutAction after API logout
             if (!session) {
-              // Check session *after* logout actions
               router.push('/');
             }
           });
         })
         .catch(error => {
           console.error('Logout API call failed:', error);
-          // Optionally, still try to redirect or show an error
           router.push('/');
         });
     }
-  }, [logoutTriggered, logoutApi, router, session]); // Added session here to re-evaluate if it changes during the process
+  }, [logoutTriggered, logoutApi, router, session]);
 
   useEffect(() => {
-    // This effect handles redirection if the session is lost for other reasons while logout was triggered
     if (!session && logoutTriggered) {
       router.push('/');
     }
-    // --- START OF FIX ---
-    // Added 'router' to the dependency array
   }, [session, logoutTriggered, router]);
-  // --- END OF FIX ---
 
   if (isLoading || !data?.user) {
-    // Added a check for data.user to prevent errors if data is null/undefined
-    // You might want to return a loading skeleton or null
     return null;
   }
 
   const { user } = data;
+  const isBusinessAdminOrManager =
+    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
 
   const commonNavbarItems = [
     {
@@ -123,69 +111,76 @@ export function UserDropdown() {
     },
   ];
 
+  const businessDashboardItem = isBusinessAdminOrManager
+    ? [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
+      },
+    ]
+    : [];
+
+  const adminItems = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
+    },
+    {
+      title: 'Course Requests',
+      href: '/dashboard/review-courses',
+      icon: <FaClipboardList className="text-[20px]" />,
+    },
+    {
+      title: 'Instructor Requests',
+      href: '/dashboard/review-instructor',
+      icon: <FaUsers className="text-[20px]" />,
+    },
+    {
+      title: 'Business Requests',
+      href: '/dashboard/business-requests',
+      icon: <FaBuilding className="text-[20px]" />,
+    },
+    {
+      title: 'Withdraw Requests',
+      href: '/dashboard/withdrawals',
+      icon: <FaMoneyBillWave className="text-[20px]" />,
+    },
+  ];
 
   const dropdownList =
-    user.role === 'instructor'
+    user.role === 'admin'
+      ? [
+        ...adminItems,
+      ]
+      : user.role === 'instructor'
       ? [
         {
           title: 'Dashboard User',
           href: '/dashboard',
-          icon: (
-            <Image
-              src={UserIcon}
-              alt="Dashboard User"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
         },
         {
           title: 'Switch to Instructor',
           href: '/switch/instructor',
-          icon: (
-            <Image
-              src={InstructorIcon}
-              alt="Instructor"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
         },
         {
           title: 'Switch to Business',
           href: '/switch/business',
-          icon: (
-            <Image
-              src={BusinessIcon}
-              alt="Business"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
         },
+        ...businessDashboardItem,
         {
           title: 'Terms of Service',
           href: '/terms',
-          icon: (
-            <Image
-              src={TermsIcon}
-              alt="Terms"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
         },
         {
           title: 'Help & Support',
           href: '/help',
-          icon: (
-            <Image
-              src={HelpIcon}
-              alt="Help"
-              width={20}
-              height={20}
-            />
-          ),
+          icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
         },
         ...commonNavbarItems,
       ]
@@ -193,19 +188,49 @@ export function UserDropdown() {
         {
           title: 'Watch Course',
           href: '/dashboard/watch-course',
-          icon: (
-            <MdOutlineDashboardCustomize className="text-[20px]" />
-          ),
+          icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
         },
+        ...businessDashboardItem,
         ...commonNavbarItems,
       ];
 
+  const dropdownVariants: Variants = {
+    hidden: { opacity: 0, y: -20, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const, 
+        damping: 20,
+        stiffness: 300,
+        mass: 0.5
+      }
+    },
+    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.05,
+        type: "spring" as const, 
+        stiffness: 300
+      }
+    })
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-2 sm:gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow">
-          {/* Avatar */}
+        <motion.div
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 sm:gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow"
+        >
           <div className="w-10 h-10 rounded-full bg-[#B8DFF2] overflow-hidden flex items-center justify-center">
             <Image
               className="w-full h-full object-cover rounded-full"
@@ -217,7 +242,6 @@ export function UserDropdown() {
             />
           </div>
 
-          {/* Name + Arrow */}
           <div className="flex items-center gap-1 sm:gap-2 w-auto">
             <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
               {user.name}
@@ -231,46 +255,64 @@ export function UserDropdown() {
               <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
             </svg>
           </div>
-        </div>
+        </motion.div>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100">
-        {/* Label */}
-        <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500"></DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-
-        {/* Items */}
-        <DropdownMenuGroup>
-          {dropdownList.map(item => (
-            <Link href={item.href} key={item.title} passHref legacyBehavior>
-              <DropdownMenuItem asChild>
-                <a className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium">
-                  {item.icon}
-                  {item.title}
-                </a>
-              </DropdownMenuItem>
-            </Link>
-          ))}
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-
-        {/* Logout */}
-        <DropdownMenuItem asChild>
-          <button
-            onClick={logoutHandler}
-            className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
+      <AnimatePresence>
+        <DropdownMenuContent
+          asChild
+          forceMount
+          className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100"
+        >
+          <motion.div
+            variants={dropdownVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
-            <Image
-              src={LogoutIcon}
-              alt="Dashboard User"
-              width={20}
-              height={20}
-            />
-            Sign Out
-          </button>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+            <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500" />
+            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+
+            <DropdownMenuGroup>
+              {dropdownList.map((item, index) => (
+                <DropdownMenuItem asChild key={item.title}>
+                  <Link href={item.href}>
+                    <motion.div
+                      className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium"
+                      variants={itemVariants}
+                      custom={index}
+                      initial="hidden"
+                      animate="visible"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {item.icon}
+                      {item.title}
+                    </motion.div>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+            <DropdownMenuItem asChild>
+              <motion.button
+                onClick={logoutHandler}
+                className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
+                variants={itemVariants}
+                custom={dropdownList.length}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
+                Sign Out
+              </motion.button>
+            </DropdownMenuItem>
+          </motion.div>
+        </DropdownMenuContent>
+      </AnimatePresence>
     </DropdownMenu>
   );
 }

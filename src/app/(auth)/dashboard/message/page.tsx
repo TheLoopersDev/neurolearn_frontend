@@ -29,6 +29,7 @@ const MessagePage: React.FC = () => {
   // State loading cho box chat
   const [isChatLoading, setIsChatLoading] = useState(false);
   const prevChatRoomId = useRef<string | null>(null);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   // Fetch all users whenever chatRooms thay đổi (đảm bảo user mới được cập nhật)
   useEffect(() => {
@@ -62,19 +63,16 @@ const MessagePage: React.FC = () => {
 
   // Auto-select first chat if none selected, hoặc chọn phòng chat mới nhất có lastMessage chưa đọc
   useEffect(() => {
-    if (chatRooms.length > 0) {
-      // Nếu chưa có phòng chat nào active hoặc active chat không còn tồn tại trong danh sách
+    if (chatRooms.length > 0 && !hasAutoSelected) {
       const activeRoomStillExists = chatRooms.some(room => room.id === activeChatRoomIdHook);
       if (!activeChatRoomIdHook || !activeRoomStillExists) {
-        // Ưu tiên chọn phòng chat có lastMessage chưa đọc (nếu có)
         const unreadRoom = chatRooms.find(room => {
-          // Nếu lastMessage tồn tại và receiverId là currentUserId và chưa đọc
           return room.lastMessage && room.lastMessage.receiverId === currentUserId && !room.lastMessage.read;
         });
         if (unreadRoom) {
           handleSelectChat(unreadRoom.id!);
+          setHasAutoSelected(true);
         } else {
-          // Nếu không có, chọn phòng chat mới nhất (theo lastMessageTime hoặc createdAt)
           const sortedRooms = [...chatRooms].sort((a, b) => {
             const aTime = a.lastMessageTime || a.createdAt;
             const bTime = b.lastMessageTime || b.createdAt;
@@ -82,11 +80,16 @@ const MessagePage: React.FC = () => {
           });
           if (sortedRooms.length > 0) {
             handleSelectChat(sortedRooms[0].id!);
+            setHasAutoSelected(true);
           }
         }
       }
     }
-  }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId]);
+    // Reset flag nếu chatRooms thay đổi hoàn toàn (ví dụ reload)
+    if (chatRooms.length === 0 && hasAutoSelected) {
+      setHasAutoSelected(false);
+    }
+  }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId, hasAutoSelected]);
 
   // Helper: Map ChatRoom to Chat (for UI compatibility)
   const mapChatRoomToChat = function (room: any): any {
@@ -130,8 +133,10 @@ const MessagePage: React.FC = () => {
       .finally(() => setUsersLoading(false));
     dispatch(setActiveChat(chatRoomId));
     setActiveChatRoomId(chatRoomId);
-    // Đảm bảo join vào phòng chat vừa tạo
+    // Đảm bảo join vào phòng chat vừa tạo sau một delay nhỏ để Firestore cập nhật
+    setTimeout(() => {
     joinChat(chatRoomId);
+    }, 200);
   };
 
   if (!currentUserId) {

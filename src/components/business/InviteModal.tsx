@@ -1,9 +1,8 @@
 'use client';
 
-import { Fragment, useState, ChangeEvent, KeyboardEvent } from 'react';
+import { Fragment, useState, ChangeEvent, KeyboardEvent, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Image from 'next/image';
-import { useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
@@ -15,23 +14,19 @@ interface InviteModalProps {
   invitees?: any[];
 }
 
-export default function InviteModal({
-  isOpen,
-  onClose,
-  course,
-}: InviteModalProps) {
+export default function InviteModal({ isOpen, onClose, course }: InviteModalProps) {
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
   const [inviteesData, setInviteesData] = useState<any[]>([]);
+  const [filteredInvitees, setFilteredInvitees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
-
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -58,9 +53,7 @@ export default function InviteModal({
       try {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_SERVER_URI}/business/courses/${course._id}/unassigned-employees`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
         const raw = res.data.employees;
 
@@ -72,6 +65,7 @@ export default function InviteModal({
         }));
 
         setInviteesData(formatted);
+        setFilteredInvitees(formatted);
       } catch (error) {
         console.error('Failed to fetch invitees:', error);
       }
@@ -79,6 +73,22 @@ export default function InviteModal({
 
     fetchInvitees();
   }, [isOpen, course]);
+
+  useEffect(() => {
+    if (!inputValue.trim()) {
+      setFilteredInvitees(inviteesData);
+      return;
+    }
+
+    const lowerInput = inputValue.toLowerCase();
+    const filtered = inviteesData.filter(
+      (emp) =>
+        emp.name.toLowerCase().includes(lowerInput) ||
+        emp.email.toLowerCase().includes(lowerInput)
+    );
+
+    setFilteredInvitees(filtered);
+  }, [inputValue, inviteesData]);
 
   const handleInvite = (employee: any) => {
     setSelectedEmployee(employee);
@@ -121,7 +131,6 @@ export default function InviteModal({
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        {/* Backdrop */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"
@@ -134,7 +143,6 @@ export default function InviteModal({
           <div className="fixed inset-0 bg-black/30" />
         </Transition.Child>
 
-        {/* Panel */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Transition.Child
             as={Fragment}
@@ -146,17 +154,13 @@ export default function InviteModal({
             leaveTo="opacity-0 scale-95"
           >
             <Dialog.Panel className="bg-white rounded-2xl w-full max-w-lg p-6">
-              {/* Header */}
               <div className="flex justify-between items-center border-b mb-6">
                 <Dialog.Title className="text-xl font-bold text-black">
                   Assign Courses
                 </Dialog.Title>
                 <div className="flex space-x-6">
                   <button
-                    className={`pb-2 ${activeTab === 'email'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-500'
-                      }`}
+                    className={`pb-2 ${activeTab === 'email' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
                     onClick={() => setActiveTab('email')}
                   >
                     Assign via Email
@@ -164,7 +168,6 @@ export default function InviteModal({
                 </div>
               </div>
 
-              {/* Tab Content */}
               {activeTab === 'email' ? (
                 <>
                   <div className="space-y-4">
@@ -177,12 +180,7 @@ export default function InviteModal({
                           >
                             <span>{e}</span>
                             <button onClick={() => handleRemoveEmail(i)}>
-                              <Image
-                                src="/assets/icons/close.svg"
-                                alt="Remove"
-                                width={12}
-                                height={12}
-                              />
+                              <Image src="/assets/icons/close.svg" alt="Remove" width={12} height={12} />
                             </button>
                           </div>
                         ))}
@@ -209,16 +207,14 @@ export default function InviteModal({
                     </div>
                     <div className="flex-1">
                       <h4 className="text-sm font-semibold text-black">{course.name}</h4>
-                      <div className="flex items-center text-xs text-gray-500 gap-4 mt-1">
-                        <h6 className="text-sm text-gray-600">
-                          {course.description?.split(' ').slice(0, 10).join(' ') + (course.description?.split(' ').length > 10 ? '...' : '')}
-                        </h6>
-                      </div>
+                      <h6 className="text-sm text-gray-600">
+                        {course.description?.split(' ').slice(0, 10).join(' ') + (course.description?.split(' ').length > 10 ? '...' : '')}
+                      </h6>
                     </div>
                   </div>
 
                   <ul className="mt-4 max-h-48 overflow-y-auto divide-y">
-                    {inviteesData?.map(inv => (
+                    {filteredInvitees?.map(inv => (
                       <li key={inv.id} className="py-3 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Image
@@ -233,14 +229,12 @@ export default function InviteModal({
                             <p className="text-xs text-gray-500">{inv.email}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <button
-                            className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition whitespace-nowrap"
-                            onClick={() => handleInvite(inv)}
-                          >
-                            Invite
-                          </button>
-                        </div>
+                        <button
+                          className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition whitespace-nowrap"
+                          onClick={() => handleInvite(inv)}
+                        >
+                          Invite
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -271,7 +265,6 @@ export default function InviteModal({
           </Transition.Child>
         </div>
 
-        {/* Date Modal */}
         <Transition appear show={isDateModalOpen} as={Fragment}>
           <Dialog as="div" className="relative z-50" onClose={() => setIsDateModalOpen(false)}>
             <div className="fixed inset-0 bg-black/40" />
@@ -300,7 +293,6 @@ export default function InviteModal({
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-
                     <button
                       onClick={confirmInvite}
                       className="text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"

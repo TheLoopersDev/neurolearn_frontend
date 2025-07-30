@@ -1,23 +1,105 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
+import { useSelector } from 'react-redux';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRefresh: () => void;
 }
 
-const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
+const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps) => {
   const [activeTab, setActiveTab] = useState<'email' | 'file'>('email');
-
+  const [email, setEmail] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const { toast } = useToast();
+  const { user } = useSelector((state: any) => state.auth);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   if (!isOpen) return null;
 
+  const handleAddByEmail = async () => {
+    if (!email) {
+      toast({
+        title: 'Error',
+        description: 'Please enter an email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/add-employee`,
+        { email, role: 'employee' },
+        { withCredentials: true }
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Employee added successfully.',
+        variant: 'success',
+      });
+      onRefresh();
+      setEmail('');
+      onClose();
+    } catch (err: any) {
+      toast({
+        title: 'Failed',
+        description: err?.response?.data?.message || 'Failed to add employee.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleImportFile = async () => {
+    if (!file) {
+      toast({
+        title: 'Error',
+        description: 'Please select a .xlsx file to upload.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/import`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Employees imported successfully.',
+        variant: 'success',
+      });
+      onRefresh();
+      setFile(null);
+      onClose();
+    } catch (err: any) {
+      toast({
+        title: 'Failed',
+        description: err?.response?.data?.message || 'Failed to import employees.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
-    // THAY ĐỔI 1: Thêm onClick={onClose} vào lớp phủ (overlay)
     <div className="fixed inset-0 z-[999] flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
 
-      {/* THAY ĐỔI 2: Ngăn sự kiện click lan ra ngoài khi nhấn vào content */}
       <div
         className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         onClick={e => e.stopPropagation()}
@@ -36,21 +118,19 @@ const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
         <div className="flex mb-4 border-b">
           <button
             onClick={() => setActiveTab('email')}
-            className={`py-2 px-4 hover:cursor-pointer ${
-              activeTab === 'email'
+            className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'email'
                 ? 'border-b-2 border-indigo-600 text-indigo-600'
                 : 'text-gray-500'
-            }`}
+              }`}
           >
             Add by Email
           </button>
           <button
             onClick={() => setActiveTab('file')}
-            className={`py-2 px-4 hover:cursor-pointer ${
-              activeTab === 'file'
+            className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'file'
                 ? 'border-b-2 border-indigo-600 text-indigo-600'
                 : 'text-gray-500'
-            }`}
+              }`}
           >
             Add by File (.xlsx)
           </button>
@@ -67,43 +147,78 @@ const AddEmployeeModal = ({ isOpen, onClose }: AddEmployeeModalProps) => {
                 type="email"
                 id="email"
                 placeholder="e.g., employee@example.com"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full rounded-md border text-black border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
-              <button className="w-full rounded-md bg-indigo-600 py-2 px-4 text-white hover:bg-indigo-700 hover:cursor-pointer">
-                Send Invite
+              <button
+                onClick={handleAddByEmail}
+                className="w-full rounded-md bg-indigo-600 py-2 px-4 text-white hover:bg-indigo-700 hover:cursor-pointer"
+              >
+                Add Employee
               </button>
             </div>
           )}
           {activeTab === 'file' && (
             <div className="space-y-4">
-              <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                 Upload XLSX File
               </label>
+
               <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                 <div className="space-y-1 text-center">
                   <p className="text-xs text-gray-500">XLSX up to 10MB</p>
-                  <div className="flex text-sm text-gray-600">
+
+                  <div className="flex flex-col items-center">
                     <label
                       htmlFor="file-upload"
-                      className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none hover:text-indigo-500"
+                      className="cursor-pointer rounded-md bg-white font-medium text-indigo-600 hover:text-indigo-500"
                     >
-                      <span>Upload a file</span>
+                      <span>Choose File</span>
                       <input
+                        ref={fileInputRef}
                         id="file-upload"
                         name="file-upload"
                         type="file"
                         className="sr-only"
                         accept=".xlsx"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setFile(e.target.files[0]);
+                          }
+                        }}
                       />
                     </label>
+
+                    {file && (
+                      <div className="mt-2 text-sm text-gray-600 flex items-center justify-between gap-2">
+                        <span className="truncate max-w-[200px]">Selected: {file.name}</span>
+                        <button
+                          onClick={() => {
+                            setFile(null);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
+                          }}
+                          className="text-red-600 text-xs hover:underline cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              <button className="w-full rounded-md bg-indigo-600 py-2 px-4 text-white hover:bg-indigo-700 hover:cursor-pointer">
+
+              <button
+                onClick={handleImportFile}
+                className="w-full rounded-md bg-indigo-600 py-2 px-4 text-white hover:bg-indigo-700"
+              >
                 Import Employees
               </button>
             </div>
           )}
+
         </div>
       </div>
     </div>
