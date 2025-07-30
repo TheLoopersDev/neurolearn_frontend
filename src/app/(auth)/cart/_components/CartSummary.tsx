@@ -51,9 +51,8 @@ export function CartSummary({ courses }: CartSummaryProps) {
       );
 
       if (res.data?.checkoutUrl) {
-        await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/clear-cart`, {
-          withCredentials: true,
-        });
+        await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/clear-cart`, {},
+          { withCredentials: true });
         window.location.href = res.data.checkoutUrl;
       } else {
         toast({
