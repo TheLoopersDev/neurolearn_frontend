@@ -112,13 +112,17 @@ const BusinessRequestsPage = () => {
                       <span className="text-gray-700 font-medium">{request.requestDate || (request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A')}</span>
                     </div>
                     {/* Duyệt */}
-                    <div className="col-span-2 flex items-center justify-center">
+                    <div className="col-span-2 flex items-center justify-center gap-2">
+                      <button
+                        className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+                        onClick={() => handleView(request)}
+                      >
+                        View
+                      </button>
                       <button
                         className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
-                        // disabled={isActionLoading} // This state variable is not defined in the original file
                         onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
                       >
-                        {/* {isActionLoading ? 'Đang duyệt...' : 'Duyệt'} */}
                         Duyệt
                       </button>
                     </div>
