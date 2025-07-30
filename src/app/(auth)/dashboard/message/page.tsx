@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
@@ -20,16 +20,33 @@ const MessagePage: React.FC = () => {
 
   // Parse current user
   const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
-  const currentUserId = currentUser?._id || currentUser?.id;
+  const currentUserId = useMemo(() => {
+    const id = currentUser?._id || currentUser?.id;
+    return id;
+  }, [currentUser]);
 
   // Firestore chat hook - only use if Firebase is available
   const firebaseAvailable = isFirebaseAvailable();
-  const { chatRooms, joinChat, leaveChat, activeChatRoomId: activeChatRoomIdHook, setActiveChatRoomId, messages, sendMessage, loading, error } = useFirestoreChat();
+  const {
+    chatRooms,
+    joinChat,
+    leaveChat,
+    activeChatRoomId: activeChatRoomIdHook,
+    setActiveChatRoomId,
+    messages,
+    sendMessage,
+    loading,
+    error
+  } = useFirestoreChat();
 
   // State loading cho box chat
   const [isChatLoading, setIsChatLoading] = useState(false);
   const prevChatRoomId = useRef<string | null>(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
+  const [selectedChatRoomId, setSelectedChatRoomId] = useState<string | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
+
+
 
   // Fetch all users whenever chatRooms thay đổi (đảm bảo user mới được cập nhật)
   useEffect(() => {
@@ -44,14 +61,20 @@ const MessagePage: React.FC = () => {
 
   // Khi chọn chat mới, set loading và clear messages cũ
   const handleSelectChat = useCallback(async (chatRoomId: string) => {
-    if (activeChatRoomIdHook) {
+    if (activeChatRoomIdHook && activeChatRoomIdHook !== chatRoomId) {
       leaveChat();
     }
+
     setIsChatLoading(true);
+    setSelectedChatRoomId(chatRoomId);
     dispatch(setActiveChat(chatRoomId));
     setActiveChatRoomId(chatRoomId);
+
     await joinChat(chatRoomId);
     prevChatRoomId.current = chatRoomId;
+
+    // Force refresh để đảm bảo messages được load lại
+    setForceRefresh(prev => prev + 1);
   }, [activeChatRoomIdHook, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
 
   // Khi messages thay đổi hoặc activeChatRoomId đổi, tắt loading
@@ -135,7 +158,7 @@ const MessagePage: React.FC = () => {
     setActiveChatRoomId(chatRoomId);
     // Đảm bảo join vào phòng chat vừa tạo sau một delay nhỏ để Firestore cập nhật
     setTimeout(() => {
-    joinChat(chatRoomId);
+      joinChat(chatRoomId);
     }, 200);
   };
 
@@ -159,20 +182,24 @@ const MessagePage: React.FC = () => {
     );
   }
 
+  // Sử dụng selectedChatRoomId thay vì activeChatRoomIdHook để UI
+  const currentActiveChatId = selectedChatRoomId || activeChatRoomIdHook;
+
   return (
     <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
       {/* Chat List */}
       <ChatList
         chats={chatRooms.map(mapChatRoomToChat)}
-        activeChatId={activeChatRoomIdHook}
+        activeChatId={currentActiveChatId}
         onSelectChat={handleSelectChat}
         onCreateChat={() => { }}
       />
 
       {/* Chat Room */}
-      {(!usersLoading && activeChatRoomIdHook && !isChatLoading) ? (
+      {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
         <ChatRoom
-          chat={chatRooms.find(room => room.id === activeChatRoomIdHook) ? mapChatRoomToChat(chatRooms.find(room => room.id === activeChatRoomIdHook)) : null}
+          key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
+          chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
           currentUserId={currentUserId}
           messages={messages}
           sendMessage={sendMessage}

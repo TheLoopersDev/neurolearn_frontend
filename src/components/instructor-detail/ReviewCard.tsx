@@ -2,7 +2,7 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
-import { IReview } from '@/types/course'; // Đảm bảo đường dẫn đúng
+import { IReview } from '@/types/course'; // Ensure correct path
 import { MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns'; // Import hàm định dạng thời gian
 
@@ -13,18 +13,18 @@ interface ReviewCardProps {
 const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   // Hàm để tạo timestamp tương đối (ví dụ: "2 weeks ago")
   const timeAgo = (dateValue?: string | Date): string => {
-    // 1. Trả về chuỗi mặc định nếu không có ngày tháng
+    // 1. Return default string if no date
     if (!dateValue) {
       return 'a while ago';
     }
 
     try {
-      // 2. Chuyển đổi thành object Date nếu nó là chuỗi, nếu đã là Date thì giữ nguyên
+      // 2. Convert to Date object if it's a string, if already Date then keep as is
       const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
       return formatDistanceToNow(date, { addSuffix: true });
     } catch (error) {
       console.error('Invalid date for formatDistanceToNow:', dateValue);
-      // 3. Trả về chuỗi rỗng hoặc một giá trị mặc định nếu có lỗi
+      // 3. Return empty string or default value if error
       return '';
     }
   };

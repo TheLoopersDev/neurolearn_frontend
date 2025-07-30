@@ -39,7 +39,7 @@ const ReviewInstructorPage = () => {
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
 
-  // API call cho request duyệt instructor
+  // API call for instructor verification requests
   const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
     type: 'instructor_verification'
   });

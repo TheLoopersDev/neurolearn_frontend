@@ -40,7 +40,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
             src={'/assets/create-quiz/thumbnail.png'}
             alt={quiz.name || 'Quiz thumbnail'}
             fill
-            sizes="(max-width: 768px) 30vw, 100px" // Điều chỉnh sizes cho phù hợp với kích thước ảnh trong card
+            sizes="(max-width: 768px) 30vw, 100px" // Adjust sizes to fit image size in card
             style={{ objectFit: 'cover' }}
             className="transition-transform duration-300 group-hover:scale-105"
           />

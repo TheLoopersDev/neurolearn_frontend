@@ -15,7 +15,7 @@ const MessageList: React.FC<MessageListProps> = ({
 }) => {
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom when new messages arrive (chỉ cuộn phần chat, không cuộn cả trang)
+    // Auto-scroll to bottom when new messages arrive (only scroll chat area, not entire page)
     useEffect(() => {
         endOfMessagesRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }, [messages]);

@@ -32,7 +32,7 @@ const CourseManagementSystem: React.FC = () => {
   const { data, isLoading, isError } = useGetCoursesQuery();
   const courses: Course[] = data?.courses || [];
 
-  // API call cho request duyệt khóa học
+  // API call for course approval requests
   const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
     type: 'course_approval'
   });
@@ -180,9 +180,9 @@ const CourseManagementSystem: React.FC = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
 
-  // Nếu filteredCourses rỗng, hiển thị số lượng courses lấy được để debug
+  // If filteredCourses is empty, display the number of courses retrieved for debugging
   if (filteredCourses.length === 0) {
-    return <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">Không có khóa học nào phù hợp.<br />Tổng số khóa học lấy được từ API: {courses.length}</div>;
+    return <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">No courses match the criteria.<br />Total courses retrieved from API: {courses.length}</div>;
   }
 
   return (

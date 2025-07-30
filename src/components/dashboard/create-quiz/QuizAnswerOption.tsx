@@ -109,7 +109,7 @@ const QuizAnswerOption: React.FC<QuizAnswerOptionProps> = ({
               onChange={handleTextChange}
               onClick={e => e.stopPropagation()}
               className={textInputElementClasses}
-              placeholder="Nhập nội dung đáp án"
+                              placeholder="Enter answer content"
             />
           </div>
           <div className={deleteButtonContainerClasses}>
