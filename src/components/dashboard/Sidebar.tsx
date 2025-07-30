@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import type { RootState } from '@/lib/redux/store';
 
 // Icons
 import dashboard from '@/public/assets/icons/dashboard.svg';
@@ -22,44 +23,55 @@ import withdrawIcon from '@/public/assets/review/withdrawal.svg';
 import businessIcon from '@/public/assets/review/business.svg';
 import peopleIcon from '@/public/assets/icons/teacher.svg';
 
+interface MenuItem {
+  icon: any;
+  label: string;
+  path: string;
+  suffixIcon?: any;
+}
+
 const Sidebar = () => {
   const pathname = usePathname();
-  const { user } = useSelector((state: any) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
-  // Admin menu items
-  const adminMenuItems = [
-    { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
-    { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
-    { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
-    { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
-  ];
+  const userRole = typeof user === 'string' ? 'user' : user?.role || 'user';
 
-  // Regular user menu items
-  const regularMenuItems = [
-    { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-    {
-      icon: createQuiz,
-      label: 'Create Quiz',
-      path: '/dashboard/create-quiz',
-      suffixIcon: magicPenIcon,
-    },
-    { icon: earning, label: 'Earning', path: '/dashboard/earning' },
-    { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
-    { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
-    { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
-    { icon: message, label: 'Message', path: '/dashboard/message' },
-    { icon: setting, label: 'Setting', path: '/dashboard/setting' },
-  ];
+  const menuByRole: Record<string, MenuItem[]> = {
+    user: [
+      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: courses, label: 'Courses', path: '/dashboard/courses' },
+      { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
+      { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
+      { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: setting, label: 'Setting', path: '/dashboard/setting' },
+    ],
+    instructor: [
+      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: courses, label: 'Courses', path: '/dashboard/courses' },
+      { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz', suffixIcon: magicPenIcon },
+      { icon: earning, label: 'Earning', path: '/dashboard/earning' },
+      { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: setting, label: 'Setting', path: '/dashboard/setting' },
+    ],
+    admin: [
+      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
+      { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
+      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
+      { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
+      { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: setting, label: 'Setting', path: '/dashboard/setting' },
+    ],
+  };
 
   // Choose menu items based on user role
-  const menuItems = user?.role === 'admin' ? adminMenuItems : regularMenuItems;
+  const menuItems: MenuItem[] = menuByRole[userRole] || menuByRole['user'];
 
   return (
     <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
       <nav className="flex flex-col gap-4 w-full">
-        {menuItems.map(item => {
+        {menuItems.map((item: MenuItem) => {
           const isActive = pathname === item.path;
           return (
             <Link
@@ -81,9 +93,9 @@ const Sidebar = () => {
                 }`}
               />
               {item.label}
-              {(item as any).suffixIcon && (
+              {item.suffixIcon && (
                 <Image
-                  src={(item as any).suffixIcon}
+                  src={item.suffixIcon}
                   alt={`${item.label} options`}
                   width={24}
                   height={24}
