@@ -1,9 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-import { userLoggerIn } from '../auth/authSlice';
 import { User } from '@/types/user';
-import { RootState } from '@/lib/redux/store';
-import { getCookie } from '@/lib/utils';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -31,7 +28,7 @@ export const apiSlice = createApi({
         method: 'GET',
         credentials: 'include' as const,
       }),
-      async onQueryStarted(arg, { queryFulfilled, dispatch, getState }) {
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
 

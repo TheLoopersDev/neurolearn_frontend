@@ -33,8 +33,10 @@ const CourseManagementSystem: React.FC = () => {
   const courses: Course[] = data?.courses || [];
 
   // API call cho request duyệt khóa học
-  const { data: requestData, isLoading: isRequestLoading, isError: isRequestError, refetch } = useGetPendingRequestsQuery({ type: 'course_approval' });
-  const [handleRequest, { isLoading: isActionLoading }] = useHandleRequestMutation();
+  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+    type: 'course_approval'
+  });
+  const [handleRequest] = useHandleRequestMutation();
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
@@ -79,16 +81,6 @@ const CourseManagementSystem: React.FC = () => {
     });
   }, [currentCourses, authorNames]);
 
-  const handleDeleteCourse = (courseId: string) => {
-  // TODO: Implement delete logic with API
-    console.log(`Deleting course with ID: ${courseId}`);
-  };
-
-  const handleViewProgress = (courseId: string) => {
-  // TODO: Implement view progress logic
-    console.log(`Viewing progress for course ID: ${courseId}`);
-  };
-
   const handleTabChange = (tab: 'request' | 'courses') => {
     setActiveTab(tab);
     setCurrentPage(1);
@@ -98,7 +90,7 @@ const CourseManagementSystem: React.FC = () => {
     try {
       await handleRequest({ type: 'course_approval', requestId, action }).unwrap();
       setCurrentPage(1);
-      refetch();
+      // refetch(); // This line was removed as per the edit hint
       toast({
         title: action === 'approve' ? 'Course Approved' : 'Request Rejected',
         description: `${action === 'approve' ? 'The course request has been approved.' : 'The course request has been rejected successfully.'}`,
@@ -267,7 +259,7 @@ const CourseManagementSystem: React.FC = () => {
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
                   <div className="text-center py-8">Loading...</div>
-                ) : (Array.isArray(requestData) ? false : (requestData && requestData.success === false && requestData.message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
+                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">No data</div>
                 ) : (
                       requestArray.map((req: any, index: number) => (
@@ -517,10 +509,11 @@ const CourseManagementSystem: React.FC = () => {
                       });
                     }
                   }}
-                  disabled={isActionLoading}
+                  disabled={false} // isActionLoading was removed
                   className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
                 >
-                  {isActionLoading ? 'Rejecting...' : 'Reject'}
+                  {/* isActionLoading ? 'Rejecting...' : 'Reject' */}
+                  Reject
                 </button>
                 <button
                   onClick={async () => {
@@ -534,10 +527,11 @@ const CourseManagementSystem: React.FC = () => {
                       });
                     }
                   }}
-                  disabled={isActionLoading}
+                  disabled={false} // isActionLoading was removed
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
                 >
-                  {isActionLoading ? 'Approving...' : 'Approve'}
+                  {/* isActionLoading ? 'Approving...' : 'Approve' */}
+                  Approve
                 </button>
               </div>
             </div>

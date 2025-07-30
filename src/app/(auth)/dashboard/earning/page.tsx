@@ -9,12 +9,6 @@ import { useModal } from '@/context/ModalContext';
 import { useEffect, useState } from 'react';
 import { getMyIncome } from '@/lib/services/revenue';
 
-interface IncomeData {
-  totalIncome: number;
-  totalPurchased: number;
-  total: number[];
-}
-
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
   const [income, setIncome] = useState<number>(0);

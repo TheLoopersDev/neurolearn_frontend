@@ -1,10 +1,10 @@
-'use client'
-import React, { useState } from "react";
-import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from "@/components/review-common";
-import { Eye } from 'lucide-react';
+'use client';
+import React, { useState } from 'react';
+import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from '@/components/review-common';
 import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import { useToast } from '@/hooks/use-toast';
 
-const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
 const businessList = Array(9).fill({
   logo: '/assets/images/avatar.png',
@@ -14,16 +14,18 @@ const businessList = Array(9).fill({
 
 const BusinessRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All courses');
+  const [selectedCategory, setSelectedCategory] = useState('All requests');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // API calls
-  const { data: requestData, isLoading: isRequestLoading, isError: isRequestError, refetch } = useGetPendingRequestsQuery({ type: 'business_verification' });
-  const [handleRequest, { isLoading: isActionLoading }] = useHandleRequestMutation();
+  // API call cho request duyệt business
+  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+    type: 'business_verification'
+  });
+  const [handleRequest] = useHandleRequestMutation();
 
   const handleView = (request: any) => {
     setSelected(request);
@@ -31,14 +33,22 @@ const BusinessRequestsPage = () => {
   };
 
   const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
-    setActionMessage(null);
     try {
       await handleRequest({ type: 'business_verification', requestId, action }).unwrap();
       setCurrentPage(1);
-      refetch();
-      setActionMessage(`${action} thành công!`);
+      toast({
+        title: action === 'approve' ? 'Request Approved' : 'Request Rejected',
+        description: action === 'approve'
+          ? 'The business request has been approved successfully.'
+          : 'The business request has been rejected successfully.',
+        variant: 'success',
+      });
     } catch (err: any) {
-      setActionMessage(`${action} thất bại!`);
+      toast({
+        title: action === 'approve' ? 'Approval Failed' : 'Rejection Failed',
+        description: err?.data?.message || err?.error || 'An error occurred while processing the request.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -76,12 +86,12 @@ const BusinessRequestsPage = () => {
 
         {activeTab === 'request' ? (
           <>
-            {actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div>}
+            {/* actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div> */}
             <ReviewTable headers={headers}>
               {isRequestLoading ? (
-                <div className="text-center py-8 col-span-12">Loading...</div>
-              ) : (Array.isArray(requestData) ? false : (requestData && requestData.success === false && requestData.message === 'No pending requests found')) || !requestData || requestData.length === 0 ? (
-                <div className="text-center py-8 col-span-12 text-gray-500">No data</div>
+                <div className="text-center py-8">Loading...</div>
+              ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestData || requestData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No data</div>
               ) : (
                 currentRequests.map((request: any, index: number) => (
                   <ReviewTableRow key={request._id || request.id} index={index}>
@@ -105,20 +115,22 @@ const BusinessRequestsPage = () => {
                     <div className="col-span-2 flex items-center justify-center">
                       <button
                         className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
-                        disabled={isActionLoading}
+                        // disabled={isActionLoading} // This state variable is not defined in the original file
                         onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
                       >
-                        {isActionLoading ? 'Đang duyệt...' : 'Duyệt'}
+                        {/* {isActionLoading ? 'Đang duyệt...' : 'Duyệt'} */}
+                        Duyệt
                       </button>
                     </div>
                     {/* Từ chối */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button
                         className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
-                        disabled={isActionLoading}
+                        // disabled={isActionLoading} // This state variable is not defined in the original file
                         onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
                       >
-                        {isActionLoading ? 'Đang từ chối...' : 'Từ chối'}
+                        {/* {isActionLoading ? 'Đang từ chối...' : 'Từ chối'} */}
+                        Từ chối
                       </button>
                     </div>
                   </ReviewTableRow>

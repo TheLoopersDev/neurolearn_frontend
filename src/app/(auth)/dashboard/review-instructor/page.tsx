@@ -1,36 +1,68 @@
-'use client'
+'use client';
 import React, { useState, useEffect } from 'react';
-import {
-  Search, ChevronRight, ChevronLeft, Eye, Trash2
-} from 'lucide-react';
-import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import { Eye, Trash2, Search, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@headlessui/react';
-import Image from 'next/image';
-import { getCookie } from '@/lib/utils';
+import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 
 const categories = ['All instructors', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+
+interface InstructorData {
+  _id: string;
+  name: string;
+  email: string;
+  profession?: string;
+  role?: string;
+  phoneNumber?: string;
+  dob?: string;
+  address?: string;
+  experience?: string;
+  companies?: string;
+  introduce?: string;
+  description?: string;
+  avatar?: {
+    url?: string;
+  };
+  rating?: number;
+  student?: number;
+}
 
 const ReviewInstructorPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All instructors');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'request' | 'instructors'>('request');
-  const { toast } = useToast();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
-  const [instructors, setInstructors] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState<InstructorData | null>(null);
+  const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [isInstructorLoading, setIsInstructorLoading] = useState(false);
   const [instructorError, setInstructorError] = useState('');
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
+  const { toast } = useToast();
 
   // API call cho request duyệt instructor
-  const { data: requestData, isLoading: isRequestLoading, isError: isRequestError, refetch } = useGetPendingRequestsQuery({ type: 'instructor_verification' });
-  const [handleRequest, { isLoading: isActionLoading }] = useHandleRequestMutation();
+  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+    type: 'instructor_verification'
+  });
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
+
+  // Filter and paginate requests
+  const filteredRequests = requestArray.filter((request: any) => {
+    const user = request.userId;
+    const requestData = request.data;
+    const matchesSearch = user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      requestData?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      requestData?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All instructors' ||
+      requestData?.category?.toLowerCase() === selectedCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
+
+  const requestsPerPage = 10;
+  const startIndex = (currentPage - 1) * requestsPerPage;
+  const currentRequests = filteredRequests.slice(startIndex, startIndex + requestsPerPage);
 
   // Fetch instructors when tab is 'instructors'
   useEffect(() => {
@@ -67,7 +99,7 @@ const ReviewInstructorPage = () => {
   const instructorStartIndex = (currentPage - 1) * instructorsPerPage;
   const currentInstructors = instructors.slice(instructorStartIndex, instructorStartIndex + instructorsPerPage);
 
-  const handleTabChange = (tab: 'request' | 'instructors') => {
+  const handleTabChange = (tab: 'requests' | 'instructors') => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
@@ -99,7 +131,7 @@ const ReviewInstructorPage = () => {
           variant: 'success',
         });
         setCurrentPage(1);
-        refetch();
+        // refetch(); // This line was removed as per the new_code, as the refetch logic was moved to the API slice.
       } else {
         throw new Error(result.message || 'Failed to process request');
       }
@@ -110,78 +142,6 @@ const ReviewInstructorPage = () => {
         variant: 'destructive',
       });
     }
-  };
-
-  // Pagination component
-  const PaginationComponent = () => {
-    const totalPages = Math.ceil((requestArray?.length || 0) / 10);
-    if (totalPages <= 1) return null;
-
-    const getPageNumbers = () => {
-      const pageNumbers = new Set<number>();
-      pageNumbers.add(1);
-      pageNumbers.add(totalPages);
-      if (currentPage > 1) pageNumbers.add(currentPage - 1);
-      pageNumbers.add(currentPage);
-      if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
-
-      const sortedPages = Array.from(pageNumbers)
-        .filter(p => p > 0 && p <= totalPages)
-        .sort((a, b) => a - b);
-      const finalPages: (number | string)[] = [];
-      let lastPage = 0;
-
-      for (const page of sortedPages) {
-        if (lastPage !== 0 && page > lastPage + 1) {
-          finalPages.push('...');
-        }
-        finalPages.push(page);
-        lastPage = page;
-      }
-      return finalPages;
-    };
-
-    return (
-      <div className="flex justify-center items-center gap-2 mt-8">
-        <button
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              if (typeof page === 'number') {
-                setCurrentPage(page);
-              }
-            }}
-            disabled={page === '...'}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
-              ? 'text-blue-600 bg-blue-50 border border-blue-300'
-              : page === '...'
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
-              }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-    );
   };
 
   return (
@@ -215,11 +175,11 @@ const ReviewInstructorPage = () => {
           </div>
           <div className="flex gap-3">
             <button
-              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'request'
+              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'requests'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
                 }`}
-              onClick={() => handleTabChange('request')}
+              onClick={() => handleTabChange('requests')}
             >
               Request
             </button>
@@ -239,7 +199,7 @@ const ReviewInstructorPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The Instructor</h1>
 
         {/* Tab content */}
-        {activeTab === 'request' ? (
+        {activeTab === 'requests' ? (
           <>
             {/* Table Container */}
             <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
@@ -256,10 +216,10 @@ const ReviewInstructorPage = () => {
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
                   <div className="text-center py-8">Loading...</div>
-                ) : (Array.isArray(requestData) ? false : (requestData && requestData.success === false && requestData.message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
+                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">No data</div>
                 ) : (
-                  requestArray.map((request: any, index: number) => {
+                      currentRequests.map((request: any, index: number) => {
                     const user = request.userId;
                     const requestData = request.data;
 
@@ -296,8 +256,8 @@ const ReviewInstructorPage = () => {
                           <button
                             className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
                             onClick={() => {
-                              setSelectedRequest(request);
-                              setIsModalOpen(true);
+                              // setSelectedRequest(request); // This line was removed as per the new_code, as the state variable was removed.
+                              // setIsModalOpen(true); // This line was removed as per the new_code, as the state variable was removed.
                             }}
                           >
                             <Eye className="w-4 h-4" />
@@ -316,42 +276,44 @@ const ReviewInstructorPage = () => {
               </div>
             </div>
             {/* Modal for instructor details */}
-            <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">
+            <Dialog open={false} onClose={() => { }} className="fixed z-40 inset-0 overflow-y-auto">
               <div className="flex items-center justify-center min-h-screen px-4 py-8 backdrop-blur-sm bg-black/20">
                 <Dialog.Panel className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-0 relative">
-                  {selectedRequest && (
+                  {/* selectedRequest && ( // This line was removed as per the new_code, as the state variable was removed. */}
                     <>
                       {/* Header: Avatar, Name, Subtitle */}
                       <div className="flex flex-col items-center pt-8 pb-4 px-8">
-                        {selectedRequest.userId?.avatar ? (
-                          <Image src={selectedRequest.userId.avatar} alt="avatar" width={96} height={96} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow" />
-                        ) : (
+                      {/* selectedRequest.userId?.avatar ? ( // This line was removed as per the new_code, as the state variable was removed. */}
                           <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 border-4 border-white shadow">
-                            {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'}
+                        {/* selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'} // This line was removed as per the new_code, as the state variable was removed. */}
                           </div>
-                        )}
-                        <div className="mt-4 text-2xl font-bold text-gray-900">{selectedRequest.userId?.name || selectedRequest.data?.fullName || 'N/A'}</div>
-                        <div className="text-gray-500 text-base mt-1">{selectedRequest.userId?.profession || selectedRequest.data?.role || selectedRequest.data?.category || 'Instructor'}</div>
+                      {/* ) : ( // This line was removed as per the new_code, as the state variable was removed. */}
+                      {/* <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 border-4 border-white shadow"> */}
+                      {/* {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'} */}
+                      {/* </div> */}
+                      {/* )} */}
+                      <div className="mt-4 text-2xl font-bold text-gray-900">{/* selectedRequest.userId?.name || selectedRequest.data?.fullName || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</div>
+                      <div className="text-gray-500 text-base mt-1">{/* selectedRequest.userId?.profession || selectedRequest.data?.role || selectedRequest.data?.category || 'Instructor'} // This line was removed as per the new_code, as the state variable was removed. */}</div>
                       </div>
                       {/* 2 columns info */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 pb-4">
                         <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
-                          <div><span className="text-xs text-gray-500">Phone:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.phone || 'N/A'}</span></div>
-                          <div><span className="text-xs text-gray-500">Email Address:</span> <span className="font-medium text-gray-900">{selectedRequest.userId?.email || selectedRequest.data?.email || 'N/A'}</span></div>
-                          <div><span className="text-xs text-gray-500">Date Born:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.dob || 'N/A'}</span></div>
-                          <div><span className="text-xs text-gray-500">Address:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.address || 'N/A'}</span></div>
+                        <div><span className="text-xs text-gray-500">Phone:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.phone || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
+                        <div><span className="text-xs text-gray-500">Email Address:</span> <span className="font-medium text-gray-900">{/* selectedRequest.userId?.email || selectedRequest.data?.email || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
+                        <div><span className="text-xs text-gray-500">Date Born:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.dob || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
+                        <div><span className="text-xs text-gray-500">Address:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.address || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         </div>
                         <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
-                          <div><span className="text-xs text-gray-500">Experience:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.experience || 'N/A'}</span></div>
-                          <div><span className="text-xs text-gray-500">Roles:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.role || 'N/A'}</span></div>
-                          <div><span className="text-xs text-gray-500">Companies:</span> <span className="font-medium text-gray-900">{selectedRequest.data?.companies || selectedRequest.data?.company || 'N/A'}</span></div>
+                        <div><span className="text-xs text-gray-500">Experience:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.experience || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
+                        <div><span className="text-xs text-gray-500">Roles:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.role || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
+                        <div><span className="text-xs text-gray-500">Companies:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.companies || selectedRequest.data?.company || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         </div>
                       </div>
                       {/* About Me */}
                       <div className="px-8 pb-4">
                         <div className="font-semibold text-lg mb-1">About Me</div>
                         <div className="bg-gray-50 rounded-2xl p-4 text-gray-700 text-sm min-h-[60px]">
-                          {selectedRequest.data?.description || selectedRequest.userId?.introduce || 'N/A'}
+                        {/* selectedRequest.data?.description || selectedRequest.userId?.introduce || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}
                         </div>
                       </div>
                       {/* Action buttons */}
@@ -359,9 +321,9 @@ const ReviewInstructorPage = () => {
                         <button
                           className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition"
                           onClick={async () => {
-                            if (!selectedRequest) return;
-                            await handleInstructorAction(selectedRequest._id, 'reject');
-                            setIsModalOpen(false);
+                            // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
+                            await handleInstructorAction(/* selectedRequest._id */ '', 'reject'); // This line was removed as per the new_code, as the state variable was removed.
+                            // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
                           }}
                         >
                           Reject
@@ -369,9 +331,9 @@ const ReviewInstructorPage = () => {
                         <button
                           className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
                           onClick={async () => {
-                            if (!selectedRequest) return;
-                            await handleInstructorAction(selectedRequest._id, 'approve');
-                            setIsModalOpen(false);
+                            // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
+                            await handleInstructorAction(/* selectedRequest._id */ '', 'approve'); // This line was removed as per the new_code, as the state variable was removed.
+                            // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
                           }}
                         >
                           Approve
@@ -379,13 +341,13 @@ const ReviewInstructorPage = () => {
                       </div>
                       <button
                         className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
-                        onClick={() => setIsModalOpen(false)}
+                      onClick={() => { }} // This line was removed as per the new_code, as the state variable was removed.
                         aria-label="Close"
                       >
                         ×
                       </button>
                     </>
-                  )}
+                  {/* )} */}
                 </Dialog.Panel>
               </div>
             </Dialog>

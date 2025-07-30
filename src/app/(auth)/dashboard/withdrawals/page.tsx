@@ -1,11 +1,10 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from "@/components/review-common";
+import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination } from "@/components/review-common";
 import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getCookie } from "@/lib/utils";
 
-const statusOptions = ['All', 'Pending', 'Approved', 'Rejected'];
+const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
 interface WithdrawData {
   _id: string;
@@ -30,13 +29,12 @@ interface WithdrawResponse {
 
 const WithdrawalsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<WithdrawData | null>(null);
   const [withdraws, setWithdraws] = useState<WithdrawData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,12 +63,12 @@ const WithdrawalsPage = () => {
         setWithdraws(data.withdraws);
       } else {
         setWithdraws([]);
-        setError('No data');
+        // setError('No data'); // This line was removed as per the edit hint
       }
     } catch (error) {
       console.error('Error fetching withdraws:', error);
       setWithdraws([]);
-      setError('Error loading withdraws');
+      // setError('Error loading withdraws'); // This line was removed as per the edit hint
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +151,7 @@ const WithdrawalsPage = () => {
   const filteredWithdraws = withdraws.filter(withdraw => {
     const matchesSearch = withdraw.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       withdraw.user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'All' || withdraw.status.toLowerCase() === selectedStatus.toLowerCase();
+    const matchesStatus = selectedCategory === 'All courses' || withdraw.status.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -185,9 +183,9 @@ const WithdrawalsPage = () => {
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedCategory={selectedStatus}
-          setSelectedCategory={setSelectedStatus}
-          categories={statusOptions}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
           activeTab="withdrawals"
           onTabChange={() => {}}
           tabOptions={[

@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import ReviewTable from '@/components/review-common/ReviewTable';
 import ReviewTableRow from '@/components/review-common/ReviewTableRow';
-import { Eye } from 'lucide-react';
 import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
 
 const headers = [

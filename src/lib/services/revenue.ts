@@ -1,5 +1,4 @@
 // import { getSession } from 'next-auth/react'; // Remove unused import
-import { decodeJWT } from '@/lib/utils';
 
 export async function getMyIncome(): Promise<number> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/income/me`, {

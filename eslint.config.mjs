@@ -16,6 +16,19 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'dist/**',
+      'build/**',
+      'coverage/**',
+      '*.config.js',
+      '*.config.mjs',
+      '*.config.ts',
+    ],
+  },
 ];
 
 export default eslintConfig;

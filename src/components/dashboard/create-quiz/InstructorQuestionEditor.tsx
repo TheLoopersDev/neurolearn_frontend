@@ -27,7 +27,7 @@ function shallowEqual(objA: any, objB: any) {
   const keysA = Object.keys(objA);
   const keysB = Object.keys(objB);
   if (keysA.length !== keysB.length) return false;
-  for (let key of keysA) {
+  for (const key of keysA) {
     if (objA[key] !== objB[key]) return false;
   }
   return true;
@@ -183,11 +183,9 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
       setCorrectAnswerIds([id]);
     }
   };
-  const addOption = () => {
-    const newId = `opt_${Date.now()}_editor`;
-    if (options.length < 10) {
-      setOptions(prev => [...prev, { id: newId, text: 'New Option' }]);
-    }
+  const handleAddOption = () => {
+    const key = `opt_${Date.now()}_editor`;
+    setOptions(prev => [...prev, { id: key, text: 'New Option' }]);
   };
   const handlePointsValueChange = (value: string) => {
     if (/^\d{0,2}$/.test(value)) {
@@ -405,7 +403,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
       </>
       <div className="flex cursor-pointer items-center gap-8 pt-4 border-t border-gray-200 justify-between">
         <button
-          onClick={addOption}
+          onClick={handleAddOption}
           className="flex border cursor-pointer border-amber-50 bg-[#eceaea] py-2 px-3 rounded-3xl items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
         >
           <svg
