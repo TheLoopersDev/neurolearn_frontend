@@ -12,7 +12,7 @@ export interface User {
   email: string;
   password?: string;
   confirmPassword?: string;
-  role: 'user' | 'admin' | 'instructor';
+  role: 'user' | 'admin' | 'instructor' | 'business';
   avatar?: {
     public_id?: string;
     url?: string | null;
