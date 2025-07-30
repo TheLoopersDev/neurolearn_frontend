@@ -3,19 +3,16 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { userLoggerIn } from '../auth/authSlice';
 import { User } from '@/types/user';
 import { RootState } from '@/lib/redux/store';
+import { getCookie } from '@/lib/utils';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000',
+    credentials: 'include',
     prepareHeaders: (headers) => {
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          headers.set('Authorization', `Bearer ${token}`);
-        }
-        // Don't add Content-Type for GET requests to avoid conflicts
-      }
+      // Don't manually set Authorization header for HttpOnly cookies
+      // The browser will automatically send the cookie with credentials: 'include'
       return headers;
     },
   }),
@@ -42,11 +39,11 @@ export const apiSlice = createApi({
           const user = result.data?.user;
 
           if (user) {
-            // Only update user, keep the current token
+            // Don't try to get HttpOnly cookie, just update user info
             dispatch({
               type: 'auth/userLoggerIn',
               payload: {
-                accessToken: (getState() as import('@/lib/redux/store').RootState).auth.token || '',
+                accessToken: 'session-based', // Keep session-based for HttpOnly cookies
                 user: user,
               },
             });

@@ -7,9 +7,10 @@ import { useWithDrawApiMutation } from '@/lib/redux/features/bank/bankApi';
 
 interface WithdrawFormProps {
   totalRevenue: string;
+  maxWithdrawAmount: number;
 }
 
-export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
+export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWithdrawAmount }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [withdraw, { isLoading }] = useWithDrawApiMutation();
@@ -19,8 +20,25 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
       alert('Please enter an amount');
       return;
     }
+
+    const withdrawAmount = Number(amount);
+
+    // Validation rules
+    if (withdrawAmount <= 0) {
+      alert('Amount must be greater than 0');
+      return;
+    }
+
+    if (withdrawAmount > maxWithdrawAmount) {
+      alert(`Cannot withdraw more than ${new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(maxWithdrawAmount)}`);
+      return;
+    }
+
     try {
-      const result = await withdraw({ amount: Number(amount), reason: reason || undefined }).unwrap();
+      const result = await withdraw({ amount: withdrawAmount, reason: reason || undefined }).unwrap();
       if (result.success) {
         alert('Withdrawal request sent successfully!');
         setAmount('');
@@ -66,13 +84,20 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue }) => {
               Amount (VND)
             </label>
             <input
-              type="text"
+              type="number"
               id="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
+              max={maxWithdrawAmount}
               className="w-full min-h-[60px] py-2 px-3 mt-1 text-base font-medium leading-none rounded-lg bg-slate-50 text-zinc-500 border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Maximum withdrawal: {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(maxWithdrawAmount)}
+            </p>
           </div>
           <div className="w-full">
             <label className="text-sm font-semibold leading-none text-stone-950" htmlFor="reason">

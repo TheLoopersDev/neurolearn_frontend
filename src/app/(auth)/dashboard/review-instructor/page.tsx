@@ -7,6 +7,7 @@ import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redu
 import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@headlessui/react';
 import Image from 'next/image';
+import { getCookie } from '@/lib/utils';
 
 const categories = ['All instructors', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -36,7 +37,13 @@ const ReviewInstructorPage = () => {
     if (activeTab === 'instructors') {
       setIsInstructorLoading(true);
       setInstructorError('');
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/users/get-instructors`)
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/users/get-instructors`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
         .then(res => res.json())
         .then(data => {
           if (data.success && Array.isArray(data.instructors)) {

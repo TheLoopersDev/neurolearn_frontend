@@ -52,3 +52,12 @@ export function decodeJWT(token: string): any {
     throw new Error('Invalid token: cannot decode payload');
   }
 }
+
+// Helper function to get cookie value
+export const getCookie = (name: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
