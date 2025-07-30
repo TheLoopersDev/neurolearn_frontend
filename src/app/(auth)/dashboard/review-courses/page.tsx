@@ -7,6 +7,14 @@ import {
 import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { Course } from '@/types/course';
 import Image from 'next/image';
+import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import CourseDetail from '@/components/course-detail/CourseDetail';
+import CourseContent from '@/components/course-detail/CourseContent';
+import PublisherCard from '@/components/course-detail/PublisherCard';
+import Rating from '@/components/course-detail/Rating';
+import OverView from '@/components/course-detail/OverView';
+import InstructorInfo from '@/components/common/ui/InstuctorInfo';
+import { useToast } from '@/hooks/use-toast';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -16,13 +24,22 @@ const CourseManagementSystem: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'request' | 'courses'>('request');
   const [authorNames, setAuthorNames] = useState<{ [id: string]: string }>({});
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // API call
   const { data, isLoading, isError } = useGetCoursesQuery();
   const courses: Course[] = data?.courses || [];
 
-  // Debug log
-  console.log('courses from API:', courses);
+  // API call cho request duyệt khóa học
+  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+    type: 'course_approval'
+  });
+  const [handleRequest] = useHandleRequestMutation();
+
+  // Ensure requestData is always an array
+  const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
 
   // Filter and map data
   const filteredCourses = courses.filter(course => {
@@ -32,9 +49,6 @@ const CourseManagementSystem: React.FC = () => {
     const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  // Debug log
-  console.log('filteredCourses:', filteredCourses);
 
   const requestItemsPerPage = 10;
   const coursesItemsPerPage = 9;
@@ -67,19 +81,28 @@ const CourseManagementSystem: React.FC = () => {
     });
   }, [currentCourses, authorNames]);
 
-  const handleDeleteCourse = (courseId: string) => {
-  // TODO: Implement delete logic with API
-    console.log(`Deleting course with ID: ${courseId}`);
-  };
-
-  const handleViewProgress = (courseId: string) => {
-  // TODO: Implement view progress logic
-    console.log(`Viewing progress for course ID: ${courseId}`);
-  };
-
   const handleTabChange = (tab: 'request' | 'courses') => {
     setActiveTab(tab);
     setCurrentPage(1);
+  };
+
+  const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      await handleRequest({ type: 'course_approval', requestId, action }).unwrap();
+      setCurrentPage(1);
+      // refetch(); // This line was removed as per the edit hint
+      toast({
+        title: action === 'approve' ? 'Course Approved' : 'Request Rejected',
+        description: `${action === 'approve' ? 'The course request has been approved.' : 'The course request has been rejected successfully.'}`,
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: action === 'approve' ? 'Approval Failed' : 'Rejection Failed',
+        description: err?.data?.message || err?.error || 'An error occurred while approving/rejecting the request.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Pagination component
@@ -229,66 +252,79 @@ const CourseManagementSystem: React.FC = () => {
                 <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Course Title</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Category</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Progress</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide"></div>
+                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
               </div>
 
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
-                {currentCourses.map((course, index) => (
-                  <div key={course._id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                    {/* Instructor */}
-                    <div className="col-span-3 flex items-center gap-3">
-                      <Image 
-                        src={course.publisher?.avatar?.url || 'https://via.placeholder.com/56'} 
-                        alt="avatar"
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" 
-                      />
-                      <div>
-                        <div className="font-semibold text-gray-900">{authorNames[course.publisher?._id || (course as any).authorId?._id] || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{course.publisher?.email || 'N/A'}</div>
+                {isRequestLoading ? (
+                  <div className="text-center py-8">Loading...</div>
+                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No data</div>
+                ) : (
+                      requestArray.map((req: any, index: number) => (
+                    <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                      {/* Instructor */}
+                      <div className="col-span-3 flex items-center gap-3">
+                        <Image 
+                              src={req.userId?.avatar?.url || 'https://via.placeholder.com/56'}
+                          alt="avatar"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
+                        />
+                        <div>
+                              <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
+                        </div>
+                      </div>
+                      {/* Course Title */}
+                      <div className="col-span-3 flex items-center ml-4">
+                            <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
+                      </div>
+                      {/* Category */}
+                      <div className="col-span-2 flex items-center ml-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                              {req.courseId?.tags ?
+                                (typeof req.courseId.tags === 'string' ? req.courseId.tags : req.courseId.tags.join(', ')) :
+                                'N/A'}
+                        </span>
+                      </div>
+                      {/* Request Date */}
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                          {/* Action */}
+                          <div className="col-span-1 flex items-center justify-center gap-2">
+                        <button
+                              className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                              onClick={() => {
+                                setSelectedRequest(req);
+                                setIsModalOpen(true);
+                          }}
+                        >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                        <button
+                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                              onClick={async () => {
+                            try {
+                              await handleApproveOrReject(req._id || req.id, 'reject');
+                            } catch (err: any) {
+                              toast({
+                                title: 'Rejection Failed',
+                                description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                                variant: 'destructive',
+                              });
+                            }
+                          }}
+                        >
+                              <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                    {/* Course Title */}
-                    <div className="col-span-3 flex items-center ml-4">
-                      <div className="font-medium text-gray-900 line-clamp-2">{course.name}</div>
-                    </div>
-                    {/* Category */}
-                    <div className="col-span-2 flex items-center ml-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {Array.isArray(course.tags)
-                          ? course.tags.join(', ')
-                          : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
-                      </span>
-                    </div>
-                    {/* Request Date */}
-                    <div className="col-span-2 flex items-center">
-                      <span className="text-gray-700 font-medium">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                    {/* Progress (Eye Icon) */}
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button 
-                        onClick={() => handleViewProgress(course._id)}
-                        className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
-                        title="View Progress"
-                      >
-                        <Eye className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
-                      </button>
-                    </div>
-                    {/* Actions (Delete Icon) */}
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button 
-                        onClick={() => handleDeleteCourse(course._id)}
-                        className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
-                        title="Delete Course"
-                      >
-                        <Trash2 className="w-5 h-5 text-orange-400 group-hover:text-orange-500" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </>
@@ -380,6 +416,128 @@ const CourseManagementSystem: React.FC = () => {
         {/* Pagination */}
         <PaginationComponent />
       </div>
+
+      {/* Preview Modal */}
+      {isModalOpen && selectedRequest && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-40 p-4">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-2xl font-bold text-gray-900">Course Preview</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Course Preview Content using course-detail components */}
+            <div className="p-6">
+              <div className="flex flex-col lg:flex-row gap-20">
+                {/* LEFT COLUMN */}
+                <div className="w-full lg:w-[70%] space-y-10">
+                  {/* Course Thumbnail */}
+                  <div className="w-full">
+                    <Image
+                      src={selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg'}
+                      alt={selectedRequest.courseId?.name || 'Course thumbnail'}
+                      width={1200}
+                      height={480}
+                      className="w-full h-64 object-cover rounded-4xl"
+                    />
+                  </div>
+
+                  {/* Instructor Info */}
+                  <InstructorInfo
+                    courseName={selectedRequest.courseId?.name}
+                    instructor={selectedRequest.userId}
+                  />
+
+                  {/* Description Section */}
+                  <div>
+                    <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
+                    <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
+                      <p>{selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
+                      <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
+                        View all &gt;
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Course Detail */}
+                  <CourseDetail course={selectedRequest.courseId} />
+
+                  {/* Course Content */}
+                  <CourseContent sections={selectedRequest.courseId?.sections || []} />
+
+                </div>
+
+                {/* RIGHT SIDEBAR */}
+                <div className="w-full lg:w-[30%] space-y-15">
+                  <PublisherCard
+                    author={selectedRequest.userId}
+                    updatedAt={selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined}
+                  />
+                  <Rating rating={selectedRequest.courseId?.rating || 0} />
+                  <OverView
+                    title={selectedRequest.courseId?.name}
+                    overview={selectedRequest.courseId?.description}
+                    topics={selectedRequest.courseId?.tags ? (typeof selectedRequest.courseId.tags === 'string' ? selectedRequest.courseId.tags.split(',').map((tag: string) => tag.trim()) : selectedRequest.courseId.tags) : []}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 pt-6 border-t mt-10">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'reject');
+                    } catch (err: any) {
+                      toast({
+                        title: 'Rejection Failed',
+                        description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  disabled={false} // isActionLoading was removed
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                >
+                  {/* isActionLoading ? 'Rejecting...' : 'Reject' */}
+                  Reject
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'approve');
+                    } catch (err: any) {
+                      toast({
+                        title: 'Approval Failed',
+                        description: err?.data?.message || err?.error || 'An error occurred while approving the course.',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  disabled={false} // isActionLoading was removed
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                >
+                  {/* isActionLoading ? 'Approving...' : 'Approve' */}
+                  Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { PiBagBold } from 'react-icons/pi';
+import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave } from 'react-icons/fa';
 import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
 import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
 import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
@@ -120,8 +121,40 @@ export function UserDropdown() {
     ]
     : [];
 
+  const adminItems = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
+    },
+    {
+      title: 'Course Requests',
+      href: '/dashboard/review-courses',
+      icon: <FaClipboardList className="text-[20px]" />,
+    },
+    {
+      title: 'Instructor Requests',
+      href: '/dashboard/review-instructor',
+      icon: <FaUsers className="text-[20px]" />,
+    },
+    {
+      title: 'Business Requests',
+      href: '/dashboard/business-requests',
+      icon: <FaBuilding className="text-[20px]" />,
+    },
+    {
+      title: 'Withdraw Requests',
+      href: '/dashboard/withdrawals',
+      icon: <FaMoneyBillWave className="text-[20px]" />,
+    },
+  ];
+
   const dropdownList =
-    user.role === 'instructor'
+    user.role === 'admin'
+      ? [
+        ...adminItems,
+      ]
+      : user.role === 'instructor'
       ? [
         {
           title: 'Dashboard User',
@@ -242,9 +275,9 @@ export function UserDropdown() {
 
             <DropdownMenuGroup>
               {dropdownList.map((item, index) => (
-                <Link href={item.href} key={item.title} passHref legacyBehavior>
-                  <DropdownMenuItem asChild>
-                    <motion.a
+                <DropdownMenuItem asChild key={item.title}>
+                  <Link href={item.href}>
+                    <motion.div
                       className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium"
                       variants={itemVariants}
                       custom={index}
@@ -255,9 +288,9 @@ export function UserDropdown() {
                     >
                       {item.icon}
                       {item.title}
-                    </motion.a>
-                  </DropdownMenuItem>
-                </Link>
+                    </motion.div>
+                  </Link>
+                </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
 
