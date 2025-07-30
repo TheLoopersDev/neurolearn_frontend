@@ -52,7 +52,7 @@ export const useFirestoreChat = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user, getUserId]);
+  }, [user]);
 
   // Subscribe to messages when active chat room changes
   useEffect(() => {
@@ -75,7 +75,7 @@ export const useFirestoreChat = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [activeChatRoomId, unsubscribeMessages]);
+  }, [activeChatRoomId]);
 
   // Cleanup on unmount
   useEffect(() => {

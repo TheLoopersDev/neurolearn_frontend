@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
 
 // Icons
 import dashboard from '@/public/assets/icons/dashboard.svg';
@@ -16,26 +17,44 @@ import teacher from '@/public/assets/icons/teacher.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 import certificate from '@/public/assets/icons/award.svg';
 import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
-
-const menuItems = [
-  { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-  {
-    icon: createQuiz,
-    label: 'Create Quiz',
-    path: '/dashboard/create-quiz',
-    suffixIcon: magicPenIcon,
-  },
-  { icon: earning, label: 'Earning', path: '/dashboard/earning' },
-  { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
-  { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
-  { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
-  { icon: message, label: 'Message', path: '/dashboard/message' },
-  { icon: setting, label: 'Setting', path: '/dashboard/setting' },
-];
+import reviewIcon from '@/public/assets/icons/book.svg';
+import withdrawIcon from '@/public/assets/review/withdrawal.svg';
+import businessIcon from '@/public/assets/review/business.svg';
+import peopleIcon from '@/public/assets/icons/teacher.svg';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const { user } = useSelector((state: any) => state.auth);
+
+  // Admin menu items
+  const adminMenuItems = [
+    { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
+    { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
+    { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
+    { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+  ];
+
+  // Regular user menu items
+  const regularMenuItems = [
+    { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: courses, label: 'Courses', path: '/dashboard/courses' },
+    {
+      icon: createQuiz,
+      label: 'Create Quiz',
+      path: '/dashboard/create-quiz',
+      suffixIcon: magicPenIcon,
+    },
+    { icon: earning, label: 'Earning', path: '/dashboard/earning' },
+    { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
+    { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
+    { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
+    { icon: message, label: 'Message', path: '/dashboard/message' },
+    { icon: setting, label: 'Setting', path: '/dashboard/setting' },
+  ];
+
+  // Choose menu items based on user role
+  const menuItems = user?.role === 'admin' ? adminMenuItems : regularMenuItems;
 
   return (
     <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
@@ -62,9 +81,9 @@ const Sidebar = () => {
                 }`}
               />
               {item.label}
-              {item.suffixIcon && (
+              {(item as any).suffixIcon && (
                 <Image
-                  src={item.suffixIcon}
+                  src={(item as any).suffixIcon}
                   alt={`${item.label} options`}
                   width={24}
                   height={24}

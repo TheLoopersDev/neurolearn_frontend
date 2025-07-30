@@ -12,7 +12,7 @@ export default function Page() {
           <CourseDropdown />
         </div>
         <div className="mt-10 w-full">
-          <ReceiptTable />
+          <ReceiptTable userType='user' />
         </div>
       </div>
     </div>

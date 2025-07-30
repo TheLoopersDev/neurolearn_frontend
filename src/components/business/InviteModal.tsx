@@ -1,46 +1,32 @@
 'use client';
 
-import { Fragment, useState, ChangeEvent, KeyboardEvent } from 'react';
+import { Fragment, useState, ChangeEvent, KeyboardEvent, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Image from 'next/image';
-import { Calendar, Clock } from 'lucide-react';
-
-export interface Course {
-  _id: string;
-  name: string;
-  thumbnailUrl: string;
-  category: string;
-  purchaseDate: string;
-  totalCourses: number;
-}
-
-export type InviteStatus = 'Received' | 'Invited' | 'Cancelled';
-
-export interface Invitee {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string;
-  status: InviteStatus;
-}
+import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
+import { useSelector } from 'react-redux';
 
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: Course;
-  invitees: Invitee[];
+  course: any;
+  invitees?: any[];
 }
 
-export default function InviteModal({
-  isOpen,
-  onClose,
-  course,
-  invitees,
-}: InviteModalProps) {
+export default function InviteModal({ isOpen, onClose, course }: InviteModalProps) {
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
+  const [inviteesData, setInviteesData] = useState<any[]>([]);
+  const [filteredInvitees, setFilteredInvitees] = useState<any[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const { toast } = useToast();
+  const { user } = useSelector((state: any) => state.auth);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -60,20 +46,91 @@ export default function InviteModal({
     }
   };
 
-  const statusClasses: Record<InviteStatus, string> = {
-    Received: 'text-green-600 font-medium',
-    Invited:  'text-blue-600 font-medium',
-    Cancelled:'text-orange-500 font-medium',
+  useEffect(() => {
+    const fetchInvitees = async () => {
+      if (!isOpen || !course?._id) return;
+
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/business/courses/${course._id}/unassigned-employees`,
+          { withCredentials: true }
+        );
+        const raw = res.data.employees;
+
+        const formatted: any[] = raw.map((emp: any) => ({
+          id: emp.user._id,
+          name: emp.user.name,
+          email: emp.user.email,
+          avatarUrl: emp.user.avatar?.url || '/assets/images/default-avatar.png',
+        }));
+
+        setInviteesData(formatted);
+        setFilteredInvitees(formatted);
+      } catch (error) {
+        console.error('Failed to fetch invitees:', error);
+      }
+    };
+
+    fetchInvitees();
+  }, [isOpen, course]);
+
+  useEffect(() => {
+    if (!inputValue.trim()) {
+      setFilteredInvitees(inviteesData);
+      return;
+    }
+
+    const lowerInput = inputValue.toLowerCase();
+    const filtered = inviteesData.filter(
+      (emp) =>
+        emp.name.toLowerCase().includes(lowerInput) ||
+        emp.email.toLowerCase().includes(lowerInput)
+    );
+
+    setFilteredInvitees(filtered);
+  }, [inputValue, inviteesData]);
+
+  const handleInvite = (employee: any) => {
+    setSelectedEmployee(employee);
+    setStartDate('');
+    setDueDate('');
+    setIsDateModalOpen(true);
+  };
+
+  const confirmInvite = async () => {
+    if (!selectedEmployee || !startDate || !dueDate) return;
+
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/${selectedEmployee.id}/assign-course`,
+        {
+          courseId: course._id,
+          startDate,
+          dueDate,
+        },
+        { withCredentials: true }
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Assigned successfully!',
+        variant: 'success',
+      });
+      setIsDateModalOpen(false);
+      onClose();
+    } catch (error) {
+      console.error('Error inviting:', error);
+      toast({
+        title: 'Error',
+        description: 'Assigning failed. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-50"
-        onClose={onClose}         
-      >
-        {/* Backdrop */}
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"
@@ -86,7 +143,6 @@ export default function InviteModal({
           <div className="fixed inset-0 bg-black/30" />
         </Transition.Child>
 
-        {/* Panel */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Transition.Child
             as={Fragment}
@@ -98,38 +154,22 @@ export default function InviteModal({
             leaveTo="opacity-0 scale-95"
           >
             <Dialog.Panel className="bg-white rounded-2xl w-full max-w-lg p-6">
-              {/* Header */}
               <div className="flex justify-between items-center border-b mb-6">
                 <Dialog.Title className="text-xl font-bold text-black">
-                  Invite Courses
+                  Assign Courses
                 </Dialog.Title>
                 <div className="flex space-x-6">
                   <button
-                    className={`pb-2 ${
-                      activeTab === 'email'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-500'
-                    }`}
+                    className={`pb-2 ${activeTab === 'email' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
                     onClick={() => setActiveTab('email')}
                   >
-                    Invite via Email
-                  </button>
-                  <button
-                    className={`pb-2 ${
-                      activeTab === 'import'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-500'
-                    }`}
-                    onClick={() => setActiveTab('import')}
-                  >
-                    Import XLSX
+                    Assign via Email
                   </button>
                 </div>
               </div>
-              {/* Tab Content */}
+
               {activeTab === 'email' ? (
                 <>
-                  {/* Invite via Email */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 border rounded-full px-4 py-2 flex flex-wrap gap-2">
@@ -140,12 +180,7 @@ export default function InviteModal({
                           >
                             <span>{e}</span>
                             <button onClick={() => handleRemoveEmail(i)}>
-                              <Image
-                                src="/assets/icons/close.svg"
-                                alt="Remove"
-                                width={12}
-                                height={12}
-                              />
+                              <Image src="/assets/icons/close.svg" alt="Remove" width={12} height={12} />
                             </button>
                           </div>
                         ))}
@@ -157,21 +192,13 @@ export default function InviteModal({
                           onKeyDown={handleKeyDown}
                         />
                       </div>
-                      <button
-                        className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition whitespace-nowrap"
-                        onClick={() => {
-                          /* TODO: gọi API invite */
-                        }}
-                      >
-                        Invite
-                      </button>
                     </div>
                   </div>
-                  {/* Course summary */}
+
                   <div className="mt-6 bg-gray-50 p-4 rounded-xl flex items-center gap-4">
-                                      <div className="relative w-40 h-24 flex-shrink-0">
+                    <div className="relative w-40 h-24 flex-shrink-0">
                       <Image
-                        src={course.thumbnailUrl}
+                        src={course?.thumbnail?.url}
                         alt={course.name}
                         fill
                         style={{ objectFit: 'cover' }}
@@ -179,29 +206,15 @@ export default function InviteModal({
                       />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                        <Image src="/assets/icons/tag.svg" alt="Tag" width={14} height={14}/>
-                        <span>{course.category}</span>
-                      </div>
-                      <h4 className="text-sm font-semibold text-black">
-                        {course.name}
-                      </h4>
-                      <div className="flex items-center text-xs text-gray-500 gap-4 mt-1">
-                        <div className="flex items-center gap-1">
-                          <Calendar size={14}/>
-                          <span>{course.purchaseDate}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock size={14}/>
-                          <span>{course.totalCourses} Courses</span>
-                        </div>
-                      </div>
+                      <h4 className="text-sm font-semibold text-black">{course.name}</h4>
+                      <h6 className="text-sm text-gray-600">
+                        {course.description?.split(' ').slice(0, 10).join(' ') + (course.description?.split(' ').length > 10 ? '...' : '')}
+                      </h6>
                     </div>
                   </div>
 
-                  {/* Invitees list */}
                   <ul className="mt-4 max-h-48 overflow-y-auto divide-y">
-                    {invitees.map(inv => (
+                    {filteredInvitees?.map(inv => (
                       <li key={inv.id} className="py-3 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Image
@@ -216,30 +229,20 @@ export default function InviteModal({
                             <p className="text-xs text-gray-500">{inv.email}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className={statusClasses[inv.status]}>
-                            {inv.status}
-                          </span>
-                          <button className="p-1">
-                            <Image
-                              src="/assets/icons/more.svg"
-                              alt="More"
-                              width={16}
-                              height={16}
-                            />
-                          </button>
-                        </div>
+                        <button
+                          className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition whitespace-nowrap"
+                          onClick={() => handleInvite(inv)}
+                        >
+                          Invite
+                        </button>
                       </li>
                     ))}
                   </ul>
                 </>
               ) : (
-                /* Import XLSX */
                 <div className="space-y-4">
                   <label className="block">
-                    <span className="text-sm font-medium text-gray-700">
-                      Upload XLSX file
-                    </span>
+                      <span className="text-sm font-medium text-gray-700">Upload XLSX file</span>
                     <input
                       type="file"
                       accept=".xlsx"
@@ -252,9 +255,7 @@ export default function InviteModal({
                   )}
                   <button
                     className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
-                    onClick={() => {
-                      /* TODO: xử lý import */
-                    }}
+                      onClick={() => { }}
                   >
                     Import
                   </button>
@@ -263,6 +264,47 @@ export default function InviteModal({
             </Dialog.Panel>
           </Transition.Child>
         </div>
+
+        <Transition appear show={isDateModalOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-50" onClose={() => setIsDateModalOpen(false)}>
+            <div className="fixed inset-0 bg-black/40" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <Dialog.Panel className="bg-white rounded-xl p-6 max-w-sm w-full">
+                <Dialog.Title className="text-lg font-semibold text-black mb-4">
+                  Set Start and Due Dates
+                </Dialog.Title>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-black">Start Date</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={e => setStartDate(e.target.value)}
+                      className="w-full border px-3 py-2 rounded mt-1 text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-black">Due Date</label>
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={e => setDueDate(e.target.value)}
+                      className="w-full border px-3 py-2 rounded mt-1 text-black"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={confirmInvite}
+                      className="text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
+        </Transition>
       </Dialog>
     </Transition>
   );

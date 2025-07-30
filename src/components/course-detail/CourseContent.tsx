@@ -24,7 +24,7 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
         return (
           <div
             key={sectionKey}
-            className="rounded-xl bg-[#F9F9F9] w-full mb-2 overflow-hidden shadow-sm"
+            className="rounded-xl bg-[#F9F9F9] w-full mb-6 overflow-hidden shadow-sm"
           >
             <button
               onClick={() => toggleSection(sectionKey)}

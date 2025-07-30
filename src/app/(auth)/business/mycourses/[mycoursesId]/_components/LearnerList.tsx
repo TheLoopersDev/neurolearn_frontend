@@ -50,8 +50,8 @@ const LearnerList: React.FC<LearnerListProps> = ({ learners }) => {
             <div className="grid grid-cols-12 gap-6 pb-4 text-gray-500 font-medium">
               <div className="col-span-3 pl-10">Full Name</div>
               <div className="col-span-2">Status</div>
-              <div className="col-span-3">Last opened content</div>
-              <div className="col-span-2">Start Date</div>
+              <div className="col-span-3">Start Date</div>
+              <div className="col-span-2">Due Date</div>
               <div className="col-span-2">Progress</div>
             </div>
             <div className="flex flex-col gap-4">

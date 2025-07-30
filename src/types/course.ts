@@ -193,16 +193,6 @@ export interface Course {
   subTitle?: string;
   description?: string;
   overview?: string;
-  author: {
-    _id: string;
-    name: string;
-    email: string;
-    avatar?: {
-      public_id: string;
-      url: string;
-    };
-    profession: string;
-  };
   price?: number;
   estimatedPrice?: number;
   thumbnail: { url: string };
@@ -226,6 +216,20 @@ export interface Course {
   isDraft?: boolean;
   createdAt: string;
   updatedAt: string;
+  publisher: {
+    _id: string;
+    name: string;
+    avatar: {
+      public_id: string;
+      url: string;
+    };
+    email: string;
+    profession: string;
+    description: string;
+    rating: number;
+    students: number;
+    courses: number;
+  };
 }
 
 // export interface CourseDetail {

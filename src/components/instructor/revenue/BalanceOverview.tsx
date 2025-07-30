@@ -1,9 +1,14 @@
 import React from 'react';
 import { TotalWithdrawIcon, ServiceFeeIcon, CurrentBalanceIcon } from '@/components/instructor/revenue/RevenueIcons';
-import { BalanceOverviewProps } from '@/types/income';
+
+interface BalanceOverviewProps {
+  totalIncome: string;
+  serviceFee: string;
+  currentBalance: string;
+}
 
 export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
-  totalWithdraw,
+  totalIncome,
   serviceFee,
   currentBalance
 }) => {
@@ -15,8 +20,8 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
           <div className="w-full">
             <TotalWithdrawIcon />
             <div className="mt-3 w-full">
-              <p className="text-lg font-semibold leading-none text-blue-600">{totalWithdraw}</p>
-              <p className="mt-3 text-sm font-medium leading-none text-neutral-500">Total Withdraw</p>
+              <p className="text-lg font-semibold leading-none text-blue-600">{totalIncome}</p>
+              <p className="mt-3 text-sm font-medium leading-none text-neutral-500">Total Income</p>
             </div>
           </div>
         </article>

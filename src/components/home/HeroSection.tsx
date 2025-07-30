@@ -8,13 +8,16 @@ import { slideFromLeft, slideFromRight } from '@/utils/animations';
 
 const HeroSection = () => {
   return (
-    <section className="py-12">
+    <section className="pt-12">
       <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
         <AnimatedSection variants={slideFromLeft} className="md:w-1/2 mb-8 md:mb-0">
-          <h1 className="text-4xl font-bold mb-4">
-            <span className="text-blue-600">All The Skills You</span>
+          <div className='flex items-center justify-center bg-blue-600 w-50 rounded-full items-center mb-20'>
+            #1 Online Courses 2025
+          </div>
+          <h1 className="text-4xl font-bold">
+            <span className="text-blue-600 mb-10">All The Skills You</span>
             <br />
-            Need In One Place
+            <span className='text-black'>Need In One Place</span>
           </h1>
           <p className="text-gray-700 mb-6">
             From coding skills to business topics. Udemy helps
@@ -51,27 +54,6 @@ const HeroSection = () => {
               <span className="text-[40px] font-semibold text-[#3858F8]">800</span>
               <span className="text-[32px] font-bold text-[#3858F8]">+</span>
               <span className="absolute mt-2 text-[14px] text-gray-500">Participants</span>
-            </motion.div>
-
-            <motion.div
-              className="absolute w-[101px] h-[73px]
-               right-[calc(100%)]  
-               top-[calc(80%-16px)]          
-               bg-white
-               rounded-[12px]
-               shadow
-               flex flex-col items-center justify-center
-               p-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              whileHover={{ scale: 1.1 }}
-            >
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                <div className="ml-2 text-sm font-medium">50%</div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">Growth rate</div>
             </motion.div>
           </div>
         </AnimatedSection>

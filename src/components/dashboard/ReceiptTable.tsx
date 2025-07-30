@@ -17,16 +17,22 @@ interface Order {
     createdAt: string;
 }
 
-export default function ReceiptTable() {
+interface ReceiptTableProps {
+    userType: 'user' | 'business';
+}
+
+export default function ReceiptTable({ userType }: ReceiptTableProps) {
     const [orders, setOrders] = useState<Order[]>([]);
     const router = useRouter();
 
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URI}/orders/user-orders`, {
-                    withCredentials: true,
-                });
+                const response = await axios.post(
+                    `${process.env.NEXT_PUBLIC_SERVER_URI}/orders/user-orders`,
+                    { userType },
+                    { withCredentials: true }
+                );
 
                 if (response.data.success) {
                     setOrders(response.data.orders);
@@ -74,7 +80,7 @@ export default function ReceiptTable() {
                                 <td className="py-6 font-medium">{formattedDate}</td>
                                 <td className="py-6 text-center">
                                     <button
-                                        onClick={() => handleReceiptClick(order._id)}
+                                        onClick={() => handleReceiptClick(order?.orderCode)}
                                         className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white text-sm px-4 py-1.5 rounded-full"
                                     >
                                         Receipt
