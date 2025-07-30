@@ -44,7 +44,7 @@ const CourseManagementSystem: React.FC = () => {
   // Filter and map data
   const filteredCourses = courses.filter(course => {
     const matchesSearch = (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (course.publisher?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const categoryName = typeof course.category === 'string' ? course.category : course.category?.title || '';
     const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -59,7 +59,7 @@ const CourseManagementSystem: React.FC = () => {
 
   useEffect(() => {
     const ids = currentCourses
-      .map(course => course.author?._id || (course as any).authorId?._id)
+      .map(course => course.publisher?._id || (course as any).authorId?._id)
       .filter(Boolean);
     const idsToFetch = ids.filter(id => !(id in authorNames));
     if (idsToFetch.length === 0) return;
@@ -332,7 +332,7 @@ const CourseManagementSystem: React.FC = () => {
           // Grid card view for Courses tab
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentCourses.map((course) => {
-                const authorId = course.author?._id || (course as any).authorId?._id;
+                const authorId = course.publisher?._id || (course as any).authorId?._id;
                 const authorName = authorId ? authorNames[authorId] || '...' : 'N/A';
                 return (
                   <div key={course._id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">

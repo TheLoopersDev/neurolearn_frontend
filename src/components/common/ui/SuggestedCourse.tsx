@@ -29,7 +29,7 @@ export default function SuggestedCourse() {
             />
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-black leading-snug">{course.title}</h3>
-              <p className="text-xs text-gray-500">{course.author}</p>
+              <p className="text-xs text-gray-500">{course.publisher?.name}</p>
               <div className="flex items-center text-xs text-gray-700 gap-1 mt-1">
                 <span>{course.rating}</span>
                 <Star size={14} fill="#3858F8" color="#3858F8" />

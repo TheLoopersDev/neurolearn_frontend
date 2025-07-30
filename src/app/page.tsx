@@ -9,6 +9,7 @@ import PersonalityTestSection from '@/components/home/PersonalityTestSection';
 import VideoSection from '@/components/home/VideoSection';
 import FilterTagsContainer from '@/components/common/ui/FilterTagsContainer';
 import LearningGoals from '@/components/home/LearningGoals';
+import BecomeInstructorBusiness from '@/components/home/BecomeInstructorBusiness';
 
 export default function Home() {
   return (
@@ -42,6 +43,9 @@ export default function Home() {
 
       {/* Video Section */}
       <VideoSection />
+
+      {/*Become instructor/business*/}
+      <BecomeInstructorBusiness />
     </div>
   );
 }
