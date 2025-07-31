@@ -302,7 +302,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         setQuestionsList(remaining);
         setSelectedQuestionId(remaining.length > 0 ? remaining[0].id : null);
 
-        // GỌI UPDATE QUIZ BẰNG DANH SÁCH MỚI NHẤT
+        // CALL UPDATE QUIZ WITH LATEST LIST
         await updateQuiz({
           id: currentQuizIdInternal,
           quiz: {
@@ -458,7 +458,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           activeQuestionNumber={activeQuestionData?.questionNumber}
           onSelectQuestion={handleSelectQuestion}
           onAddQuestion={handleAddQuestion}
-          // isOpen và onToggle đã được truyền từ phiên bản trước, đảm bảo chúng vẫn có
+          // isOpen and onToggle were passed from previous version, ensure they still exist
         />
         <main className={`flex-grow overflow-y-auto transition-all duration-300 ease-in-out`}>
           <div className="h-full">

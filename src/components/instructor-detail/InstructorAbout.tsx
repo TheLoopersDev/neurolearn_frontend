@@ -15,7 +15,7 @@ const InstructorAbout: React.FC<InstructorAboutProps> = ({ introductionText }) =
 
   const textToShow = introductionText || "This instructor hasn't added a biography yet.";
 
-  // Effect này sẽ kiểm tra xem nội dung có dài hơn 3 dòng hay không
+      // This effect will check if content is longer than 3 lines
   useLayoutEffect(() => {
     // Hàm để kiểm tra xem có overflow không
     const checkCanBeClamped = () => {
@@ -41,7 +41,7 @@ const InstructorAbout: React.FC<InstructorAboutProps> = ({ introductionText }) =
       }
     };
 
-    // Tạo một timeout nhỏ để đảm bảo trình duyệt đã tính toán xong layout
+    // Create a small timeout to ensure the browser has finished calculating the layout
     const timer = setTimeout(checkCanBeClamped, 10);
 
     window.addEventListener('resize', checkCanBeClamped);
@@ -73,7 +73,7 @@ const InstructorAbout: React.FC<InstructorAboutProps> = ({ introductionText }) =
         {textToShow}
       </p>
 
-      {/* Chỉ hiển thị nút khi nội dung có thể bị cắt bớt */}
+              {/* Only show button when content can be truncated */}
       {canBeClamped && (
         <button
           onClick={toggleExpanded}

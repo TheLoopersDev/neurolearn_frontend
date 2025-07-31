@@ -142,7 +142,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   };
 
   const handleBankSelect = (bank: BankInfo) => {
-    setBankName(bank.name); // Hiển thị tên đầy đủ trong UI
+            setBankName(bank.name); // Display full name in UI
     setBankShortName(bank.shortName); // Lưu shortName để gửi lên server
     setShowSuggestions(false);
   };

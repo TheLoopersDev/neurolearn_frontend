@@ -15,7 +15,7 @@ interface SpinnerMiniProps {
   color?: string;
   /**
    * Màu của phần rãnh (phần tĩnh, thường nhạt hơn của vòng spinner).
-   * @default "rgba(0, 0, 0, 0.1)" (Màu tối nhẹ, phù hợp với nền sáng)
+   * @default "rgba(0, 0, 0, 0.1)" (Light dark color, suitable for light background)
    * Nếu dùng trên nền tối, hãy cân nhắc đổi thành "rgba(255, 255, 255, 0.2)"
    */
   trackColor?: string;
@@ -38,8 +38,8 @@ interface SpinnerMiniProps {
    */
   style?: React.CSSProperties;
   /**
-   * Văn bản ẩn cho trình đọc màn hình (ví dụ: "Đang tải...").
-   * @default "Đang tải..."
+    * Hidden text for screen readers (e.g., "Loading...").
+ * @default "Loading..."
    */
   screenReaderText?: string;
 }
@@ -52,7 +52,7 @@ export default function SpinnerMini({
   speed = 0.75,
   className = '',
   style = {},
-  screenReaderText = 'Đang tải...',
+      screenReaderText = 'Loading...',
 }: SpinnerMiniProps) {
   const currentSize = typeof size === 'number' ? `${size}px` : size;
   const currentThickness = typeof thickness === 'number' ? `${thickness}px` : thickness;

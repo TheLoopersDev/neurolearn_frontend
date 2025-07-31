@@ -1,7 +1,7 @@
 // src/app/(auth)/dashboard/courses/instructors/[id]/_components/ReviewList.tsx
 'use client';
 import React from 'react';
-import { IReview } from '@/types/course'; // Đảm bảo đường dẫn đúng
+import { IReview } from '@/types/course'; // Ensure correct path
 import ReviewCard from './ReviewCard';
 
 interface ReviewListProps {

@@ -123,6 +123,8 @@ export const subscribeToMessages = (
       ...doc.data(),
     })) as ChatMessage[];
     callback(messages);
+  }, (error) => {
+    console.error('subscribeToMessages error for chatRoomId:', chatRoomId, error);
   });
 };
 
@@ -156,7 +158,6 @@ export const subscribeToChatRooms = (userId: string, callback: (chatRooms: ChatR
       id: doc.id,
       ...doc.data(),
     })) as ChatRoom[];
-    console.log('Firestore chatRooms:', chatRooms); // DEBUG LOG
     callback(chatRooms);
   });
 };

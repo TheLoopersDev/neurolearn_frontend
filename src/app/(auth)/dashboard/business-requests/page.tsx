@@ -21,7 +21,7 @@ const BusinessRequestsPage = () => {
   const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
   const { toast } = useToast();
 
-  // API call cho request duyệt business
+  // API call for business approval requests
   const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
     type: 'business_verification'
   });
@@ -56,8 +56,8 @@ const BusinessRequestsPage = () => {
     { label: 'User', className: 'col-span-3' },
     { label: 'Company Name', className: 'col-span-3' },
     { label: 'Request Date', className: 'col-span-3' },
-    { label: 'Duyệt', className: 'col-span-2' },
-    { label: 'Từ chối', className: 'col-span-1' },
+      { label: 'Approve', className: 'col-span-2' },
+  { label: 'Reject', className: 'col-span-1' },
   ];
 
   const itemsPerPage = 10;
@@ -111,7 +111,7 @@ const BusinessRequestsPage = () => {
                     <div className="col-span-3 flex items-center">
                       <span className="text-gray-700 font-medium">{request.requestDate || (request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A')}</span>
                     </div>
-                    {/* Duyệt */}
+                    {/* Approve */}
                     <div className="col-span-2 flex items-center justify-center gap-2">
                       <button
                         className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
@@ -123,18 +123,18 @@ const BusinessRequestsPage = () => {
                         className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
                         onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
                       >
-                        Duyệt
+                        Approve
                       </button>
                     </div>
-                    {/* Từ chối */}
+                    {/* Reject */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button
                         className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
                         // disabled={isActionLoading} // This state variable is not defined in the original file
                         onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
                       >
-                        {/* {isActionLoading ? 'Đang từ chối...' : 'Từ chối'} */}
-                        Từ chối
+                        {/* {isActionLoading ? 'Rejecting...' : 'Reject'} */}
+                        Reject
                       </button>
                     </div>
                   </ReviewTableRow>

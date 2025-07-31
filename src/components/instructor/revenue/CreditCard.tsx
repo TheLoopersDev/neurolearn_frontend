@@ -120,7 +120,7 @@ export const CreditCard: React.FC = () => {
     );
   }
 
-  // Show no card state - hiển thị UI thân thiện khi chưa có card
+      // Show no card state - display friendly UI when no card exists
   if (error || !creditCardData?.data) {
     return (
       <div className="w-full max-w-[340px] h-[200px] rounded-2xl overflow-hidden shadow-lg relative bg-gradient-to-br from-gray-100 to-gray-200 border-dashed border-gray-300">
@@ -152,10 +152,10 @@ export const CreditCard: React.FC = () => {
     return bank ? bank.bankLogoUrl : undefined;
   };
 
-  // Use the UI component with real data - hiển thị shortName trực tiếp
-  return (
-    <CreditCardUI
-      bankName={card.cardType} // Hiển thị shortName trực tiếp
+          // Use the UI component with real data - display shortName directly
+        return (
+          <CreditCardUI
+            bankName={card.cardType} // Display shortName directly
       bankLogo={getBankLogo(card.cardType)}
       cardHolder={card.name}
       cardNumber={formattedCardNumber}

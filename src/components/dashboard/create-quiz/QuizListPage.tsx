@@ -201,7 +201,7 @@ const QuizListPage: React.FC = () => {
       );
     }
 
-    // Trường hợp không có quiz nào
+    // Case when there are no quizzes
     return (
       <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
         <h3 className="mt-2 text-lg font-semibold text-gray-800">No quizzes found</h3>

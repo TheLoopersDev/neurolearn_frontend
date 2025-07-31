@@ -75,7 +75,7 @@ const CoursePagination: React.FC<Props> = ({ page, totalPages, isFetching, onPag
 
     return (
         <div className="flex flex-col items-center mt-10 space-y-3">
-            {isFetching && <div className="text-gray-500">Đang tải trang {page}...</div>}
+            {isFetching && <div className="text-gray-500">Loading page {page}...</div>}
 
             <div className="flex justify-center items-center gap-2 flex-wrap">
                 <button

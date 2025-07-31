@@ -50,7 +50,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSu
   useEffect(() => {
     if (isOpen) {
       setCurrentStep('initialStep');
-      resetForms(); // Reset tất cả khi modal mở
+      resetForms(); // Reset all when modal opens
     }
   }, [isOpen, resetForms]);
 
@@ -150,7 +150,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSu
         <h2 className="text-2xl font-bold text-gray-800">Create A Test</h2>
 
         <div className="w-[390px] h-[160px] mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-4">
-          {/* Thay bằng icon phù hợp với "Create A Test" chung chung hơn */}
+                      {/* Replace with icon suitable for "Create A Test" more general */}
           <Image
             src="/assets/create-quiz/Rectangle 576.png"
             alt="Create Test Icon"

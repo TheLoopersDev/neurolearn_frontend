@@ -49,7 +49,7 @@ export default function InstructorForm() {
         if (!validate()) return;
         setLoading(true);
 
-        // Nếu muốn upload file thực, cần upload lên server trước, lấy url rồi gửi url vào documents
+        // If you want to upload real files, need to upload to server first, get url then send url in documents
         // Ở đây chỉ gửi tên file demo
         const body = {
             fullName,
@@ -76,8 +76,8 @@ export default function InstructorForm() {
             const data = await res.json();
             if (data.success) {
                 toast({
-                    title: 'Thành công',
-                    description: 'Yêu cầu của bạn đã được gửi!',
+                            title: 'Success',
+        description: 'Your request has been sent!',
                     variant: 'success'
                 });
                 // Reset form
