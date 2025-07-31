@@ -51,13 +51,13 @@ const CardOption: React.FC<CardOptionProps> = ({ courseId, onDelete }) => {
                             Edit
                         </button>
                         <button
-                            onClick={() => handleNavigate(`/dashboard/instructor-courses/${courseId}`)}
+                            onClick={() => handleNavigate(`/dashboard/courses/${courseId}`)}
                             className="w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
                             Course Detail
                         </button>
                         <button
-                            onClick={() => handleNavigate(`/dashboard/instructor/courses/${courseId}/analytics`)}
+                            onClick={() => handleNavigate(`/dashboard/courses/${courseId}/analytics`)}
                             className="w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
                             Analytics

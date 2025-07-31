@@ -22,6 +22,34 @@ interface PaginatedCourses {
   courses: Course[];
 }
 
+interface ReviewStats {
+  average: number;
+  total: number;
+  stats: { star: number; percent: number }[];
+}
+
+interface StudentStats {
+  name: string;
+  view: number;
+  buy: number;
+}
+
+interface CourseStats {
+  totalCourses: number;
+  pendingCourses: number;
+  coursesSold: number;
+  publishedCourses: number;
+}
+
+interface LatestCourse {
+  _id: string;
+  name: string;
+  thumbnail: string;
+  status: 'draft' | 'pending' | 'published';
+  stepsCompleted: number;
+  stepsTotal: number;
+}
+
 export const courseApi = createApi({
   reducerPath: 'courseApi',
   baseQuery: fetchBaseQuery({
@@ -53,6 +81,10 @@ export const courseApi = createApi({
       query: () => '/courses/top-courses',
       providesTags: ['Course'],
     }),
+    getReviewCourseById: builder.query<ApiResponse<Course>, string>({
+      query: id => `/courses/review/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Course', id }],
+    }),
     getUserCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '/courses/user-courses',
       providesTags: result =>
@@ -76,10 +108,18 @@ export const courseApi = createApi({
         method: 'POST',
         body: course,
       }),
-      invalidatesTags: result =>
-        result?.data?._id
-          ? [{ type: 'Course' }, { type: 'Course', id: result.data._id }]
-          : [{ type: 'Course' }],
+      invalidatesTags: result => {
+        const baseTags = result?.data?._id
+          ? [{ type: 'Course' as const }, { type: 'Course' as const, id: result.data._id }]
+          : [{ type: 'Course' as const }];
+
+        // Gộp thêm tag LatestCourse theo publisherId nếu có
+        const latestTag = result?.data?.publisher?._id
+          ? [{ type: 'Course' as const, id: `LATEST-${result.data.publisher._id}` }]
+          : [];
+
+        return [...baseTags, ...latestTag];
+      },
     }),
     updateCourse: builder.mutation<ApiResponse<Course>, { id: string; course: Partial<Course> }>({
       query: ({ id, course }) => ({
@@ -87,10 +127,15 @@ export const courseApi = createApi({
         method: 'PUT',
         body: course,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Course', id },
-        { type: 'Course' }, // đảm bảo getUserCourses cũng bị refetch
-      ],
+      invalidatesTags: (result, error, { id }) => {
+        const baseTags = [{ type: 'Course' as const, id }, { type: 'Course' as const }];
+
+        const latestTag = result?.data?.publisher?._id
+          ? [{ type: 'Course' as const, id: `LATEST-${result.data.publisher._id}` }]
+          : [];
+
+        return [...baseTags, ...latestTag];
+      },
     }),
     saveCurriculum: builder.mutation<ApiResponse<null>, { courseId: string; sections: any[] }>({
       query: ({ courseId, sections }) => ({
@@ -169,6 +214,30 @@ export const courseApi = createApi({
       keepUnusedDataFor: 60,
       providesTags: ['Course'],
     }),
+    getInstructorReviewStats: builder.query<ReviewStats, string>({
+      query: id => `/courses/course/${id}/reviews`,
+      providesTags: (result, error, id) => [{ type: 'Course', id }],
+      transformResponse: (response: ReviewStats & { success?: boolean }) => {
+        // Nếu API trả thêm success, bỏ qua nó và chỉ return stats
+        return {
+          average: response.average,
+          total: response.total,
+          stats: response.stats,
+        };
+      },
+    }),
+    getStudentStats: builder.query<{ stats: StudentStats[] }, string>({
+      query: instructorId => `/courses/course/${instructorId}/stats`,
+    }),
+    getCourseStats: builder.query<CourseStats, string>({
+      query: instructorId => `/courses/course/${instructorId}/course-stats`,
+    }),
+    getLatestCourse: builder.query<{ course: LatestCourse | null }, string>({
+      query: instructorId => `/courses/course/${instructorId}/latest-course`,
+      providesTags: (result, error, instructorId) => [
+        { type: 'Course', id: `LATEST-${instructorId}` },
+      ],
+    }),
   }),
 });
 
@@ -176,6 +245,7 @@ export const {
   useGetCoursesQuery,
   useGetCourseByIdQuery,
   useGetCourseByDetailQuery,
+  useGetReviewCourseByIdQuery,
   useGetTopCoursesQuery,
   useGetUserCoursesQuery,
   useSaveCurriculumMutation,
@@ -184,4 +254,8 @@ export const {
   useDeleteCourseMutation,
   useSearchCoursesQuery,
   useGetCoursesPaginatedQuery,
+  useGetInstructorReviewStatsQuery,
+  useGetStudentStatsQuery,
+  useGetCourseStatsQuery,
+  useGetLatestCourseQuery,
 } = courseApi;
