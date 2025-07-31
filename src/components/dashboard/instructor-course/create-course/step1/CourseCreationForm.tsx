@@ -11,9 +11,13 @@ import {
     useGetCourseByDetailQuery,
     useUpdateCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
+import { useCreateCourseApprovalRequestMutation } from "@/lib/redux/features/request/requestApi";
+import { useGetAllSectionsQuery } from "@/lib/redux/features/course/section/sectionApi";
+
 import CourseSectionList from "../step2/CourseSectionList";
 import { ToastProvider, ToastViewport } from "@/components/common/ui/Toast";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface CourseCreationFormProps {
     formData: Partial<Course>;
@@ -22,6 +26,7 @@ interface CourseCreationFormProps {
 }
 
 export default function CourseCreationForm(props: CourseCreationFormProps) {
+    const router = useRouter();
     const { setFormData } = props;
     const [step, setStep] = useState<1 | 2>(1);
     const [draftSaved, setDraftSaved] = useState(false);
@@ -31,6 +36,8 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
     const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId!, {
         skip: !courseId,
     });
+    const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
+    const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
 
     useEffect(() => {
         if (isSuccess && courseData?.courses) {
@@ -120,24 +127,53 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
                 });
                 return;
             }
+            // ✅ Kiểm tra ít nhất 1 section và 1 lesson
+            const sections = sectionData?.data || [];
+            if (sections.length === 0) {
+                toast({
+                    title: "Error",
+                    description: "Your course must have at least 1 section to publish.",
+                    variant: "destructive",
+                });
+                return;
+            }
 
+            const hasLesson = sections.some((s: any) => s.lessons && s.lessons.length > 0);
+            if (!hasLesson) {
+                toast({
+                    title: "Error",
+                    description: "Your course must have at least 1 lesson to publish.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            // 1. Cập nhật trạng thái course 
             const payload = {
                 ...getPayload(),
-                isPublished: true,
+                isPublished: false,
                 isDraft: false,
             };
 
             await updateCourse({ id: courseId, course: payload }).unwrap();
+
+            // 2. Gửi request duyệt course
+            await createCourseApprovalRequest({
+                courseId,
+                message: "Requesting course approval"
+            }).unwrap();
+
             toast({
                 title: "Success",
-                description: "Course published successfully!",
+                description: "Course published and approval request sent successfully!",
                 variant: "success",
             });
+            router.push(`/dashboard/courses/${courseId}`);
         } catch (err) {
             console.error("❌ Error publishing course:", err);
             toast({
                 title: "Error",
-                description: "Failed to publish course. Please try again.",
+                description: "Failed to publish or request approval. Please try again.",
                 variant: "destructive",
             });
         }

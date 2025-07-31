@@ -6,10 +6,11 @@ import { Course } from '@/types/course';
 
 interface CourseCardProps {
     course: Course;
+    status?: string;
 }
 
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, status }) => {
     const {
         _id,
         name,
@@ -19,7 +20,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         createdAt,
         estimatedPrice,
         price,
-        isPublished,
     } = course;
 
     return (
@@ -37,7 +37,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                     creationDate={new Date(createdAt).toLocaleDateString('vi-VN')}
                     originalPrice={`${estimatedPrice || 0} VND`}
                     salePrice={`${price || 0} VND`}
-                    status={isPublished ? 'Published' : 'Draft'}
+                    status={status}
                 />
             </div>
         </article>

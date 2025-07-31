@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface StatusBadgeProps {
-    status: string;
+    status?: string;
     variant?: 'published' | 'draft' | 'pending';
 }
 
