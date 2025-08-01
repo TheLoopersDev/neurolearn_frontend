@@ -55,12 +55,9 @@ export default async function DashboardPage({ params } : any) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <LearningProgressChart employeeMonthlyData= {employeeMonthlyData} managerMonthlyData={managerMonthlyData} />
-          </div>
-          <div>
-            <CourseStatus />
+        <div className="grid grid-cols-1">
+          <div className="lg:col-span-3">
+            <LearningProgressChart employeeMonthlyData={employeeMonthlyData} managerMonthlyData={managerMonthlyData} />
           </div>
         </div>
       </div>
