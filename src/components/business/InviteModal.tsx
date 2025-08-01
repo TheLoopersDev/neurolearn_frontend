@@ -1,11 +1,14 @@
 'use client';
 
-import { Fragment, useState, ChangeEvent, KeyboardEvent, useEffect } from 'react';
+import { Fragment, useState, KeyboardEvent, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Image from 'next/image';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -18,13 +21,12 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [fileName, setFileName] = useState<string | null>(null);
   const [inviteesData, setInviteesData] = useState<any[]>([]);
   const [filteredInvitees, setFilteredInvitees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
 
@@ -40,11 +42,6 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
     setEmails(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFileName(e.target.files[0].name);
-    }
-  };
 
   useEffect(() => {
     const fetchInvitees = async () => {
@@ -92,8 +89,8 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
 
   const handleInvite = (employee: any) => {
     setSelectedEmployee(employee);
-    setStartDate('');
-    setDueDate('');
+    setStartDate(null);
+    setDueDate(null);
     setIsDateModalOpen(true);
   };
 
@@ -105,8 +102,8 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
         `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/${selectedEmployee.id}/assign-course`,
         {
           courseId: course._id,
-          startDate,
-          dueDate,
+          startDate: format(startDate, 'yyyy-MM-dd'),
+          dueDate: format(dueDate, 'yyyy-MM-dd'),
         },
         { withCredentials: true }
       );
@@ -130,7 +127,8 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[9999]" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        {/* Background */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"
@@ -168,7 +166,8 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                 </div>
               </div>
 
-              {activeTab === 'email' ? (
+              {/* Email Invite */}
+              {activeTab === 'email' && (
                 <>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -195,6 +194,7 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                     </div>
                   </div>
 
+                  {/* Course Info */}
                   <div className="mt-6 bg-gray-50 p-4 rounded-xl flex items-center gap-4">
                     <div className="relative w-40 h-24 flex-shrink-0">
                       <Image
@@ -208,11 +208,13 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                     <div className="flex-1">
                       <h4 className="text-sm font-semibold text-black">{course.name}</h4>
                       <h6 className="text-sm text-gray-600">
-                        {course.description?.split(' ').slice(0, 10).join(' ') + (course.description?.split(' ').length > 10 ? '...' : '')}
+                        {course.description?.split(' ').slice(0, 10).join(' ') +
+                          (course.description?.split(' ').length > 10 ? '...' : '')}
                       </h6>
                     </div>
                   </div>
 
+                  {/* Invitees List */}
                   <ul className="mt-4 max-h-48 overflow-y-auto divide-y">
                     {filteredInvitees?.map(inv => (
                       <li key={inv.id} className="py-3 flex items-center justify-between">
@@ -239,32 +241,12 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                     ))}
                   </ul>
                 </>
-              ) : (
-                <div className="space-y-4">
-                  <label className="block">
-                      <span className="text-sm font-medium text-gray-700">Upload XLSX file</span>
-                    <input
-                      type="file"
-                      accept=".xlsx"
-                      onChange={handleFileChange}
-                      className="mt-2"
-                    />
-                  </label>
-                  {fileName && (
-                    <p className="text-sm text-gray-600">Selected: {fileName}</p>
-                  )}
-                  <button
-                    className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
-                      onClick={() => { }}
-                  >
-                    Import
-                  </button>
-                </div>
               )}
             </Dialog.Panel>
           </Transition.Child>
         </div>
 
+        {/* Date Modal */}
         <Transition appear show={isDateModalOpen} as={Fragment}>
           <Dialog as="div" className="relative z-50" onClose={() => setIsDateModalOpen(false)}>
             <div className="fixed inset-0 bg-black/40" />
@@ -275,22 +257,55 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                 </Dialog.Title>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-black">Start Date</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={e => setStartDate(e.target.value)}
-                      className="w-full border px-3 py-2 rounded mt-1 text-black"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <div className="relative">
+                      <DatePicker
+                        selected={startDate}
+                        onChange={(date) => setStartDate(date)}
+                        dateFormat="yyyy-MM-dd"
+                        placeholderText="Select start date"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        calendarClassName="rounded-lg shadow-lg border border-gray-200 p-2"
+                        popperClassName="z-50"
+                      />
+                      {/* Icon lịch */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-400 absolute left-3 top-2.5 pointer-events-none"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm text-black">Due Date</label>
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={e => setDueDate(e.target.value)}
-                      className="w-full border px-3 py-2 rounded mt-1 text-black"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                    <div className="relative">
+                      <DatePicker
+                        selected={dueDate}
+                        onChange={(date) => setDueDate(date)}
+                        dateFormat="yyyy-MM-dd"
+                        placeholderText="Select due date"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        calendarClassName="rounded-lg shadow-lg border border-gray-200 p-2"
+                        popperClassName="z-50"
+                      />
+                      {/* Icon lịch */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-400 absolute left-3 top-2.5 pointer-events-none"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2">
                     <button
