@@ -1,10 +1,11 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from '@/components/review-common';
 import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 const businessList = Array(9).fill({
   logo: '/assets/images/avatar.png',
@@ -15,6 +16,7 @@ const businessList = Array(9).fill({
 const BusinessRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All requests');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
@@ -22,10 +24,16 @@ const BusinessRequestsPage = () => {
   const { toast } = useToast();
 
   // API call for business approval requests
-  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
-    type: 'business_verification'
+  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
+    type: 'business_verification',
+    status: selectedStatus
   });
   const [handleRequest] = useHandleRequestMutation();
+
+  // Refetch when status changes
+  useEffect(() => {
+    refetch();
+  }, [selectedStatus, refetch]);
 
   const handleView = (request: any) => {
     setSelected(request);
@@ -80,6 +88,10 @@ const BusinessRequestsPage = () => {
             { value: 'request', label: 'Request' },
             { value: 'business', label: 'Business' },
           ]}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          statusOptions={statusOptions}
+          showStatusFilter={activeTab === 'request'}
         />
 
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The User</h1>
