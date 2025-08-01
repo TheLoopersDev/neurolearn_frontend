@@ -44,7 +44,6 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
 
         fetchOrders();
     }, []);
-    console.log(orders)
 
     const handleReceiptClick = (orderId: string) => {
         if (userType === 'business') {

@@ -1,7 +1,6 @@
 import HeaderBanner from './_components/HeaderBanner';
 import StatCard from './_components/StatCard';
 import LearningProgressChart from './_components/LearningProgressChart';
-import CourseStatus from './_components/CourseStatus';
 import Image from 'next/image';
 import Book from '@/public/assets/business/book.svg';
 import Award from '@/public/assets/business/award.svg';

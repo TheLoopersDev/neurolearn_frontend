@@ -21,7 +21,6 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [fileName, setFileName] = useState<string | null>(null);
   const [inviteesData, setInviteesData] = useState<any[]>([]);
   const [filteredInvitees, setFilteredInvitees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
@@ -43,11 +42,6 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
     setEmails(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFileName(e.target.files[0].name);
-    }
-  };
 
   useEffect(() => {
     const fetchInvitees = async () => {
