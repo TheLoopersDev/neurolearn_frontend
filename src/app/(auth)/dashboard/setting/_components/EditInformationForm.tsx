@@ -2,8 +2,7 @@
 import React from 'react';
 import FormField from './FormField';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
-// <<-- THAY ĐỔI 2: IMPORT TYPE TỪ FILE CHA -->>
-import { ProfileFormData } from './ProfileEditorForm';
+import { ProfileFormData } from './ProfileEditorForm'; // Import type from parent file
 
 interface EditInformationFormProps {
   register: UseFormRegister<ProfileFormData>;
@@ -26,7 +25,7 @@ const EditInformationForm: React.FC<EditInformationFormProps> = ({ register, err
         <FormField
           label="Age"
           id="age"
-          type="number"
+          type="number" // Changed to number type for better input handling
           placeholder="Your Age"
           {...register('age')}
           error={errors.age?.message}

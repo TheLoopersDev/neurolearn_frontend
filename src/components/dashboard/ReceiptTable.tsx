@@ -47,7 +47,11 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
     console.log(orders)
 
     const handleReceiptClick = (orderId: string) => {
-        router.push(`/dashboard/purchase-history/${orderId}`);
+        if (userType === 'business') {
+            router.push(`/business/purchase-history/${orderId}`);
+        } else {
+            router.push(`/dashboard/purchase-history/${orderId}`);
+        }
     };
 
     return (
