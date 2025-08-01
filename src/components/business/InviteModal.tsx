@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, ChangeEvent, KeyboardEvent, useEffect } from 'react';
+import { Fragment, useState, KeyboardEvent, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Image from 'next/image';
 import axios from 'axios';

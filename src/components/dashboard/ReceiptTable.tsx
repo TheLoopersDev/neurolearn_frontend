@@ -79,7 +79,7 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                                 <td className="py-6">{order.orderCode}</td>
                                 <td className="py-6">
                                     {(() => {
-                                        let result = [];
+                                        const result = [];
                                         let totalLength = 0;
                                         for (let i = 0; i < order.courseIds.length; i++) {
                                             const name = order.courseIds[i].name;
