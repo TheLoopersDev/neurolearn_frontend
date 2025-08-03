@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Filter, Calendar, Percent, Tag } from 'lucide-react';
+import { ChevronDown, Filter } from 'lucide-react';
 
 interface DiscountFilterDropdownProps {
     onFilterChange: (filters: DiscountFilters) => void;

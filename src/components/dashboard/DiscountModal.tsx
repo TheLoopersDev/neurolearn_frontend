@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, Percent, Tag, DollarSign, Users, BookOpen } from 'lucide-react';
+import { X, Calendar, Percent, Tag, DollarSign, Users } from 'lucide-react';
 
 interface Discount {
     _id: string;
