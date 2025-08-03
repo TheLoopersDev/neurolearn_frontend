@@ -102,7 +102,7 @@ export const CardInfo: React.FC = () => {
     );
   }
 
-  // Show no card state - hiển thị UI thân thiện khi chưa có card
+      // Show no card state - display friendly UI when no card exists
   if (error || !creditCardData?.data) {
     return (
       <section className="mt-6 w-full">
@@ -127,10 +127,10 @@ export const CardInfo: React.FC = () => {
 
   const card = creditCardData.data;
 
-  // Use the UI component with real data - hiển thị shortName trực tiếp
+  // Use the UI component with real data - display shortName directly
   return (
     <CardInfoUI
-      bankName={card.cardType} // Hiển thị shortName trực tiếp
+      bankName={card.cardType} // Display shortName directly
       cardHolder={card.name}
       cardNumber={card.accountNumber}
       cvv="***" // API doesn't provide CVV for security

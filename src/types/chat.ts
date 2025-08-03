@@ -12,7 +12,7 @@ export interface ChatMember {
   avatar?: {
     url?: string;
   };
-  role: 'user' | 'instructor' | 'admin';
+  role: 'user' | 'instructor' | 'admin' | 'business';
 }
 
 export interface Chat {

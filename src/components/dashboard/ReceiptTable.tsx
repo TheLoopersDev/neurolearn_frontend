@@ -44,10 +44,13 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
 
         fetchOrders();
     }, []);
-    console.log(orders)
 
     const handleReceiptClick = (orderId: string) => {
-        router.push(`/dashboard/purchase-history/${orderId}`);
+        if (userType === 'business') {
+            router.push(`/business/purchase-history/${orderId}`);
+        } else {
+            router.push(`/dashboard/purchase-history/${orderId}`);
+        }
     };
 
     return (
@@ -74,7 +77,27 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                                 className={`text-sm text-black ${idx !== orders.length - 1 ? 'border-b border-gray-200' : ''}`}
                             >
                                 <td className="py-6">{order.orderCode}</td>
-                                <td className="py-6">{order.courseIds.map(c => c.name).join(', ')}</td>
+                                <td className="py-6">
+                                    {(() => {
+                                        const result = [];
+                                        let totalLength = 0;
+                                        for (let i = 0; i < order.courseIds.length; i++) {
+                                            const name = order.courseIds[i].name;
+                                            if (totalLength + name.length > 25) {
+                                                // Nếu ngay từ khóa đầu đã vượt 25 thì cắt bớt
+                                                if (result.length === 0) {
+                                                    result.push(name.slice(0, 25) + '…');
+                                                } else {
+                                                    result.push('…');
+                                                }
+                                                break;
+                                            }
+                                            result.push(name);
+                                            totalLength += name.length + 2;
+                                        }
+                                        return result.join(', ');
+                                    })()}
+                                </td>
                                 <td className="py-6">{order.payment_info || 'N/A'}</td>
                                 <td className="py-6">{totalPrice.toLocaleString()} VNĐ</td>
                                 <td className="py-6 font-medium">{formattedDate}</td>

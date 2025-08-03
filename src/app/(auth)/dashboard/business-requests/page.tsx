@@ -1,35 +1,62 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from '@/components/review-common';
-import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusinessesQuery } from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
+import BusinessCard from '@/components/business/BusinessCard';
+import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
+import { Business } from '@/types/business';
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
-
-const businessList = Array(9).fill({
-  logo: '/assets/images/avatar.png',
-  name: 'Academix',
-  industry: 'INFORMATION TECHNOLOGY',
-});
+const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 const BusinessRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All requests');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [businessPage, setBusinessPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [businessDetailsOpen, setBusinessDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
   const { toast } = useToast();
 
-  // API call cho request duyệt business
-  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
-    type: 'business_verification'
+  // API call for business approval requests
+  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
+    type: 'business_verification',
+    status: selectedStatus
   });
   const [handleRequest] = useHandleRequestMutation();
+
+  // API call for all businesses
+  const { data: businessData, isLoading: isBusinessLoading } = useGetAllBusinessesQuery({
+    page: businessPage,
+    limit: 12,
+    search: searchTerm
+  });
+
+  // Refetch when status changes
+  useEffect(() => {
+    refetch();
+  }, [selectedStatus, refetch]);
+
+  // Reset business page when search term changes
+  useEffect(() => {
+    if (activeTab === 'business') {
+      setBusinessPage(1);
+    }
+  }, [searchTerm, activeTab]);
 
   const handleView = (request: any) => {
     setSelected(request);
     setOpen(true);
+  };
+
+  const handleViewBusinessDetails = (business: Business) => {
+    setSelectedBusiness(business);
+    setBusinessDetailsOpen(true);
   };
 
   const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
@@ -56,8 +83,8 @@ const BusinessRequestsPage = () => {
     { label: 'User', className: 'col-span-3' },
     { label: 'Company Name', className: 'col-span-3' },
     { label: 'Request Date', className: 'col-span-3' },
-    { label: 'Duyệt', className: 'col-span-2' },
-    { label: 'Từ chối', className: 'col-span-1' },
+      { label: 'Approve', className: 'col-span-2' },
+  { label: 'Reject', className: 'col-span-1' },
   ];
 
   const itemsPerPage = 10;
@@ -80,9 +107,15 @@ const BusinessRequestsPage = () => {
             { value: 'request', label: 'Request' },
             { value: 'business', label: 'Business' },
           ]}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          statusOptions={statusOptions}
+          showStatusFilter={activeTab === 'request'}
         />
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The User</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          {activeTab === 'request' ? 'Business Requests' : 'All Businesses'}
+        </h1>
 
         {activeTab === 'request' ? (
           <>
@@ -111,7 +144,7 @@ const BusinessRequestsPage = () => {
                     <div className="col-span-3 flex items-center">
                       <span className="text-gray-700 font-medium">{request.requestDate || (request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A')}</span>
                     </div>
-                    {/* Duyệt */}
+                    {/* Approve */}
                     <div className="col-span-2 flex items-center justify-center gap-2">
                       <button
                         className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
@@ -123,18 +156,18 @@ const BusinessRequestsPage = () => {
                         className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
                         onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
                       >
-                        Duyệt
+                        Approve
                       </button>
                     </div>
-                    {/* Từ chối */}
+                    {/* Reject */}
                     <div className="col-span-1 flex items-center justify-center">
                       <button
                         className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
                         // disabled={isActionLoading} // This state variable is not defined in the original file
                         onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
                       >
-                        {/* {isActionLoading ? 'Đang từ chối...' : 'Từ chối'} */}
-                        Từ chối
+                        {/* {isActionLoading ? 'Rejecting...' : 'Reject'} */}
+                        Reject
                       </button>
                     </div>
                   </ReviewTableRow>
@@ -183,26 +216,47 @@ const BusinessRequestsPage = () => {
         ) : (
           // Tab Business: Grid card view
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-              {businessList.map((biz, idx) => (
-                <div key={idx} className="bg-white rounded-2xl shadow-sm flex flex-col items-center p-8">
-                  <img src={biz.logo} alt={biz.name} className="w-24 h-24 rounded-full object-cover mb-4" />
-                  <div className="font-bold text-xl mb-1">{biz.name}</div>
-                  <div className="text-gray-500 text-sm mb-6">{biz.industry}</div>
-                  <button className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all">
-                    Registration file
-                  </button>
+            {isBusinessLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2 text-gray-500">Loading businesses...</p>
+              </div>
+            ) : !businessData?.data || businessData.data.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No businesses found</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {businessData.data.map((business) => (
+                    <BusinessCard
+                      key={business._id}
+                      business={business}
+                      onViewDetails={handleViewBusinessDetails}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
-            <ReviewPagination
-              currentPage={1}
-              totalPages={2}
-              onPageChange={() => {}}
-            />
+                {businessData.pagination && businessData.pagination.totalPages > 1 && (
+                  <div className="mt-8">
+                    <ReviewPagination
+                      currentPage={businessData.pagination.currentPage}
+                      totalPages={businessData.pagination.totalPages}
+                      onPageChange={setBusinessPage}
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </>
         )}
       </div>
+
+      {/* Business Details Modal */}
+      <BusinessDetailsModal
+        business={selectedBusiness}
+        isOpen={businessDetailsOpen}
+        onClose={() => setBusinessDetailsOpen(false)}
+      />
     </div>
   );
 };

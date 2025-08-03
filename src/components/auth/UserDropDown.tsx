@@ -105,7 +105,7 @@ export function UserDropdown() {
       icon: <PiBagBold className="text-[20px]" />,
     },
     {
-      title: 'Settings',
+      title: 'Setting',
       href: '/dashboard/setting',
       icon: <IoSettingsOutline className="text-[20px]" />,
     },
@@ -113,12 +113,12 @@ export function UserDropdown() {
 
   const businessDashboardItem = isBusinessAdminOrManager
     ? [
-      {
-        title: 'Business Dashboard',
-        href: `/business/dashboard/${user.businessInfo?.businessId}`,
-        icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
-      },
-    ]
+        {
+          title: 'Business Dashboard',
+          href: `/business/dashboard/${user.businessInfo?.businessId}`,
+          icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
+        },
+      ]
     : [];
 
   const adminItems = [
@@ -151,48 +151,46 @@ export function UserDropdown() {
 
   const dropdownList =
     user.role === 'admin'
-      ? [
-        ...adminItems,
-      ]
+      ? [...adminItems]
       : user.role === 'instructor'
-      ? [
-        {
-          title: 'Dashboard User',
-          href: '/dashboard',
-          icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
-        },
-        {
-          title: 'Switch to Instructor',
-          href: '/switch/instructor',
-          icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
-        },
-        {
-          title: 'Switch to Business',
-          href: '/switch/business',
-          icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
-        },
-        ...businessDashboardItem,
-        {
-          title: 'Terms of Service',
-          href: '/terms',
-          icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
-        },
-        {
-          title: 'Help & Support',
-          href: '/help',
-          icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
-        },
-        ...commonNavbarItems,
-      ]
-      : [
-        {
-          title: 'Watch Course',
-          href: '/dashboard/watch-course',
-          icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-        },
-        ...businessDashboardItem,
-        ...commonNavbarItems,
-      ];
+        ? [
+            {
+              title: 'Dashboard User',
+              href: '/dashboard',
+              icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
+            },
+            {
+              title: 'Switch to Instructor',
+              href: '/switch/instructor',
+              icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
+            },
+            {
+              title: 'Switch to Business',
+              href: '/switch/business',
+              icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
+            },
+            ...businessDashboardItem,
+            {
+              title: 'Terms of Service',
+              href: '/terms',
+              icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
+            },
+            {
+              title: 'Help & Support',
+              href: '/help',
+              icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
+            },
+            ...commonNavbarItems,
+          ]
+        : [
+            {
+              title: 'Watch Course',
+              href: '/dashboard/watch-course',
+              icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
+            },
+            ...businessDashboardItem,
+            ...commonNavbarItems,
+          ];
 
   const dropdownVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
@@ -201,13 +199,13 @@ export function UserDropdown() {
       y: 0,
       scale: 1,
       transition: {
-        type: "spring" as const, 
+        type: 'spring' as const,
         damping: 20,
         stiffness: 300,
-        mass: 0.5
-      }
+        mass: 0.5,
+      },
     },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
   };
 
   const itemVariants: Variants = {
@@ -217,11 +215,11 @@ export function UserDropdown() {
       y: 0,
       transition: {
         delay: i * 0.05,
-        type: "spring" as const, 
-        stiffness: 300
-      }
-    })
-  }
+        type: 'spring' as const,
+        stiffness: 300,
+      },
+    }),
+  };
 
   return (
     <DropdownMenu>
@@ -264,12 +262,7 @@ export function UserDropdown() {
           forceMount
           className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100"
         >
-          <motion.div
-            variants={dropdownVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
+          <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit">
             <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500" />
             <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
 

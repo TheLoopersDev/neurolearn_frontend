@@ -75,7 +75,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
             } else {
                 // Group chat
                 const participants = [currentUserId, ...selectedUsers];
-                // Đảm bảo tất cả participants đều hợp lệ
+                // Ensure all participants are valid
                 const allValid = participants.every(id => id === currentUserId || users.find(u => u._id === id));
                 if (!allValid) return;
                 // Tạo chat room mới với groupName

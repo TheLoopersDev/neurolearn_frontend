@@ -8,8 +8,8 @@ const headers = [
   { label: 'User', className: 'col-span-3' },
   { label: 'Company Name', className: 'col-span-3' },
   { label: 'Request Date', className: 'col-span-3' },
-  { label: 'Duyệt', className: 'col-span-2' },
-  { label: 'Từ chối', className: 'col-span-1' },
+  { label: 'Approve', className: 'col-span-2' },
+  { label: 'Reject', className: 'col-span-1' },
 ];
 
 const UserTable = () => {
@@ -22,11 +22,11 @@ const UserTable = () => {
       {actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div>}
       <ReviewTable headers={headers}>
         {isLoading ? (
-          <div className="text-center py-8 col-span-12">Đang tải...</div>
+          <div className="text-center py-8 col-span-12">Loading...</div>
         ) : isError ? (
-          <div className="text-center py-8 col-span-12 text-red-500">Lỗi tải request.</div>
+          <div className="text-center py-8 col-span-12 text-red-500">Error loading requests.</div>
         ) : !data || data.length === 0 ? (
-          <div className="text-center py-8 col-span-12 text-gray-500">Không có request nào.</div>
+          <div className="text-center py-8 col-span-12 text-gray-500">No requests found.</div>
         ) : (
           data.map((user: any, idx: number) => (
             <ReviewTableRow key={user._id || user.id} index={idx}>
@@ -46,7 +46,7 @@ const UserTable = () => {
               <div className="col-span-3 flex items-center">
                 <span className="text-gray-700 font-medium">{user.requestDate || (user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A')}</span>
               </div>
-              {/* Duyệt */}
+              {/* Approve */}
               <div className="col-span-2 flex items-center justify-center">
                 <button
                   className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
@@ -55,17 +55,17 @@ const UserTable = () => {
                     setActionMessage(null);
                     try {
                       await handleRequest({ type: 'instructor_verification', requestId: user._id || user.id, action: 'approve' }).unwrap();
-                      setActionMessage('Duyệt thành công!');
+                      setActionMessage('Approved successfully!');
                       refetch();
                     } catch (err: any) {
-                      setActionMessage('Duyệt thất bại!');
+                      setActionMessage('Approval failed!');
                     }
                   }}
                 >
-                  {isActionLoading ? 'Đang duyệt...' : 'Duyệt'}
+                  {isActionLoading ? 'Approving...' : 'Approve'}
                 </button>
               </div>
-              {/* Từ chối */}
+              {/* Reject */}
               <div className="col-span-1 flex items-center justify-center">
                 <button
                   className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
@@ -74,14 +74,14 @@ const UserTable = () => {
                     setActionMessage(null);
                     try {
                       await handleRequest({ type: 'instructor_verification', requestId: user._id || user.id, action: 'reject' }).unwrap();
-                      setActionMessage('Từ chối thành công!');
+                      setActionMessage('Rejected successfully!');
                       refetch();
                     } catch (err: any) {
-                      setActionMessage('Từ chối thất bại!');
+                      setActionMessage('Rejection failed!');
                     }
                   }}
                 >
-                  {isActionLoading ? 'Đang từ chối...' : 'Từ chối'}
+                  {isActionLoading ? 'Rejecting...' : 'Reject'}
                 </button>
               </div>
             </ReviewTableRow>

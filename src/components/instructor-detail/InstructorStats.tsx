@@ -13,7 +13,7 @@ const StatItem: React.FC<{
   <div>
     {/* Phần tiêu đề và icon */}
     <div className="flex items-center gap-2 text-black mb-2">
-      {/* Render trực tiếp prop icon */}
+              {/* Render icon prop directly */}
       {icon}
       <h4 className="text-lg font-semibold">{title}</h4>
     </div>
@@ -80,7 +80,7 @@ const InstructorStats: React.FC<InstructorStatsProps> = ({ instructor, totalCour
               width={16}
               height={16}
             />
-          } // Vẫn có thể dùng icon từ lucide-react
+          } // Can still use icon from lucide-react
           title="People"
           value={
             <div className="flex items-center gap-2">
@@ -94,8 +94,8 @@ const InstructorStats: React.FC<InstructorStatsProps> = ({ instructor, totalCour
 
         <StatItem
           icon={
-            <Image src="/assets/icons/book2-black.svg" alt="Review Icon" width={16} height={16} />
-          } // Vẫn có thể dùng icon từ lucide-react
+            <Image src="/assets/icons/book2-black.svg" alt="Review Icon" width={16} height={16}             />
+          } // Can still use icon from lucide-react
           title="Courses"
           value={
             <div className="flex items-center gap-2">

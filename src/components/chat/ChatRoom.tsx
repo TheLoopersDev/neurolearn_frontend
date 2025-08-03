@@ -15,6 +15,8 @@ interface ChatRoomProps {
 }
 
 const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, sendMessage, loading, error }) => {
+
+
     // Lấy messages trực tiếp từ props
     const mappedMessages = messages.map((msg: any) => ({
         _id: msg.id || '',
@@ -33,7 +35,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
     const role = !chat?.isGroup && otherMember ? otherMember.role : undefined;
 
     const handleSendMessage = async (content: string) => {
-        if (!chat || !content.trim() || !otherMember) return;
+        if (!chat || !content.trim() || !otherMember) {
+            return;
+        }
         try {
             await sendMessage(otherMember._id, content.trim());
         } catch (error) {

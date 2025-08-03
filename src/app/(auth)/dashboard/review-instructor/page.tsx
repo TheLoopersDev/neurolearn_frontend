@@ -6,6 +6,7 @@ import { Dialog } from '@headlessui/react';
 import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 
 const categories = ['All instructors', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 interface InstructorData {
   _id: string;
@@ -30,6 +31,7 @@ interface InstructorData {
 const ReviewInstructorPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All instructors');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -39,10 +41,16 @@ const ReviewInstructorPage = () => {
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
 
-  // API call cho request duyệt instructor
-  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
-    type: 'instructor_verification'
+  // API call for instructor verification requests
+  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
+    type: 'instructor_verification',
+    status: selectedStatus
   });
+
+  // Refetch when status changes
+  useEffect(() => {
+    refetch();
+  }, [selectedStatus, refetch]);
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
@@ -172,6 +180,22 @@ const ReviewInstructorPage = () => {
               </select>
               <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
             </div>
+            {activeTab === 'requests' && (
+              <div className="relative">
+                <select
+                  className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
+                  value={selectedStatus}
+                  onChange={e => setSelectedStatus(e.target.value)}
+                >
+                  {statusOptions.map(status => (
+                    <option key={status} value={status}>
+                      {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <button

@@ -142,7 +142,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   };
 
   const handleBankSelect = (bank: BankInfo) => {
-    setBankName(bank.name); // Hiển thị tên đầy đủ trong UI
+            setBankName(bank.name); // Display full name in UI
     setBankShortName(bank.shortName); // Lưu shortName để gửi lên server
     setShowSuggestions(false);
   };
@@ -160,7 +160,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
 
   return (
     <div
-      className={`fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${
+      className={`fixed inset-0 bg-black/50 z-[9999] transition-opacity duration-300 ${
         isVisible && !isClosing ? 'opacity-100' : 'opacity-0'
       }`}
       style={{

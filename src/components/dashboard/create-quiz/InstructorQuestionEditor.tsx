@@ -205,7 +205,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       if (file.size > 10 * 1024 * 1024) {
-        alert('Kích thước file quá lớn! Tối đa 10MB.');
+        alert('File size too large! Maximum 10MB.');
         event.target.value = '';
         return;
       }
@@ -314,7 +314,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
                 src={questionImageUrl}
                 alt="Question Preview"
                 layout="fill" // Hoặc width/height cố định
-                objectFit="contain" // Giữ tỷ lệ và hiển thị toàn bộ ảnh
+                objectFit="contain" // Maintain ratio and display full image
                 className="rounded-md" // Thêm class nếu muốn bo góc ảnh
               />
             </div>
@@ -327,7 +327,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
                 layout="fill"
                 objectFit="contain"
                 className="rounded-md"
-                onLoad={() => URL.revokeObjectURL(URL.createObjectURL(questionImageFile))} // Giải phóng bộ nhớ sau khi ảnh tải xong
+                onLoad={() => URL.revokeObjectURL(URL.createObjectURL(questionImageFile))} // Free memory after image loads
               />
             </div>
           )}

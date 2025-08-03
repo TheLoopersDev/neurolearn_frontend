@@ -3,7 +3,7 @@
 import { Button } from '@/components/common/ui/Button2';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, ChangeEvent } from 'react';
 import { Dialog } from '@headlessui/react';
 
 interface CartSummaryProps {
@@ -23,8 +23,61 @@ export function CartSummary({ courses }: CartSummaryProps) {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const subtotal = courses.reduce((sum, course) => sum + (course.price || 0) * course.quantity, 0);
-  const totalCost = subtotal;
+  // Discount state
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  const subtotal = courses.reduce(
+    (sum, course) => sum + (course.price || 0) * course.quantity,
+    0
+  );
+  const totalCost = subtotal - discountAmount;
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast({ variant: 'destructive', title: 'Please enter a discount code' });
+      return;
+    }
+
+    try {
+      setApplying(true);
+
+      const courseIds = courses.map((c) => c._id);
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/discount/validate`,
+        {
+          code: discountCode.trim(),
+          courseIds,
+          totalAmount: subtotal,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.success && res.data.discountAmount > 0) {
+        setDiscountAmount(res.data.discountAmount || 0);
+        setAppliedDiscount(discountCode.trim());
+        toast({
+          variant: 'success',
+          title: 'Discount applied!',
+          description: `You saved ${formatVND(res.data.discountAmount)}`,
+        });
+      } else {
+        setDiscountAmount(0);
+        setAppliedDiscount(null);
+        toast({ variant: 'destructive', title: 'Invalid discount code' });
+      }
+    } catch (error) {
+      console.error('Apply discount error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to apply discount',
+      });
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (courses.length === 0) return;
@@ -46,14 +99,17 @@ export function CartSummary({ courses }: CartSummaryProps) {
           description: 'Buy courses from Academix',
           courseIds,
           licenseQuantities,
+          discountCode: appliedDiscount || null,
         },
         { withCredentials: true }
       );
 
       if (res.data?.checkoutUrl) {
-        await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/clear-cart`, {
-          withCredentials: true,
-        });
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/clear-cart`,
+          {},
+          { withCredentials: true }
+        );
         window.location.href = res.data.checkoutUrl;
       } else {
         toast({
@@ -84,8 +140,40 @@ export function CartSummary({ courses }: CartSummaryProps) {
           </p>
           <p className="font-semibold text-gray-900">{formatVND(subtotal)}</p>
         </div>
+        {discountAmount > 0 && (
+          <div className="flex items-center justify-between text-green-600">
+            <p>Discount</p>
+            <p>-{formatVND(discountAmount)}</p>
+          </div>
+        )}
       </div>
 
+      {/* Discount Code Input (style cũ của bạn) */}
+      <div className="mt-6 space-y-2">
+        <label htmlFor="promo-code" className="font-semibold text-gray-900">
+          Discount Code
+        </label>
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            id="promo-code"
+            placeholder="Enter your code"
+            value={discountCode}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setDiscountCode(e.target.value)
+            }
+            className="w-full rounded-md text-gray-700 border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
+          />
+          <Button
+            variant="outline"
+            className="flex-shrink-0"
+            disabled={applying}
+            onClick={handleApplyDiscount}
+          >
+            {applying ? 'Applying...' : 'Apply'}
+          </Button>
+        </div>
+      </div>
 
       {/* Total */}
       <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
@@ -102,6 +190,7 @@ export function CartSummary({ courses }: CartSummaryProps) {
       >
         {loading ? 'Processing...' : 'Proceed to Checkout'}
       </Button>
+
       <Dialog as={Fragment} open={isOpen} onClose={() => setIsOpen(false)}>
         <div className="fixed inset-0 z-50 backdrop-blur-sm bg-opacity-50 flex items-center justify-center">
           <Dialog.Panel className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">

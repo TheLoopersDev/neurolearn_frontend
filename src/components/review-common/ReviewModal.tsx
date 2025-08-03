@@ -12,7 +12,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ open, onClose, title, childre
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-30">
       <div className={`bg-white rounded-2xl shadow-xl p-8 w-full ${maxWidth} relative`}>
         <h2 className="text-xl font-semibold mb-6">{title}</h2>
         {children}

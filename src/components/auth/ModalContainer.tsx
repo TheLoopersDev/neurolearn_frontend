@@ -14,10 +14,12 @@ import {
   AnimatePresence,
   motion,
 } from 'framer-motion';
+import ActionModal from '../dashboard/instructor-course/ActionModal';
+import AddEditSection from '../dashboard/instructor-course/create-course/step2/AddEditSection';
+import AddEditLessonModal from '../dashboard/instructor-course/create-course/step2/AddEditLesson';
 
 export default function ModalContainer() {
-  const { modalType, hideModal } = useModal();
-
+  const { modalType, hideModal, modalData } = useModal();
   const renderModalContent = () => {
     switch (modalType) {
       case 'login':
@@ -34,6 +36,46 @@ export default function ModalContainer() {
         return <VerifyResetCodeForm key="verifyResetCode" onClose={hideModal} />;
       case 'addBankCard':
         return <AddBankCardModal key="addBankCard" onClose={hideModal} />;
+      case 'actionConfirm':
+        return (
+          <ActionModal
+            isOpen
+            onClose={hideModal}
+            onConfirm={() => {
+              modalData?.onConfirm?.();  // gọi callback từ ngoài
+              hideModal();
+            }}
+            title={modalData?.title || "Confirm Action"}
+            description={modalData?.description}
+            confirmText={modalData?.confirmText || "Confirm"}
+            cancelText={modalData?.cancelText || "Cancel"}
+            variant={modalData?.variant || "default"}
+          />
+        );
+      case 'addEditSection':
+        return (
+          <AddEditSection
+            key="addEditSection"
+            courseId={modalData?.courseId}
+            mode={modalData?.mode || 'add'}
+            initialData={modalData?.initialData}
+            onSubmit={(data) => {
+              modalData?.onSubmit?.(data);
+              hideModal();
+            }}
+            onClose={hideModal}
+          />
+        );
+      case 'addEditLesson':
+        return (
+          <AddEditLessonModal
+            key="addEditLesson"
+            lesson={modalData?.lesson}
+            onSubmit={modalData?.onSubmit}
+            onClose={hideModal}
+          />
+        );
+
       default:
         return null;
     }
@@ -55,7 +97,7 @@ export default function ModalContainer() {
           animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
           transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
           onClick={hideModal}
         >
           <motion.div
@@ -83,7 +125,7 @@ export default function ModalContainer() {
               willChange: 'opacity, transform',
             }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-5xl h-[600px] rounded-3xl overflow-hidden"
+            className="relative w-full max-w-5xl h-[600px] rounded-3xl"
           >
             {renderModalContent()}
           </motion.div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import {
@@ -18,8 +18,11 @@ export const useFirestoreChat = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
-  const [unsubscribeMessages, setUnsubscribeMessages] = useState<(() => void) | null>(null);
   const [unsubscribeChatRooms, setUnsubscribeChatRooms] = useState<(() => void) | null>(null);
+  
+  // Thêm ref để track current active chat room
+  const currentActiveChatRef = useRef<string | null>(null);
+  const messagesSubscriptionRef = useRef<(() => void) | null>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -40,7 +43,6 @@ export const useFirestoreChat = () => {
   // Subscribe to chat rooms
   useEffect(() => {
     const userId = getUserId();
-    console.log('Current userId for chatRooms query:', userId); // DEBUG LOG
     if (!userId) return;
 
     const unsubscribe = subscribeToChatRooms(userId, rooms => {
@@ -58,32 +60,42 @@ export const useFirestoreChat = () => {
   useEffect(() => {
     if (!activeChatRoomId) {
       setMessages([]);
+      currentActiveChatRef.current = null;
       return;
     }
 
     // Cleanup previous subscription
-    if (unsubscribeMessages) {
-      unsubscribeMessages();
+    if (messagesSubscriptionRef.current) {
+      messagesSubscriptionRef.current();
+      messagesSubscriptionRef.current = null;
     }
 
-    const unsubscribe = subscribeToMessages(activeChatRoomId, messages => {
-      setMessages(messages);
+    // Set current active chat
+    currentActiveChatRef.current = activeChatRoomId;
+
+    const unsubscribe = subscribeToMessages(activeChatRoomId, (newMessages) => {
+      // Chỉ update messages nếu vẫn đang ở cùng chat room
+      if (currentActiveChatRef.current === activeChatRoomId) {
+        setMessages(newMessages);
+      }
     });
 
-    setUnsubscribeMessages(() => unsubscribe);
+    messagesSubscriptionRef.current = unsubscribe;
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [activeChatRoomId]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (unsubscribeMessages) unsubscribeMessages();
+      if (messagesSubscriptionRef.current) messagesSubscriptionRef.current();
       if (unsubscribeChatRooms) unsubscribeChatRooms();
     };
-  }, [unsubscribeMessages, unsubscribeChatRooms]);
+  }, [unsubscribeChatRooms]);
 
   const sendMessageHandler = useCallback(
     async (receiverId: string, content: string, type: 'text' | 'image' | 'file' = 'text') => {
@@ -108,6 +120,7 @@ export const useFirestoreChat = () => {
           setActiveChatRoomId(chatRoomId);
         }
       } catch (err) {
+        console.error('Error sending message:', err); // DEBUG LOG
         setError(err instanceof Error ? err.message : 'Failed to send message');
       } finally {
         setLoading(false);
@@ -123,6 +136,10 @@ export const useFirestoreChat = () => {
   const leaveChat = useCallback(() => {
     setActiveChatRoomId(null);
     setMessages([]);
+  }, []);
+
+  const setActiveChatRoomIdHandler = useCallback((chatRoomId: string | null) => {
+    setActiveChatRoomId(chatRoomId);
   }, []);
 
   const markAsRead = useCallback(
@@ -162,6 +179,6 @@ export const useFirestoreChat = () => {
     leaveChat,
     markAsRead,
     deleteMessage: deleteMessageHandler,
-    setActiveChatRoomId,
+    setActiveChatRoomId: setActiveChatRoomIdHandler,
   };
 };
