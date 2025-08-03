@@ -45,6 +45,7 @@ const MessagePage: React.FC = () => {
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
   const [selectedChatRoomId, setSelectedChatRoomId] = useState<string | null>(null);
   const [forceRefresh, setForceRefresh] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
 
 
@@ -53,11 +54,57 @@ const MessagePage: React.FC = () => {
     if (!currentUserId) return;
     setUsersLoading(true);
     const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => setAllUsers(data.users || []))
+    fetch(url, {
+      credentials: 'include', // Thêm credentials để đảm bảo cookies được gửi
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Related users data:', data);
+        setAllUsers(data.users || []);
+      })
+      .catch(error => {
+        console.error('Error fetching related users:', error);
+        // Fallback: thử fetch tất cả users nếu related-users fail
+        const fallbackUrl = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/users`;
+        return fetch(fallbackUrl, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then(res => res.json())
+          .then(data => {
+            console.log('Fallback users data:', data);
+            setAllUsers(data.users || []);
+          })
+          .catch(fallbackError => {
+            console.error('Fallback error:', fallbackError);
+            setAllUsers([]);
+            // Retry sau 3 giây nếu cả 2 API đều fail
+            if (retryCount < 3) {
+              setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 3000);
+            }
+          });
+      })
       .finally(() => setUsersLoading(false));
-  }, [currentUserId, chatRooms.length]);
+  }, [currentUserId, chatRooms.length, retryCount]);
+
+  // Reset retry count khi users được load thành công
+  useEffect(() => {
+    if (allUsers.length > 0 && retryCount > 0) {
+      setRetryCount(0);
+    }
+  }, [allUsers.length, retryCount]);
 
   // Khi chọn chat mới, set loading và clear messages cũ
   const handleSelectChat = useCallback(async (chatRoomId: string) => {
@@ -119,7 +166,15 @@ const MessagePage: React.FC = () => {
     if (room.isGroup) {
       return {
         _id: room.id,
-        members: room.participants.map((id: string) => allUsers.find(u => String(u._id) === String(id)) || { _id: id, name: 'Loading...', email: '' }),
+        members: room.participants.map((id: string) => {
+          const user = allUsers.find(u => String(u._id) === String(id));
+          return user || {
+            _id: id,
+            name: `User ${id.slice(-4)}`, // Fallback với 4 ký tự cuối của ID
+            email: '',
+            avatar: { url: '/assets/images/avatar-default.png' }
+          };
+        }),
         isGroup: true,
         groupName: room.groupName || 'Group',
         messages: [],
@@ -131,16 +186,25 @@ const MessagePage: React.FC = () => {
       // 1-1 chat: get the other user
       const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
       const otherUser = allUsers.find(u => String(u._id) === String(otherId));
+
+      // Fallback name nếu không tìm thấy user
+      const fallbackName = otherUser?.name || `User ${otherId?.slice(-4) || 'Unknown'}`;
+
       return {
         _id: room.id,
-        members: [otherUser || { _id: otherId, name: 'Loading...', email: '' }],
+        members: [otherUser || {
+          _id: otherId,
+          name: fallbackName,
+          email: '',
+          avatar: { url: '/assets/images/avatar-default.png' }
+        }],
         isGroup: false,
         groupName: undefined,
         messages: [],
         lastMessage: room.lastMessage,
         unreadCount: 0,
         avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png',
-        displayName: otherUser?.name || 'Loading...'
+        displayName: fallbackName
       };
     }
   };
@@ -150,9 +214,42 @@ const MessagePage: React.FC = () => {
     if (!currentUserId) return;
     setUsersLoading(true);
     const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => setAllUsers(data.users || []))
+    fetch(url, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Chat created - Related users data:', data);
+        setAllUsers(data.users || []);
+      })
+      .catch(error => {
+        console.error('Error fetching related users after chat creation:', error);
+        // Fallback: thử fetch tất cả users nếu related-users fail
+        const fallbackUrl = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/users`;
+        return fetch(fallbackUrl, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then(res => res.json())
+          .then(data => {
+            console.log('Chat created - Fallback users data:', data);
+            setAllUsers(data.users || []);
+          })
+          .catch(fallbackError => {
+            console.error('Chat created - Fallback error:', fallbackError);
+            setAllUsers([]);
+          });
+      })
       .finally(() => setUsersLoading(false));
     dispatch(setActiveChat(chatRoomId));
     setActiveChatRoomId(chatRoomId);
@@ -208,7 +305,16 @@ const MessagePage: React.FC = () => {
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-          <span className="text-gray-400">Loading chat...</span>
+            <div className="text-center">
+              <span className="text-gray-400">
+                {usersLoading ? 'Loading users...' : 'Loading chat...'}
+              </span>
+              {retryCount > 0 && (
+                <p className="text-xs text-gray-300 mt-2">
+                  Retrying... ({retryCount}/3)
+                </p>
+              )}
+            </div>
         </div>
       )}
 
