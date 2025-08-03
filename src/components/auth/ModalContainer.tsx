@@ -55,7 +55,7 @@ export default function ModalContainer() {
           animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
           transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
           onClick={hideModal}
         >
           <motion.div

@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import { User } from '@/types/user';
+import { BusinessResponse } from '@/types/business';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -87,11 +88,17 @@ export const apiSlice = createApi({
         method: 'GET',
       }),
     }),
-    getPendingRequests: builder.query<any[], { type: string }>({
-      query: ({ type }) => ({
-        url: `/request/get-request-pending?type=${type}`,
-        method: 'GET',
-      }),
+    getPendingRequests: builder.query<any[], { type: string; status?: string }>({
+      query: ({ type, status }) => {
+        let url = `/request/get-request-pending?type=${type}`;
+        if (status && status !== 'all') {
+          url += `&status=${status}`;
+        }
+        return {
+          url,
+          method: 'GET',
+        };
+      },
     }),
     handleRequest: builder.mutation<
       any,
@@ -111,6 +118,18 @@ export const apiSlice = createApi({
         };
       },
     }),
+    getAllBusinesses: builder.query<BusinessResponse, { page?: number; limit?: number; search?: string }>({
+      query: ({ page = 1, limit = 10, search = '' }) => {
+        let url = `/business/all?page=${page}&limit=${limit}`;
+        if (search) {
+          url += `&search=${encodeURIComponent(search)}`;
+        }
+        return {
+          url,
+          method: 'GET',
+        };
+      },
+    }),
   }),
 });
 
@@ -123,4 +142,5 @@ export const {
   useUpdatePasswordMutation,
   useGetPendingRequestsQuery,
   useHandleRequestMutation,
+  useGetAllBusinessesQuery,
 } = apiSlice;

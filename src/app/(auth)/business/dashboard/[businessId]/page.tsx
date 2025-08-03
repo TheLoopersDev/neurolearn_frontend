@@ -1,7 +1,6 @@
 import HeaderBanner from './_components/HeaderBanner';
 import StatCard from './_components/StatCard';
 import LearningProgressChart from './_components/LearningProgressChart';
-import CourseStatus from './_components/CourseStatus';
 import Image from 'next/image';
 import Book from '@/public/assets/business/book.svg';
 import Award from '@/public/assets/business/award.svg';
@@ -55,12 +54,9 @@ export default async function DashboardPage({ params } : any) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <LearningProgressChart employeeMonthlyData= {employeeMonthlyData} managerMonthlyData={managerMonthlyData} />
-          </div>
-          <div>
-            <CourseStatus />
+        <div className="grid grid-cols-1">
+          <div className="lg:col-span-3">
+            <LearningProgressChart employeeMonthlyData={employeeMonthlyData} managerMonthlyData={managerMonthlyData} />
           </div>
         </div>
       </div>

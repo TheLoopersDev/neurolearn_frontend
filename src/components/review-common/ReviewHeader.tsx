@@ -10,6 +10,10 @@ interface ReviewHeaderProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   tabOptions: { value: string; label: string }[];
+  selectedStatus?: string;
+  setSelectedStatus?: (status: string) => void;
+  statusOptions?: string[];
+  showStatusFilter?: boolean;
 }
 
 const ReviewHeader: React.FC<ReviewHeaderProps> = ({
@@ -21,6 +25,10 @@ const ReviewHeader: React.FC<ReviewHeaderProps> = ({
   activeTab,
   onTabChange,
   tabOptions,
+  selectedStatus,
+  setSelectedStatus,
+  statusOptions,
+  showStatusFilter = false,
 }) => {
   return (
     <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl shadow-sm">
@@ -47,6 +55,22 @@ const ReviewHeader: React.FC<ReviewHeaderProps> = ({
           </select>
           <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
         </div>
+        {showStatusFilter && selectedStatus && setSelectedStatus && statusOptions && (
+          <div className="relative">
+            <select
+              className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
+              value={selectedStatus}
+              onChange={e => setSelectedStatus(e.target.value)}
+            >
+              {statusOptions.map(status => (
+                <option key={status} value={status}>
+                  {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+                </option>
+              ))}
+            </select>
+            <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+          </div>
+        )}
       </div>
       <div className="flex gap-3">
         {tabOptions.map((tab) => (
