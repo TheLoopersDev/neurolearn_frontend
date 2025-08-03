@@ -3,7 +3,7 @@
 import HeaderStepControls from "./HeaderStepControls";
 import { CourseInformationForm } from "./CourseInformationForm";
 import { FileUploadArea } from "./FileUploadArea";
-import { CourseStages } from "./CourseStages";
+import { CourseBenefits } from "./CourseBenefits";
 import { useEffect, useState } from "react";
 import { Course } from "@/types/course";
 import {
@@ -13,16 +13,21 @@ import {
 } from "@/lib/redux/features/course/courseApi";
 import { useCreateCourseApprovalRequestMutation } from "@/lib/redux/features/request/requestApi";
 import { useGetAllSectionsQuery } from "@/lib/redux/features/course/section/sectionApi";
-
 import CourseSectionList from "../step2/CourseSectionList";
 import { ToastProvider, ToastViewport } from "@/components/common/ui/Toast";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
+interface Benefit {
+    id: string;
+    title: string;
+}
+
 interface CourseCreationFormProps {
     formData: Partial<Course>;
     setFormData: React.Dispatch<React.SetStateAction<Partial<Course>>>;
     courseId?: string | null;
+    isEdit: boolean;
 }
 
 export default function CourseCreationForm(props: CourseCreationFormProps) {
@@ -31,7 +36,11 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
     const [step, setStep] = useState<1 | 2>(1);
     const [draftSaved, setDraftSaved] = useState(false);
     const [courseId, setCourseId] = useState<string | null>(props.courseId || null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const { toast } = useToast();
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [isContinuing, setIsContinuing] = useState(false);
 
     const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId!, {
         skip: !courseId,
@@ -39,12 +48,42 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
     const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
 
+    const [localBenefits, setLocalBenefits] = useState<Benefit[]>([]);
+
+    useEffect(() => {
+        if (Array.isArray(props.formData.benefits)) {
+            setLocalBenefits(
+                props.formData.benefits.map((b, index) => ({
+                    id: `benefit-${index}`,
+                    title: b.title
+                }))
+            );
+        }
+    }, [props.formData.benefits]);
+
+    const handleAddBenefit = (title: string) => {
+        const newBenefits = [...localBenefits, { id: Date.now().toString(), title }];
+        setLocalBenefits(newBenefits);
+        props.setFormData(prev => ({
+            ...prev,
+            benefits: newBenefits.map(b => ({ title: b.title }))
+        }));
+    };
+
+    const handleRemoveBenefit = (id: string) => {
+        const newBenefits = localBenefits.filter(b => b.id !== id);
+        setLocalBenefits(newBenefits);
+        props.setFormData(prev => ({
+            ...prev,
+            benefits: newBenefits.map(b => ({ title: b.title }))
+        }));
+    };
+
     useEffect(() => {
         if (isSuccess && courseData?.courses) {
             setFormData(courseData.courses);
         }
     }, [isSuccess, courseData, setFormData]);
-
 
     useEffect(() => {
         if (props.courseId && props.courseId !== courseId) {
@@ -82,128 +121,204 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
         };
     };
 
+    /** Validate tất cả các trường
+  *  - Draft: chỉ cần title
+  *  - Submit: kiểm tra full
+  */
+    const validateForm = (): Record<string, string> => {
+        const errs: Record<string, string> = {};
+        const data = props.formData;
+
+        const getId = (v: any) => (typeof v === "object" && v !== null ? v._id : v);
+
+        if (!data.name?.trim()) errs.name = "Title is required";
+        if (!getId(data.category)?.toString().trim()) errs.category = "Category is required";
+        if (!getId(data.level)?.toString().trim()) errs.level = "Skill level is required";
+        if (!data.description?.trim()) errs.description = "Description is required";
+        if (!Array.isArray(data.benefits) || data.benefits.length === 0)
+            errs.benefits = "At least 1 benefit is required";
+        if (!Array.isArray(data.prerequisites) || data.prerequisites.length === 0)
+            errs.prerequisites = "At least 1 prerequisite is required";
+        if (data.price === undefined || data.price < 0)
+            errs.price = "Price is required and must be >= 0";
+        if (!data.duration || data.duration <= 0)
+            errs.duration = "Duration must be greater than 0";
+        const hasThumbnail =
+            (typeof data.thumbnail === "string" && (data.thumbnail as string).trim() !== "") ||
+            (typeof data.thumbnail === "object" &&
+                data.thumbnail !== null &&
+                "url" in data.thumbnail &&
+                typeof (data.thumbnail as any).url === "string" &&
+                (data.thumbnail as any).url.trim() !== "");
+
+        if (!hasThumbnail) errs.thumbnail = "Thumbnail is required";
+        setErrors(errs);
+        return errs;
+    };
+
+
+    const showValidationToast = (errors: Record<string, string>) => {
+        const errorMessages = Object.values(errors);
+        if (errorMessages.length > 0) {
+            toast({
+                title: "Validation Error",
+                description: (
+                    <ul className="list-disc pl-4">
+                        {errorMessages.map((msg, i) => (
+                            <li key={i}>{msg}</li>
+                        ))}
+                    </ul>
+                ),
+                variant: "destructive",
+                duration: 5000,
+            });
+        }
+    };
+
     const handleSaveDraft = async () => {
+        const errs = validateForm();
+        if (Object.keys(errs).length > 0) {
+            showValidationToast(errors);
+            return;
+        }
+
+        setIsSavingDraft(true);
         try {
             const payload = { ...getPayload(), isDraft: true };
 
+            // Always use update if we have a courseId
             if (courseId) {
                 await updateCourse({ id: courseId, course: payload }).unwrap();
                 toast({
-                    title: "Draft saved",
-                    description: "Your course draft has been updated successfully.",
-                    variant: "success",
+                    title: "Draft updated",
+                    description: "Draft updated successfully.",
+                    variant: "success"
                 });
             } else {
                 const res = await createCourse(payload).unwrap();
                 const newId = res?.courses?._id;
                 if (!newId) throw new Error("No course ID returned.");
+
+                // Update both local state and parent component state
                 props.setFormData((prev) => ({ ...prev, _id: newId }));
                 setCourseId(newId);
                 toast({
                     title: "Draft created",
-                    description: "Your course draft has been created successfully.",
-                    variant: "success",
+                    description: "Draft created successfully.",
+                    variant: "success"
                 });
             }
 
             setDraftSaved(true);
         } catch (err) {
-            console.error("❌ Error saving draft:", err);
+            console.error("Error saving draft:", err);
             toast({
                 title: "Error",
-                description: "Failed to save draft. Please try again.",
-                variant: "destructive",
+                description: "Failed to save draft.",
+                variant: "destructive"
             });
+        } finally {
+            setIsSavingDraft(false);
         }
     };
 
     const handlePublishCourse = async () => {
+        const errs = validateForm();
+        if (Object.keys(errs).length > 0) {
+            showValidationToast(errs);
+            return;
+        }
+
+        // If no courseId exists, save as draft first
+        if (!courseId) {
+            try {
+                await handleSaveDraft();
+                // If still no courseId after saving, throw error
+                if (!courseId) throw new Error("Failed to create course draft");
+            } catch (err) {
+                return; // Error already handled by handleSaveDraft
+            }
+        }
+
+        setIsPublishing(true);
         try {
-            if (!courseId) {
-                toast({
-                    title: "Warning",
-                    description: "Please save the draft before publishing.",
-                    variant: "default",
-                });
-                return;
-            }
-            // ✅ Kiểm tra ít nhất 1 section và 1 lesson
+        // Verify course content
             const sections = sectionData?.data || [];
-            if (sections.length === 0) {
+            if (sections.length === 0 || !sections.some((s: any) => s.lessons?.length > 0)) {
                 toast({
                     title: "Error",
-                    description: "Your course must have at least 1 section to publish.",
-                    variant: "destructive",
+                    description: "Course needs at least 1 section and lesson.",
+                    variant: "destructive"
                 });
                 return;
             }
 
-            const hasLesson = sections.some((s: any) => s.lessons && s.lessons.length > 0);
-            if (!hasLesson) {
-                toast({
-                    title: "Error",
-                    description: "Your course must have at least 1 lesson to publish.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            // 1. Cập nhật trạng thái course 
+            // Update existing course (don't create new one)
             const payload = {
                 ...getPayload(),
-                isPublished: false,
                 isDraft: false,
+                isPublished: false
             };
 
-            await updateCourse({ id: courseId, course: payload }).unwrap();
+            await updateCourse({
+                id: courseId,
+                course: payload
+            }).unwrap();
 
-            // 2. Gửi request duyệt course
-            await createCourseApprovalRequest({
+            // Create approval request for the existing course
+            const res = await createCourseApprovalRequest({
                 courseId,
                 message: "Requesting course approval"
             }).unwrap();
 
             toast({
                 title: "Success",
-                description: "Course published and approval request sent successfully!",
+                description: res?.message || "Course submitted for approval!",
                 variant: "success",
             });
-            router.push(`/dashboard/courses/${courseId}`);
-        } catch (err) {
-            console.error("❌ Error publishing course:", err);
+
+            router.push(`/dashboard/courses`);
+        } catch (err: any) {
+            console.error("Publish error:", err);
             toast({
                 title: "Error",
-                description: "Failed to publish or request approval. Please try again.",
-                variant: "destructive",
+                description: err?.data?.message || "Failed to publish course.",
+                variant: "destructive"
             });
+        } finally {
+            setIsPublishing(false);
         }
     };
 
+    // Handle continue to next step
+
     const handleContinue = async () => {
-        if (!courseId) {
-            try {
+        const isValid = validateForm();
+        if (!isValid) {
+            showValidationToast(errors);
+            return;
+        }
+
+        setIsContinuing(true);
+        try {
+            if (!courseId) {
+                // Chưa có courseId thì tạo draft trước
                 const payload = { ...getPayload(), isDraft: true };
                 const res = await createCourse(payload).unwrap();
-                const newId = res?.data?._id;
+                const newId = res?.courses?._id;
                 if (!newId) throw new Error("No course ID returned.");
                 props.setFormData((prev) => ({ ...prev, _id: newId }));
                 setCourseId(newId);
-                toast({
-                    title: "Draft created",
-                    description: "Your course draft has been created successfully.",
-                    variant: "success",
-                });
-            } catch (err) {
-                toast({
-                    title: "Error",
-                    description: "Failed to create draft. Please try again.",
-                    variant: "destructive",
-                });
-                return;
+                toast({ title: "Draft created", description: "Draft created successfully.", variant: "success" });
             }
+            setStep(2);
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to create draft for step 2.", variant: "destructive" });
+        } finally {
+            setIsContinuing(false);
         }
-        setStep(2);
     };
+
 
     const handleBack = () => setStep(1);
 
@@ -218,7 +333,13 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
                         onSaveDraft={handleSaveDraft}
                         onPublish={handlePublishCourse}
                         draftSaved={draftSaved}
+                        loading={{
+                            continue: isContinuing,
+                            draft: isSavingDraft,
+                            publish: isPublishing
+                        }}
                     />
+
 
                     {step === 1 && (
                         <section className="flex flex-row gap-6 items-start w-full max-w-[1120px] h-full">
@@ -248,7 +369,11 @@ export default function CourseCreationForm(props: CourseCreationFormProps) {
                                         }))
                                     }
                                 />
-                                <CourseStages />
+                                <CourseBenefits
+                                    benefits={localBenefits}
+                                    onAdd={handleAddBenefit}
+                                    onRemove={handleRemoveBenefit}
+                                />
                             </div>
                         </section>
                     )}

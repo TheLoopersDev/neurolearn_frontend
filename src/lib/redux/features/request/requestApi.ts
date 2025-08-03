@@ -55,7 +55,22 @@ export const requestApi = createApi({
       query: () => '/request/instructor/course-requests',
       providesTags: ['Request'],
     }),
+    updateCourseApprovalRequest: builder.mutation<
+      ApiResponse<CourseApprovalRequest>,
+      { requestId?: string; courseId: string; message?: string; status?: string }
+    >({
+      query: ({ requestId, courseId, message, status }) => ({
+        url: '/request/update-course-approval-request',
+        method: 'PUT',
+        body: { requestId, courseId, message, status },
+      }),
+      invalidatesTags: ['Request'],
+    }),
   }),
 });
 
-export const { useCreateCourseApprovalRequestMutation, useGetInstructorCourseRequestsQuery } = requestApi;
+export const {
+  useCreateCourseApprovalRequestMutation,
+  useGetInstructorCourseRequestsQuery,
+  useUpdateCourseApprovalRequestMutation,
+} = requestApi;

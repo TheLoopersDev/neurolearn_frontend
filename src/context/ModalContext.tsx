@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useState } from 'react';
 
 // 1. Định nghĩa loại hợp lệ cho modal
-export type ModalType = 'login' | 'signup' | 'forgotPassword' | 'verifyCode' | 'newPassword' | 'verifyResetCode' | 'addBankCard' | null;
+export type ModalType = 'login' | 'signup' | 'forgotPassword' | 'verifyCode' | 'newPassword' | 'verifyResetCode' | 'addBankCard' | 'actionConfirm' | 'addEditSection' | 'addEditLesson' | null;
 
 // 2. Interface context
 interface ModalContextType {
-  showModal: (type: Exclude<ModalType, null>) => void; // không cho phép truyền null vào
+  showModal: (type: ModalType, data?: any) => void;
   hideModal: () => void;
   modalType: ModalType;
+  modalData?: any;
 }
 
 // 3. Tạo context
@@ -18,12 +19,21 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 // 4. Provider
 export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   const [modalType, setModalType] = useState<ModalType>(null);
+  const [modalData, setModalData] = useState<any>(null);
 
-  const showModal = (type: Exclude<ModalType, null>) => setModalType(type);
-  const hideModal = () => setModalType(null);
+  const showModal = (type: ModalType, data?: any) => {
+    setModalType(type);
+    setModalData(data || null);
+  };
+
+  const hideModal = () => {
+    setModalType(null);
+    setModalData(null);
+  };
+
 
   return (
-    <ModalContext.Provider value={{ showModal, hideModal, modalType }}>
+    <ModalContext.Provider value={{ showModal, hideModal, modalType, modalData }}>
       {children}
     </ModalContext.Provider>
   );

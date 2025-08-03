@@ -23,7 +23,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, status }) => {
     } = course;
 
     return (
-        <article className="relative flex gap-2 p-3 w-[310px] h-[394px] bg-white rounded-[20px] shadow-md overflow-hidden">
+        <article className="relative flex gap-2 p-3 w-[310px] h-[394px] bg-white rounded-[20px] shadow-md ">
             <div className="object-contain absolute inset-0 z-0 self-start aspect-[0.9] fill-white min-w-60 w-[330px]" />
             <div className="z-0 my-auto min-w-60 w-[332px]">
                 <CourseHeader

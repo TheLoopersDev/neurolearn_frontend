@@ -147,7 +147,7 @@ export const courseApi = createApi({
     }),
     deleteCourse: builder.mutation<ApiResponse<void>, string>({
       query: id => ({
-        url: `/courses/${id}`,
+        url: `/courses/delete-course/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Course'],
@@ -238,6 +238,20 @@ export const courseApi = createApi({
         { type: 'Course', id: `LATEST-${instructorId}` },
       ],
     }),
+    publishCourse: builder.mutation<ApiResponse<Course>, string>({
+      query: id => ({
+        url: `/courses/publish-course/${id}`,
+        method: 'PUT',
+      }),
+      invalidatesTags: (result, error, id) => [{ type: 'Course', id }, { type: 'Course' }],
+    }),
+    unpublishCourse: builder.mutation<ApiResponse<Course>, string>({
+      query: id => ({
+        url: `/courses/unpublish-course/${id}`,
+        method: 'PUT',
+      }),
+      invalidatesTags: (result, error, id) => [{ type: 'Course', id }, { type: 'Course' }],
+    }),
   }),
 });
 
@@ -258,4 +272,6 @@ export const {
   useGetStudentStatsQuery,
   useGetCourseStatsQuery,
   useGetLatestCourseQuery,
+  usePublishCourseMutation,
+  useUnpublishCourseMutation,
 } = courseApi;
