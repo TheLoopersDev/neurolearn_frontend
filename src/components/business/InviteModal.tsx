@@ -15,9 +15,11 @@ interface InviteModalProps {
   onClose: () => void;
   course: any;
   invitees?: any[];
+  totalLicenses?: number;
+  setTotalLicenses?: (count: number) => void;
 }
 
-export default function InviteModal({ isOpen, onClose, course }: InviteModalProps) {
+export default function InviteModal({ isOpen, onClose, course, totalLicenses, setTotalLicenses }: InviteModalProps) {
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -113,6 +115,9 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
         description: 'Assigned successfully!',
         variant: 'success',
       });
+      if (setTotalLicenses && typeof totalLicenses === 'number') {
+        setTotalLicenses(totalLicenses - 1);
+      }
       setIsDateModalOpen(false);
       onClose();
     } catch (error) {
