@@ -96,7 +96,7 @@ export function UserDropdown() {
 
   const { user } = data;
   const isBusinessAdminOrManager =
-    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
+    user?.businessInfo?.role === 'admin' ;
 
   const commonNavbarItems = [
     {
