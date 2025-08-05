@@ -84,7 +84,7 @@ const CardOption: React.FC<CardOptionProps> = ({
     ].filter(Boolean) as { label: string; action: () => void; color: string }[];
 
     return (
-        <div className="relative inline-block text-left" ref={dropdownRef}>
+        <div className="relative z-100 inline-block text-left" ref={dropdownRef}>
             <motion.button
                 onClick={() => setOpen((prev) => !prev)}
                 className="p-2 rounded hover:bg-muted transition"
@@ -98,7 +98,7 @@ const CardOption: React.FC<CardOptionProps> = ({
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        className="absolute right-0 z-80 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 py-2"
+                        className="absolute right-0 z-100 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 py-2"
                         variants={dropdownVariants}
                         initial="hidden"
                         animate="visible"
@@ -114,7 +114,7 @@ const CardOption: React.FC<CardOptionProps> = ({
                                 animate="visible"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className={`block w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition ${item.color}`}
+                                className={`block w-full z-100 text-left px-4 py-2 text-sm font-medium rounded-lg transition ${item.color}`}
                             >
                                 {item.label}
                             </motion.button>

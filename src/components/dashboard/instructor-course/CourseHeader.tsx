@@ -81,9 +81,8 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
         }
     };
 
-
     return (
-        <header className="w-full flex flex-col justify-between h-full">
+        <header className="w-full flex flex-col justify-between h-full relative">
             <div className="w-full text-xs font-medium leading-none text-blue-600">
                 <Image
                     src={thumbnailImage || "/assets/business/book.svg"}
@@ -99,39 +98,42 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                         <span className="text-[#3858F8] text-sm font-medium">{category}</span>
                     </div>
 
-                    <CardOption
-                        courseId={courseId}
-                        onDelete={() =>
-                            showModal("actionConfirm", {
-                                title: "Delete Course",
-                                description: "Are you sure you want to delete this course?",
-                                confirmText: "Delete",
-                                cancelText: "Cancel",
-                                variant: "destructive",
-                                onConfirm: handleDelete,
-                            })
-                        }
-                        onPublish={() =>
-                            showModal("actionConfirm", {
-                                title: "Publish Course",
-                                description: "Do you want to publish this course?",
-                                confirmText: "Publish",
-                                cancelText: "Cancel",
-                                variant: "primary",
-                                onConfirm: handlePublish,
-                            })
-                        }
-                        onUnpublish={() =>
-                            showModal("actionConfirm", {
-                                title: "Unpublish Course",
-                                description: "Do you want to unpublish this course?",
-                                confirmText: "Unpublish",
-                                cancelText: "Cancel",
-                                variant: "outline",
-                                onConfirm: handleUnpublish,
-                            })
-                        }
-                    />
+                    {/* Wrapped CardOption with high z-index container */}
+                    <div className="relative z-[1000]">
+                        <CardOption
+                            courseId={courseId}
+                            onDelete={() =>
+                                showModal("actionConfirm", {
+                                    title: "Delete Course",
+                                    description: "Are you sure you want to delete this course?",
+                                    confirmText: "Delete",
+                                    cancelText: "Cancel",
+                                    variant: "destructive",
+                                    onConfirm: handleDelete,
+                                })
+                            }
+                            onPublish={() =>
+                                showModal("actionConfirm", {
+                                    title: "Publish Course",
+                                    description: "Do you want to publish this course?",
+                                    confirmText: "Publish",
+                                    cancelText: "Cancel",
+                                    variant: "primary",
+                                    onConfirm: handlePublish,
+                                })
+                            }
+                            onUnpublish={() =>
+                                showModal("actionConfirm", {
+                                    title: "Unpublish Course",
+                                    description: "Do you want to unpublish this course?",
+                                    confirmText: "Unpublish",
+                                    cancelText: "Cancel",
+                                    variant: "outline",
+                                    onConfirm: handleUnpublish,
+                                })
+                            }
+                        />
+                    </div>
                 </div>
             </div>
             <h2 className="w-full text-base font-semibold leading-5 text-stone-950 line-clamp-2 min-h-[40px]">

@@ -37,27 +37,16 @@ const CourseCardGrid: React.FC = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentCourses = mergedCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  // Tạo placeholder để lấp đầy grid
-  const placeholders = Array.from({
-    length: Math.max(0, ITEMS_PER_PAGE - currentCourses.length),
-  });
-
   return (
     <section className="w-full">
-      <div className="grid grid-cols-3 gap-4 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         {currentCourses.map((course) => (
-          <CourseCard key={course._id} course={course} status={(course as any).status} />
-        ))}
-
-        {placeholders.map((_, index) => (
-          <div
-            key={`placeholder-${index}`}
-            className="h-[250px]"
-          />
+          <div key={course._id} className="relative">
+            <CourseCard course={course} status={(course as any).status} />
+          </div>
         ))}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <CoursePagination
           page={currentPage}

@@ -47,7 +47,7 @@ const Sidebar = () => {
     ],
     instructor: [
       { icon: dashboard, label: 'Dashboard', path: '/instructor/dashboard' },
-      { icon: courses, label: 'Learning Courses', path: '/dashboard/my-courses' },
+      { icon: courses, label: 'Learning', path: '/instructor/learning' },
       { icon: courses, label: 'Courses', path: '/instructor/courses' },
       { icon: createQuiz, label: 'Quizes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
