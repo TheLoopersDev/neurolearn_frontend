@@ -5,6 +5,7 @@ import { CourseCard } from "./CourseCard";
 import { useGetUserCoursesQuery } from "@/lib/redux/features/course/courseApi";
 import { useGetInstructorCourseRequestsQuery } from "@/lib/redux/features/request/requestApi";
 import Loading from "@/components/common/Loading";
+import CoursePagination from "@/app/(unauth)/courses/_components/CoursePagination";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -36,7 +37,7 @@ const CourseCardGrid: React.FC = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentCourses = mergedCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  // Tạo placeholder nếu ít hơn 6
+  // Tạo placeholder để lấp đầy grid
   const placeholders = Array.from({
     length: Math.max(0, ITEMS_PER_PAGE - currentCourses.length),
   });
@@ -51,29 +52,20 @@ const CourseCardGrid: React.FC = () => {
         {placeholders.map((_, index) => (
           <div
             key={`placeholder-${index}`}
-            className="h-[250px] "
+            className="h-[250px]"
           />
         ))}
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-center mt-6 gap-3">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-        >
-          Prev
-        </button>
-        <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <CoursePagination
+          page={currentPage}
+          totalPages={totalPages}
+          isFetching={loadingCourses || loadingRequests}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      )}
     </section>
   );
 };

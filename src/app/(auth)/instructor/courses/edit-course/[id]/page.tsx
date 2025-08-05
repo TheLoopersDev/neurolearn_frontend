@@ -7,7 +7,7 @@ import { Course } from "@/types/course";
 
 export default function EditCoursePage() {
     const params = useParams();
-    const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined;
+    const id = typeof params?.courseId === "string" ? params.courseId : Array.isArray(params?.courseId) ? params.courseId[0] : undefined;
     const [formData, setFormData] = useState<Partial<Course>>({});
     const [courseId, setCourseId] = useState<string | null>(id || null);
 

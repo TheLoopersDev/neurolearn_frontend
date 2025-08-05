@@ -11,7 +11,7 @@ export default function CoursesPage() {
     const router = useRouter();
 
     const handleOpenCreateCourse = () => {
-        router.push('/dashboard/courses/create-course');
+        router.push('/dashboard/instructor/courses/create-course');
     };
 
     return (
