@@ -1,18 +1,27 @@
 'use client';
 
 import Image from 'next/image';
-
-const stats = [
-  { star: 5, percent: 75 },
-  { star: 4, percent: 20 },
-  { star: 3, percent: 5 },
-  { star: 2, percent: 0 },
-  { star: 1, percent: 0 },
-];
+import { useSelector } from 'react-redux';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useGetInstructorReviewStatsQuery } from '@/lib/redux/features/course/courseApi';
 
 export default function EvalueStatistic() {
-  const average = 4.6;
-  const circleRadius = 48; // tăng bán kính
+  const { user } = useSelector((state: any) => state.auth);
+
+  // Gọi API tổng hợp review cho instructor
+  const { data, isLoading } = useGetInstructorReviewStatsQuery(user?._id ?? skipToken);
+
+  if (isLoading || !data) {
+    return (
+      <div className="bg-white rounded-2xl p-4 w-full h-full flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const average = data.average;
+  const stats = data.stats;
+  const circleRadius = 48;
   const circleCircum = 2 * Math.PI * circleRadius;
   const progress = (average / 5) * circleCircum;
 
@@ -52,7 +61,7 @@ export default function EvalueStatistic() {
         </div>
       </div>
       <div className="space-y-3">
-        {stats.map((item) => (
+        {stats.map((item: { star: number; percent: number }) => (
           <div key={item.star} className="flex items-center gap-3">
             <span className="w-6 text-lg text-gray-700 flex items-center">
               {item.star}

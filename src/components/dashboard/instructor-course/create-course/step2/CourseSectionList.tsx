@@ -3,59 +3,102 @@
 import React, { useState } from "react";
 import SectionItem from "./SectionItem";
 import LessonList from "./LessonList";
-import AddEditSection from "./AddEditSection";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import {
     useGetAllSectionsQuery,
     useCreateSectionMutation,
     useUpdateSectionMutation,
     useDeleteSectionMutation,
-    useReorderSectionsMutation
+    useReorderSectionsMutation,
 } from "@/lib/redux/features/course/section/sectionApi";
-import {
-    useCreateLessonMutation,
-} from "@/lib/redux/features/course/section/lesson/lessonApi";
+import { useCreateLessonMutation } from "@/lib/redux/features/course/section/lesson/lessonApi";
 import { Button } from "@/components/common/ui/Button2";
 import SectionHeader from "./SectionHeader";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useModal } from "@/context/ModalContext";
 
 interface Props {
     courseId: string;
 }
 
 export default function CourseSectionList({ courseId }: Props) {
-    const { data: sectionData, refetch: refetchSections } = useGetAllSectionsQuery(courseId, { skip: !courseId });
+    const { data: sectionData, refetch: refetchSections } = useGetAllSectionsQuery(
+        courseId,
+        { skip: !courseId }
+    );
+
     const [createSection] = useCreateSectionMutation();
     const [updateSection] = useUpdateSectionMutation();
     const [deleteSection] = useDeleteSectionMutation();
     const [reorderSections] = useReorderSectionsMutation();
     const [createLesson] = useCreateLessonMutation();
 
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [editSectionId, setEditSectionId] = useState<string | null>(null);
-    const [editInitialData, setEditInitialData] = useState<any>(null);
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
+    const { showModal } = useModal();
 
+    // 🟢 Add Section (modal)
     const handleAddSectionClick = () => {
-        setShowAddForm(true);
-    };
-
-    const handleEditSection = (section: any) => {
-        setEditSectionId(section._id);
-        setEditInitialData({
-            title: section.title,
-            description: section.description,
-            isPublished: section.isPublished
+        showModal("addEditSection", {
+            courseId,
+            mode: "add",
+            onSubmit: async (data: any) => {
+                try {
+                    await createSection({ courseId, data }).unwrap();
+                    await refetchSections();
+                    toast({
+                        title: "Success",
+                        description: "Section created successfully",
+                        variant: "success",
+                    });
+                } catch {
+                    toast({
+                        title: "Error",
+                        description: "Failed to create section",
+                        variant: "destructive",
+                    });
+                }
+            },
         });
     };
 
+    // 🟢 Edit Section (modal)
+    const handleEditSection = (section: any) => {
+        showModal("addEditSection", {
+            courseId,
+            mode: "edit",
+            initialData: {
+                title: section.title,
+                description: section.description,
+                isPublished: section.isPublished,
+            },
+            onSubmit: async (data: any) => {
+                try {
+                    await updateSection({ id: section._id, data }).unwrap();
+                    await refetchSections();
+                    toast({
+                        title: "Success",
+                        description: "Section updated successfully",
+                        variant: "success",
+                    });
+                } catch {
+                    toast({
+                        title: "Error",
+                        description: "Failed to update section",
+                        variant: "destructive",
+                    });
+                }
+            },
+        });
+    };
+
+    // 🟢 Add Lesson
     const handleAddLesson = async (sectionId: string) => {
         try {
             await createLesson({
                 courseId,
                 sectionId,
-                data: { title: "New Lesson", isFree: true }
+                data: { title: "New Lesson", isFree: true },
             }).unwrap();
             await refetchSections();
             toast({
@@ -63,7 +106,7 @@ export default function CourseSectionList({ courseId }: Props) {
                 description: "Lesson added successfully",
                 variant: "success",
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Failed to add lesson",
@@ -72,6 +115,7 @@ export default function CourseSectionList({ courseId }: Props) {
         }
     };
 
+    // 🟢 Delete Section
     const handleDeleteSection = async (id: string) => {
         try {
             await deleteSection(id).unwrap();
@@ -81,7 +125,7 @@ export default function CourseSectionList({ courseId }: Props) {
                 description: "Section deleted successfully",
                 variant: "success",
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Failed to delete section",
@@ -90,48 +134,12 @@ export default function CourseSectionList({ courseId }: Props) {
         }
     };
 
-    const handleSaveSection = async (id: string, data: any) => {
-        try {
-            await updateSection({ id, data }).unwrap();
-            await refetchSections();
-            setEditSectionId(null);
-            toast({
-                title: "Success",
-                description: "Section updated successfully",
-                variant: "success",
-            });
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to update section",
-                variant: "destructive",
-            });
-        }
-    };
-
-    const handleCreateSection = async (data: any) => {
-        try {
-            await createSection({ courseId, data }).unwrap();
-            await refetchSections();
-            setShowAddForm(false);
-            toast({
-                title: "Success",
-                description: "Section created successfully",
-                variant: "success",
-            });
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to create section",
-                variant: "destructive",
-            });
-        }
-    };
-
+    // 🟢 Toggle expand
     const handleToggleExpand = (sectionId: string) => {
         setExpandedSection(expandedSection === sectionId ? null : sectionId);
     };
 
+    // 🟢 Reorder
     const handleReorderSections = async (result: DropResult) => {
         if (!result.destination) return;
 
@@ -140,15 +148,20 @@ export default function CourseSectionList({ courseId }: Props) {
             const [removed] = reordered.splice(result.source.index, 1);
             reordered.splice(result.destination.index, 0, removed);
 
-            const orderUpdates = reordered.map((s, idx) => ({ sectionId: s._id, order: idx }));
+            const orderUpdates = reordered.map((s, idx) => ({
+                sectionId: s._id,
+                order: idx,
+            }));
+
             await reorderSections({ sectionOrders: orderUpdates }).unwrap();
             await refetchSections();
+
             toast({
                 title: "Success",
                 description: "Sections reordered successfully",
                 variant: "success",
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Failed to reorder sections",
@@ -163,25 +176,6 @@ export default function CourseSectionList({ courseId }: Props) {
         <div className="space-y-6">
             <SectionHeader onAdd={handleAddSectionClick} />
 
-            {showAddForm && (
-                <AddEditSection
-                    courseId={courseId}
-                    mode="add"
-                    onSubmit={handleCreateSection}
-                    onCancel={() => setShowAddForm(false)}
-                />
-            )}
-
-            {editSectionId && (
-                <AddEditSection
-                    courseId={courseId}
-                    mode="edit"
-                    initialData={editInitialData}
-                    onSubmit={(data) => handleSaveSection(editSectionId, data)}
-                    onCancel={() => setEditSectionId(null)}
-                />
-            )}
-
             <DragDropContext onDragEnd={handleReorderSections}>
                 <Droppable droppableId="sections">
                     {(provided) => (
@@ -190,7 +184,7 @@ export default function CourseSectionList({ courseId }: Props) {
                             {...provided.droppableProps}
                             className="space-y-4 bg-white rounded-xl p-6"
                         >
-                            {sections.length === 0 && !showAddForm && (
+                            {sections.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <div className="bg-secondary text-gray-400 rounded-full p-4 mb-4">
                                         <Plus className="text-primary w-8 h-8" />
@@ -202,8 +196,9 @@ export default function CourseSectionList({ courseId }: Props) {
                                         Create your first section to start building your course
                                     </p>
                                     <Button
-                                        variant="ghost" size="sm"
-                                        type="submit"
+                                        variant="ghost"
+                                        size="sm"
+                                        type="button"
                                         onClick={handleAddSectionClick}
                                         className="bg-primary hover:bg-primary-hover text-gray-400"
                                     >
@@ -214,10 +209,7 @@ export default function CourseSectionList({ courseId }: Props) {
                             )}
 
                             {sections.map((section: any, index: number) => (
-                                <div
-                                    key={section._id}
-                                    className="rounded-lg overflow-hidden shadow-sm"
-                                >
+                                <div key={section._id} className="rounded-lg overflow-hidden shadow-sm">
                                     <SectionItem
                                         section={section}
                                         index={index}

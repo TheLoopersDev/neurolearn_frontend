@@ -126,7 +126,6 @@ const LessonList = ({ sectionId }: LessonListProps) => {
                                         index={index}
                                         onEdit={handleEditLesson}
                                         onDelete={handleDeleteLesson}
-                                        onAddResource={() => { }}
                                     />
                                 ))
                             )}

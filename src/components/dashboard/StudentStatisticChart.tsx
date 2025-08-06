@@ -1,19 +1,18 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-
-const data = [
-  { name: 'Jan', view: 100, buy: 20 },
-  { name: 'Feb', view: 150, buy: 50 },
-  { name: 'Mar', view: 200, buy: 60 },
-  { name: 'Apr', view: 120, buy: 30 },
-  { name: 'May', view: 150, buy: 50 },
-  { name: 'Jun', view: 350, buy: 120 },
-  { name: 'July', view: 220, buy: 80 },
-  { name: 'Aug', view: 200, buy: 70 },
-];
+import { useSelector } from 'react-redux';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useGetStudentStatsQuery } from '@/lib/redux/features/course/courseApi';
 
 export default function StudentStatisticChart() {
+  const { user } = useSelector((state: any) => state.auth);
+
+  // Gọi API, skip nếu chưa có userId
+  const { data, isLoading } = useGetStudentStatsQuery(user?._id ?? skipToken);
+
+  const chartData = data?.stats ?? [];
+
   return (
     <div className="bg-white rounded-2xl p-6">
       <div className="flex justify-between items-start mb-2">
@@ -29,21 +28,35 @@ export default function StudentStatisticChart() {
           </div>
         </div>
       </div>
+
       <div className="w-full h-72 relative">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} barCategoryGap={15}>
-            <XAxis dataKey="name" axisLine={false} tickLine={false} />
-            <YAxis axisLine={false} tickLine={false} />
-            <Tooltip />
-            <Bar dataKey="buy" stackId="a" fill="#2563eb" radius={[0, 0, 10, 10]} barSize={70} />
-            <Bar dataKey="view" stackId="a" fill="#D1D5DB" radius={[10, 10, 0, 0]} barSize={70} />
-          </BarChart>
-        </ResponsiveContainer>
-        <button className="absolute top-1/2 right-2 -translate-y-1/2 border border-blue-600 text-blue-600 rounded-full w-10 h-10 flex items-center justify-center hover:bg-blue-50 transition">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600">
+            </div>
+          </div>
+        ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} barCategoryGap={15}>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip />
+                <Bar dataKey="buy" stackId="a" fill="#2563eb" radius={[0, 0, 10, 10]} barSize={70} />
+                <Bar dataKey="view" stackId="a" fill="#D1D5DB" radius={[10, 10, 0, 0]} barSize={70} />
+              </BarChart>
+            </ResponsiveContainer>
+        )}
+        {/* <button className="absolute top-1/2 right-2 -translate-y-1/2 border border-blue-600 text-blue-600 rounded-full w-10 h-10 flex items-center justify-center hover:bg-blue-50 transition">
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path d="M13 5l7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path
+              d="M13 5l7 7-7 7M5 12h14"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
-        </button>
+        </button> */}
       </div>
     </div>
   );
