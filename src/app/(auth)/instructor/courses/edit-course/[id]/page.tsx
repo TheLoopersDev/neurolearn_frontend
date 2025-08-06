@@ -2,8 +2,8 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useGetCourseByIdQuery } from "@/lib/redux/features/course/courseApi";
-import CourseCreationForm from "@/components/dashboard/instructor-course/create-course/step1/CourseCreationForm";
 import { Course } from "@/types/course";
+import CourseCreationForm from "../../create-course/_components/step1/CourseCreationForm";
 
 export default function EditCoursePage() {
     const params = useParams();

@@ -1,6 +1,6 @@
 // QuestionListSidebar.tsx
 import React from 'react';
-import { QuestionSummary } from '../../../types/quiz'; // Đảm bảo đường dẫn đúng
+import { QuestionSummary } from '../../../../../types/quiz'; // Đảm bảo đường dẫn đúng
 
 interface QuestionListSidebarProps {
   questions: QuestionSummary[];

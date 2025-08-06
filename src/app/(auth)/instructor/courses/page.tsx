@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import CourseCardGrid from '@/components/dashboard/instructor-course/CourseCardGrid';
+import CourseCardGrid from '@/app/(auth)/instructor/courses/create-course/_components/CourseCardGrid';
 import Button from '@/components/dashboard/Button';
 
 export default function CoursesPage() {

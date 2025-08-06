@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React from "react";
-import CardOption from "@/components/dashboard/instructor-course/CardOption";
+import CardOption from "@/app/(auth)/instructor/courses/create-course/_components/CardOption";
 import tag from "@/public/assets/dashboard/course/tag.svg";
 import {
     useDeleteCourseMutation,

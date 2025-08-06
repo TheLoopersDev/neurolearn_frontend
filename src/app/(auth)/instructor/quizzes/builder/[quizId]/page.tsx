@@ -1,4 +1,4 @@
-import QuizBuilderPage from '@/components/dashboard/create-quiz/QuizBuilderPage';
+import QuizBuilderPage from '@/app/(auth)/instructor/quizzes/_components/QuizBuilderPage';
 
 export default async function EditQuizBuilderRoutePage({
   params,
