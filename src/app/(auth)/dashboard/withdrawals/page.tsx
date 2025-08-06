@@ -44,7 +44,6 @@ const WithdrawalsPage = () => {
   const fetchWithdraws = async () => {
     try {
       setIsLoading(true);
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/withdraw`, {
         method: 'GET',
         credentials: 'include',
@@ -179,7 +178,7 @@ const WithdrawalsPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -187,7 +186,7 @@ const WithdrawalsPage = () => {
           setSelectedCategory={setSelectedCategory}
           categories={categories}
           activeTab="withdrawals"
-          onTabChange={() => {}}
+          onTabChange={() => { }}
           tabOptions={[
             { value: 'withdrawals', label: 'Withdrawals' }
           ]}

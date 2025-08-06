@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import {
-  Search, Eye, Trash2, MoreHorizontal,
+  Eye, Trash2, MoreHorizontal,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
@@ -15,6 +15,7 @@ import OverView from '@/components/course-detail/OverView';
 import InstructorInfo from '@/components/common/ui/InstuctorInfo';
 import { StatusBadge } from '@/components/review-common';
 import { useToast } from '@/hooks/use-toast';
+import SearchCourseRequest from './_components/SearchCourseRequest';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -24,7 +25,8 @@ const CourseManagementSystem: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'request' | 'courses'>('request');
+  type TabType = 'request' | 'courses';
+  const [activeTab, setActiveTab] = useState<TabType>('request');
   const [authorNames, setAuthorNames] = useState<{ [id: string]: string }>({});
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,21 +51,90 @@ const CourseManagementSystem: React.FC = () => {
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
 
-  // Filter and map data
+  // Filter requests by search term
+  const filteredRequests = requestArray.filter((req: any) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return true; // Show all requests when no search term
+    }
+
+    const courseName = req.courseId?.name || req.data?.courseTitle || '';
+    const instructorName = req.userId?.name || '';
+    const instructorEmail = req.userId?.email || '';
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = courseName.toLowerCase().includes(searchLower) ||
+      instructorName.toLowerCase().includes(searchLower) ||
+      instructorEmail.toLowerCase().includes(searchLower);
+
+    return matchesSearch;
+  });
+
+  // Filter and map data for courses
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.publisher?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const categoryName = typeof course.category === 'string' ? course.category : course.category?.title || '';
-    const matchesCategory = selectedCategory === 'All courses' || categoryName === selectedCategory;
-    return matchesSearch && matchesCategory;
+    // Handle search - if searchTerm is empty, always match
+    if (!searchTerm || searchTerm.trim() === '') {
+      return true; // Show all courses when no search term
+    }
+
+    const searchLower = searchTerm.toLowerCase().trim();
+
+    // Safely extract course properties
+    const courseName = (course?.name || '').toLowerCase();
+    const publisherName = (course?.publisher?.name || '').toLowerCase();
+    const courseDescription = (course?.description || '').toLowerCase();
+    const courseOverview = (course?.overview || '').toLowerCase();
+    const courseSubtitle = (course?.subTitle || '').toLowerCase();
+
+    // Handle tags - they can be string[] or undefined
+    const courseTags = Array.isArray(course?.tags)
+      ? course.tags.join(' ').toLowerCase()
+      : '';
+
+    // Handle category - can be string or object
+    const categoryName = typeof course?.category === 'object' && course?.category
+      ? (course.category.title || '').toLowerCase()
+      : typeof course?.category === 'string'
+        ? course.category.toLowerCase()
+        : '';
+
+    // Search in multiple fields
+    const matchesSearch = courseName.includes(searchLower) ||
+      publisherName.includes(searchLower) ||
+      courseDescription.includes(searchLower) ||
+      courseOverview.includes(searchLower) ||
+      courseSubtitle.includes(searchLower) ||
+      courseTags.includes(searchLower) ||
+      categoryName.includes(searchLower);
+
+    // Fallback: try partial matching for short search terms
+    const partialMatch = searchLower.length >= 3 && (
+      courseName.indexOf(searchLower) !== -1 ||
+      publisherName.indexOf(searchLower) !== -1 ||
+      courseTags.indexOf(searchLower) !== -1
+    );
+
+    const finalMatch = matchesSearch || partialMatch;
+    const matchesCategory = true;
+
+    return finalMatch && matchesCategory;
   });
 
   const requestItemsPerPage = 10;
   const coursesItemsPerPage = 9;
   const itemsPerPage = activeTab === 'request' ? requestItemsPerPage : coursesItemsPerPage;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+
+  // Calculate pagination based on active tab
+  const totalItems = activeTab === 'request' ? filteredRequests.length : filteredCourses.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentCourses = filteredCourses.slice(startIndex, startIndex + itemsPerPage);
+
+  // Get current items based on active tab
+  const currentRequests = activeTab === 'request'
+    ? filteredRequests.slice(startIndex, startIndex + itemsPerPage)
+    : [];
+  const currentCourses = activeTab === 'courses'
+    ? filteredCourses.slice(startIndex, startIndex + itemsPerPage)
+    : [];
 
   useEffect(() => {
     const ids = currentCourses
@@ -89,10 +160,15 @@ const CourseManagementSystem: React.FC = () => {
     });
   }, [currentCourses, authorNames]);
 
-  const handleTabChange = (tab: 'request' | 'courses') => {
+  const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedStatus]);
 
   const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
     try {
@@ -151,7 +227,7 @@ const CourseManagementSystem: React.FC = () => {
           <ChevronLeft className="w-4 h-4" />
           Previous
         </button>
-        
+
         {getPageNumbers().map((page, index) => (
           <button
             key={index}
@@ -161,18 +237,17 @@ const CourseManagementSystem: React.FC = () => {
               }
             }}
             disabled={page === '...'}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${
-              currentPage === page
-                ? 'text-blue-600 bg-blue-50 border border-blue-300'
-                : page === '...'
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
+              ? 'text-blue-600 bg-blue-50 border border-blue-300'
+              : page === '...'
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
-            }`}
+              }`}
           >
             {page}
           </button>
         ))}
-        
+
         <button
           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
@@ -188,83 +263,127 @@ const CourseManagementSystem: React.FC = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
 
-  // If filteredCourses is empty, display the number of courses retrieved for debugging
-  if (filteredCourses.length === 0) {
-    return <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">No courses match the criteria.<br />Total courses retrieved from API: {courses.length}</div>;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Header with Search and Filters */}
-        <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-80"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <select
-                className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
+  // If no courses found in active tab
+  if (activeTab === 'courses' && filteredCourses.length === 0) {
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Header with Search and Filters */}
+          <div className="flex items-center justify-between mb-8">
+            <SearchCourseRequest
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              categories={categories}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              statusOptions={statusOptions}
+              activeTab={activeTab}
+            />
+            <div className="flex gap-3">
+              <button
+                className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${(activeTab as TabType) === 'request'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                  }`}
+                onClick={() => handleTabChange('request')}
               >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-              <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                Request
+              </button>
+              <button
+                className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'courses'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                  }`}
+                onClick={() => handleTabChange('courses')}
+              >
+                Courses
+              </button>
             </div>
-            {activeTab === 'request' && (
-              <div className="relative">
-                <select
-                  className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                  value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
-                >
-                  {statusOptions.map(status => (
-                    <option key={status} value={status}>
-                      {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The Course</h1>
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
+            <h3 className="mt-2 text-lg font-semibold text-gray-800">No Courses Found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm ? (
+                <>
+                  No courses found matching{ }
+                  <span className="font-medium text-black">&quot{searchTerm}&quot</span>. Try adjusting your search.
+                </>
+              ) : (
+                'There are no courses to display.'
+              )}
+            </p>
+
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 text-xs text-gray-400">
+                <p>Debug: Total courses available: {courses.length}</p>
+                <p>Search term: &quot;{searchTerm}&quot;</p>
+                <p>Active tab: {activeTab}</p>
+                {courses.length > 0 && (
+                  <div className="mt-2">
+                    <p>Sample course names:</p>
+                    <ul className="text-left max-w-md mx-auto">
+                      {courses.slice(0, 3).map((course, i) => (
+                        <li key={i} className="truncate">- {course.name}</li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => setSearchTerm(courses[0]?.name?.substring(0, 5) || '')}
+                      className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
+                    >
+                      Test Search with &#39;{courses[0]?.name?.substring(0, 5)}&#39;
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Search and Filters */}
+        <div className="flex items-center justify-between mb-8">
+          <SearchCourseRequest
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categories={categories}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            statusOptions={statusOptions}
+            activeTab={activeTab}
+          />
           <div className="flex gap-3">
             <button
-              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${
-                activeTab === 'request' 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
-              }`}
+              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'request'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                }`}
               onClick={() => handleTabChange('request')}
             >
               Request
             </button>
             <button
-              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${
-                activeTab === 'courses' 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
-              }`}
+              className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'courses'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                }`}
               onClick={() => handleTabChange('courses')}
             >
               Courses
             </button>
           </div>
         </div>
-
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The Course</h1>
-
         {/* Tab content */}
         {activeTab === 'request' ? (
           <>
@@ -279,64 +398,66 @@ const CourseManagementSystem: React.FC = () => {
                 <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
                 <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
               </div>
-
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
                   <div className="text-center py-8">Loading...</div>
-                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No data</div>
+                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                      {searchTerm ? `No requests found matching &quot;${searchTerm}&quot;` : 'No data'}
+                  </div>
+
                 ) : (
-                      requestArray.map((req: any, index: number) => (
+                      currentRequests.map((req: any, index: number) => (
                     <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                       {/* Instructor */}
-                          <div className="col-span-2 flex items-center gap-3">
-                        <Image 
-                              src={req.userId?.avatar?.url || 'https://via.placeholder.com/56'}
+                      <div className="col-span-2 flex items-center gap-3">
+                        <Image
+                          src={req.userId?.avatar?.url || 'https://via.placeholder.com/56'}
                           alt="avatar"
                           width={48}
                           height={48}
                           className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
                         />
                         <div>
-                              <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
-                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
+                          <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
                         </div>
                       </div>
                       {/* Course Title */}
                       <div className="col-span-3 flex items-center ml-4">
-                            <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
+                        <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
                       </div>
                       {/* Category */}
                       <div className="col-span-2 flex items-center ml-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                              {req.courseId?.tags ?
-                                (typeof req.courseId.tags === 'string' ? req.courseId.tags : req.courseId.tags.join(', ')) :
-                                'N/A'}
+                          {req.courseId?.tags ?
+                            (typeof req.courseId.tags === 'string' ? req.courseId.tags : req.courseId.tags.join(', ')) :
+                            'N/A'}
                         </span>
                       </div>
                       {/* Request Date */}
                       <div className="col-span-2 flex items-center">
                         <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
                       </div>
-                          {/* Status */}
-                          <div className="col-span-1 flex items-center justify-center">
-                            <StatusBadge status={req.status || 'pending'} />
-                          </div>
-                          {/* Action */}
-                          <div className="col-span-1 flex items-center justify-center gap-2">
+                      {/* Status */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <StatusBadge status={req.status || 'pending'} />
+                      </div>
+                      {/* Action */}
+                      <div className="col-span-1 flex items-center justify-center gap-2">
                         <button
-                              className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                              onClick={() => {
-                                setSelectedRequest(req);
-                                setIsModalOpen(true);
+                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                          onClick={() => {
+                            setSelectedRequest(req);
+                            setIsModalOpen(true);
                           }}
                         >
-                              <Eye className="w-4 h-4" />
-                            </button>
+                          <Eye className="w-4 h-4" />
+                        </button>
                         <button
-                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                              onClick={async () => {
+                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                          onClick={async () => {
                             try {
                               await handleApproveOrReject(req._id || req.id, 'reject');
                             } catch (err: any) {
@@ -348,7 +469,7 @@ const CourseManagementSystem: React.FC = () => {
                             }
                           }}
                         >
-                              <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -441,7 +562,6 @@ const CourseManagementSystem: React.FC = () => {
               })}
             </div>
         )}
-
         {/* Pagination */}
         <PaginationComponent />
       </div>
@@ -461,7 +581,6 @@ const CourseManagementSystem: React.FC = () => {
                 </svg>
               </button>
             </div>
-
             {/* Course Preview Content using course-detail components */}
             <div className="p-6">
               <div className="flex flex-col lg:flex-row gap-20">
@@ -477,13 +596,11 @@ const CourseManagementSystem: React.FC = () => {
                       className="w-full h-64 object-cover rounded-4xl"
                     />
                   </div>
-
                   {/* Instructor Info */}
                   <InstructorInfo
                     courseName={selectedRequest.courseId?.name}
                     instructor={selectedRequest.userId}
                   />
-
                   {/* Description Section */}
                   <div>
                     <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
@@ -494,15 +611,11 @@ const CourseManagementSystem: React.FC = () => {
                       </a>
                     </div>
                   </div>
-
                   {/* Course Detail */}
                   <CourseDetail course={selectedRequest.courseId} />
-
                   {/* Course Content */}
                   <CourseContent sections={selectedRequest.courseId?.sections || []} />
-
                 </div>
-
                 {/* RIGHT SIDEBAR */}
                 <div className="w-full lg:w-[30%] space-y-15">
                   <PublisherCard
@@ -516,7 +629,6 @@ const CourseManagementSystem: React.FC = () => {
                   />
                 </div>
               </div>
-
               {/* Action Buttons */}
               <div className="flex justify-end gap-4 pt-6 border-t mt-10">
                 <button
