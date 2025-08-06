@@ -306,7 +306,9 @@ const CourseManagementSystem: React.FC = () => {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
             <h3 className="mt-2 text-lg font-semibold text-gray-800">No Courses Found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchTerm ? `No courses found matching "${searchTerm}". Try adjusting your search.` : 'There are no courses to display.'}
+              {searchTerm
+                ? `No courses found matching &quot;${searchTerm}&quot;. Try adjusting your search.`
+                : 'There are no courses to display.'}
             </p>
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-4 text-xs text-gray-400">
@@ -325,7 +327,7 @@ const CourseManagementSystem: React.FC = () => {
                       onClick={() => setSearchTerm(courses[0]?.name?.substring(0, 5) || '')}
                       className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
                     >
-                      Test Search with "{courses[0]?.name?.substring(0, 5)}"
+                      Test Search with '{courses[0]?.name?.substring(0, 5)}'
                     </button>
                   </div>
                 )}
@@ -396,7 +398,7 @@ const CourseManagementSystem: React.FC = () => {
                   <div className="text-center py-8">Loading...</div>
                 ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
+                      {searchTerm ? `No requests found matching '${searchTerm}'` : 'No data'}
                   </div>
                 ) : (
                       currentRequests.map((req: any, index: number) => (
