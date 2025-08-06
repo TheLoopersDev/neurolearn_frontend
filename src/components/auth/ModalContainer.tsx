@@ -15,8 +15,9 @@ import {
   motion,
 } from 'framer-motion';
 import ActionModal from '../../app/(auth)/instructor/courses/create-course/_components/ActionModal';
-import AddEditSection from '../../app/(auth)/instructor/courses/create-course/_components/create-course/step2/AddEditSection';
-import AddEditLessonModal from '../../app/(auth)/instructor/courses/create-course/_components/create-course/step2/AddEditLesson';
+import AddEditSection from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditSection';
+import AddEditLessonModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditLesson';
+
 
 export default function ModalContainer() {
   const { modalType, hideModal, modalData } = useModal();
