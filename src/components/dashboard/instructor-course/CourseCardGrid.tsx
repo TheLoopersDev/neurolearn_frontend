@@ -53,7 +53,7 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
   if (searchTerm.trim() && mergedCourses.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 text-lg">Can't find any course matching '{searchTerm}'</p>
+        <p>Can&#39;t find any course matching &quot;{searchTerm}&quot;</p>
         <p className="text-gray-400 text-sm mt-2">Try a different keyword</p>
       </div>
     );

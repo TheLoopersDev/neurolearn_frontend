@@ -238,8 +238,8 @@ const CourseManagementSystem: React.FC = () => {
             }}
             disabled={page === '...'}
             className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
-                ? 'text-blue-600 bg-blue-50 border border-blue-300'
-                : page === '...'
+              ? 'text-blue-600 bg-blue-50 border border-blue-300'
+              : page === '...'
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
               }`}
@@ -306,14 +306,20 @@ const CourseManagementSystem: React.FC = () => {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">
             <h3 className="mt-2 text-lg font-semibold text-gray-800">No Courses Found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchTerm
-                ? `No courses found matching &quot;${searchTerm}&quot;. Try adjusting your search.`
-                : 'There are no courses to display.'}
+              {searchTerm ? (
+                <>
+                  No courses found matching{ }
+                  <span className="font-medium text-black">&quot{searchTerm}&quot</span>. Try adjusting your search.
+                </>
+              ) : (
+                'There are no courses to display.'
+              )}
             </p>
+
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-4 text-xs text-gray-400">
                 <p>Debug: Total courses available: {courses.length}</p>
-                <p>Search term: "{searchTerm}"</p>
+                <p>Search term: &quot;{searchTerm}&quot;</p>
                 <p>Active tab: {activeTab}</p>
                 {courses.length > 0 && (
                   <div className="mt-2">
@@ -327,7 +333,7 @@ const CourseManagementSystem: React.FC = () => {
                       onClick={() => setSearchTerm(courses[0]?.name?.substring(0, 5) || '')}
                       className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
                     >
-                      Test Search with '{courses[0]?.name?.substring(0, 5)}'
+                      Test Search with &#39;{courses[0]?.name?.substring(0, 5)}&#39;
                     </button>
                   </div>
                 )}
@@ -359,7 +365,7 @@ const CourseManagementSystem: React.FC = () => {
             <button
               className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'request'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
                 }`}
               onClick={() => handleTabChange('request')}
             >
@@ -368,7 +374,7 @@ const CourseManagementSystem: React.FC = () => {
             <button
               className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'courses'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
                 }`}
               onClick={() => handleTabChange('courses')}
             >
@@ -398,8 +404,9 @@ const CourseManagementSystem: React.FC = () => {
                   <div className="text-center py-8">Loading...</div>
                 ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                      {searchTerm ? `No requests found matching '${searchTerm}'` : 'No data'}
+                      {searchTerm ? `No requests found matching &quot;${searchTerm}&quot;` : 'No data'}
                   </div>
+
                 ) : (
                       currentRequests.map((req: any, index: number) => (
                     <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
