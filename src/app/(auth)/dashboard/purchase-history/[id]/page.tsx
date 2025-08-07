@@ -31,8 +31,8 @@ export default function ReceiptModal() {
   const formattedDate = new Date(order?.createdAt).toLocaleDateString('en-GB');
   return (
     <>
-      <div className="fixed inset-0 -sm" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="" aria-hidden="true" />
+      <div className="flex items-center justify-center p-4">
         <div className="bg-white rounded-xl p-6 w-[700px]">
           <h2 className="text-xl font-bold text-black mb-2">Receipts</h2>
 
