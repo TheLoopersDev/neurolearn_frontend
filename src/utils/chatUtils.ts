@@ -1,7 +1,13 @@
 import { Chat, ChatMember } from '@/types/chat';
 
-export const formatMessageTime = (timestamp: string): string => {
-  const date = new Date(timestamp);
+export const formatMessageTime = (timestamp: string | Date): string => {
+  let date: Date;
+  if (timestamp instanceof Date) {
+    date = timestamp;
+  } else {
+    date = new Date(timestamp);
+  }
+  
   const now = new Date();
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 

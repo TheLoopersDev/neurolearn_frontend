@@ -8,7 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { MdOutlineDashboardCustomize } from 'react-icons/md';
 import { PiBagBold } from 'react-icons/pi';
-import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave } from 'react-icons/fa';
+import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave, FaPercent } from 'react-icons/fa';
 import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
 import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
 import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
@@ -146,6 +146,11 @@ export function UserDropdown() {
       title: 'Withdraw Requests',
       href: '/dashboard/withdrawals',
       icon: <FaMoneyBillWave className="text-[20px]" />,
+    },
+    {
+      title: 'Discount Management',
+      href: '/dashboard/discount-management',
+      icon: <FaPercent className="text-[20px]" />,
     },
   ];
 

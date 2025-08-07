@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { Settings } from 'lucide-react';
 
 interface ChatHeaderProps {
     name: string;
@@ -7,6 +8,7 @@ interface ChatHeaderProps {
     isGroup?: boolean;
     memberCount?: number;
     role?: string;
+    onGroupSettingsClick?: () => void; // Callback để mở group settings
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -15,6 +17,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     isGroup = false,
     memberCount,
     role,
+    onGroupSettingsClick,
 }) => {
     return (
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
@@ -36,6 +39,17 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Group Settings Button */}
+            {isGroup && onGroupSettingsClick && (
+                <button
+                    onClick={onGroupSettingsClick}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Group Settings"
+                >
+                    <Settings size={18} className="text-gray-600" />
+                </button>
+            )}
         </div>
     );
 };

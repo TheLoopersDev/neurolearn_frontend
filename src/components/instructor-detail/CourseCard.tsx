@@ -29,6 +29,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     course.estimatedPrice || (course.price && course.price > 0 ? course.price * 1.5 : 0);
   const reviewCount = course.reviews?.length || 0;
 
+  const handleWishlistClick = () => {
+    // Handle wishlist logic
+  };
+
+  const handleCartClick = () => {
+    // Handle cart logic
+  };
+
   return (
     <Link href={`/courses/${course._id}`} className="block h-full group">
       <div className="bg-white rounded-xl  overflow-hidden  transition-all duration-300 h-full flex flex-col transform hover:-translate-y-1 border border-gray-100">
@@ -50,20 +58,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             <button
               className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
               title="Add to wishlist"
-              onClick={e => {
-                e.preventDefault();
-                console.log('Wishlist clicked');
-              }}
+              onClick={handleWishlistClick}
             >
               <Image src="/assets/icons/heart-blue.svg" alt="Star icon" width={16} height={16} />
             </button>
             <button
               className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
               title="Add to cart"
-              onClick={e => {
-                e.preventDefault();
-                console.log('Cart clicked');
-              }}
+              onClick={handleCartClick}
             >
               <Image src="/assets/icons/Buy.svg" alt="Star icon" width={16} height={16} />
             </button>
