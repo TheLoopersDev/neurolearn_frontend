@@ -1,6 +1,6 @@
 'use client';
 import { useState } from "react";
-import CourseCreationForm from "@/app/(auth)/instructor/courses/create-course/_components/create-course/step1/CourseCreationForm";
+import CourseCreationForm from "./_components/step1/CourseCreationForm";
 import { Course } from "@/types/course";
 
 export default function CreateCoursePage() {

@@ -36,7 +36,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'instructor' | 'user' | string;
+  role: 'admin' | 'instructor' | 'user' | string;
   avatar?: {
     url?: string;
   };
@@ -48,6 +48,141 @@ interface User {
 
 interface LoadUserResponse {
   user: User;
+}
+
+// =====================
+// Role-based routes
+// =====================
+function getDropdownList(user: User) {
+  const isBusinessAdminOrManager =
+    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
+
+  const commonItems = [
+    {
+      title: 'Purchase History',
+      href: '/dashboard/purchase-history',
+      icon: <PiBagBold className="text-[20px]" />,
+    },
+    {
+      title: 'Setting',
+      href: '/dashboard/setting',
+      icon: <IoSettingsOutline className="text-[20px]" />,
+    },
+  ];
+
+  const businessItems = isBusinessAdminOrManager
+    ? [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
+      },
+      {
+        title: 'My Courses',
+        href: '/business/mycourses',
+        icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
+      },
+      {
+        title: 'Employee',
+        href: '/business/employees',
+        icon: <FaUsers className="text-[20px]" />,
+      },
+      {
+        title: 'Message',
+        href: '/business/message',
+        icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/business/purchase-history',
+        icon: <PiBagBold className="text-[20px]" />,
+      },
+      {
+        title: 'Discount',
+        href: '/business/discount',
+        icon: <FaMoneyBillWave className="text-[20px]" />,
+      },
+      {
+        title: 'Setting',
+        href: '/business/setting',
+        icon: <IoSettingsOutline className="text-[20px]" />,
+      },
+    ]
+    : [];
+
+  if (user.role === 'admin') {
+    return [
+      {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
+      },
+      {
+        title: 'Course Requests',
+        href: '/dashboard/review-courses',
+        icon: <FaClipboardList className="text-[20px]" />,
+      },
+      {
+        title: 'Instructor Requests',
+        href: '/dashboard/review-instructor',
+        icon: <FaUsers className="text-[20px]" />,
+      },
+      {
+        title: 'Business Requests',
+        href: '/dashboard/business-requests',
+        icon: <FaBuilding className="text-[20px]" />,
+      },
+      {
+        title: 'Withdraw Requests',
+        href: '/dashboard/withdrawals',
+        icon: <FaMoneyBillWave className="text-[20px]" />,
+      },
+      ...commonItems,
+    ];
+  }
+
+  if (user.role === 'instructor') {
+    return [
+      {
+        title: 'Dashboard User',
+        href: '/dashboard',
+        icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
+      },
+      {
+        title: 'Switch to Instructor',
+        href: '/switch/instructor',
+        icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
+      },
+      {
+        title: 'Switch to Business',
+        href: '/switch/business',
+        icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
+      },
+      ...businessItems,
+      {
+        title: 'Terms of Service',
+        href: '/terms',
+        icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
+      },
+      {
+        title: 'Help & Support',
+        href: '/help',
+        icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
+      },
+      ...commonItems,
+    ];
+  }
+
+  // Default: normal user
+  return [
+    {
+      title: 'Watch Course',
+      href: '/dashboard/watch-course',
+      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
+    },
+    ...businessItems,
+    ...commonItems,
+  ];
 }
 
 export function UserDropdown() {
@@ -72,15 +207,10 @@ export function UserDropdown() {
       logoutApi()
         .then(() => {
           signOutAction().then(() => {
-            if (!session) {
-              router.push('/');
-            }
+            if (!session) router.push('/');
           });
         })
-        .catch(error => {
-          console.error('Logout API call failed:', error);
-          router.push('/');
-        });
+        .catch(() => router.push('/'));
     }
   }, [logoutTriggered, logoutApi, router, session]);
 
@@ -90,107 +220,10 @@ export function UserDropdown() {
     }
   }, [session, logoutTriggered, router]);
 
-  if (isLoading || !data?.user) {
-    return null;
-  }
+  if (isLoading || !data?.user) return null;
 
   const { user } = data;
-  const isBusinessAdminOrManager =
-    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
-
-  const commonNavbarItems = [
-    {
-      title: 'Order History',
-      href: '/dashboard/purchase-history',
-      icon: <PiBagBold className="text-[20px]" />,
-    },
-    {
-      title: 'Setting',
-      href: '/dashboard/setting',
-      icon: <IoSettingsOutline className="text-[20px]" />,
-    },
-  ];
-
-  const businessDashboardItem = isBusinessAdminOrManager
-    ? [
-        {
-          title: 'Business Dashboard',
-          href: `/business/dashboard/${user.businessInfo?.businessId}`,
-          icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
-        },
-      ]
-    : [];
-
-  const adminItems = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
-    },
-    {
-      title: 'Course Requests',
-      href: '/dashboard/review-courses',
-      icon: <FaClipboardList className="text-[20px]" />,
-    },
-    {
-      title: 'Instructor Requests',
-      href: '/dashboard/review-instructor',
-      icon: <FaUsers className="text-[20px]" />,
-    },
-    {
-      title: 'Business Requests',
-      href: '/dashboard/business-requests',
-      icon: <FaBuilding className="text-[20px]" />,
-    },
-    {
-      title: 'Withdraw Requests',
-      href: '/dashboard/withdrawals',
-      icon: <FaMoneyBillWave className="text-[20px]" />,
-    },
-  ];
-
-  const dropdownList =
-    user.role === 'admin'
-      ? [...adminItems]
-      : user.role === 'instructor'
-        ? [
-            {
-              title: 'Dashboard User',
-              href: '/dashboard',
-              icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
-            },
-            {
-              title: 'Switch to Instructor',
-              href: '/switch/instructor',
-              icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
-            },
-            {
-              title: 'Switch to Business',
-              href: '/switch/business',
-              icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
-            },
-            ...businessDashboardItem,
-            {
-              title: 'Terms of Service',
-              href: '/terms',
-              icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
-            },
-            {
-              title: 'Help & Support',
-              href: '/help',
-              icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
-            },
-            ...commonNavbarItems,
-          ]
-        : [
-            {
-              title: 'Watch Course',
-              href: '/dashboard/watch-course',
-              icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-            },
-            ...businessDashboardItem,
-            ...commonNavbarItems,
-          ];
+  const dropdownList = getDropdownList(user);
 
   const dropdownVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
@@ -198,12 +231,7 @@ export function UserDropdown() {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: {
-        type: 'spring' as const,
-        damping: 20,
-        stiffness: 300,
-        mass: 0.5,
-      },
+      transition: { type: 'spring', damping: 20, stiffness: 300, mass: 0.5 },
     },
     exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
   };
@@ -213,11 +241,7 @@ export function UserDropdown() {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: i * 0.05,
-        type: 'spring' as const,
-        stiffness: 300,
-      },
+      transition: { delay: i * 0.05, type: 'spring', stiffness: 300 },
     }),
   };
 
@@ -239,17 +263,11 @@ export function UserDropdown() {
               referrerPolicy="no-referrer"
             />
           </div>
-
           <div className="flex items-center gap-1 sm:gap-2 w-auto">
             <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
               {user.name}
             </span>
-            <svg
-              className="w-[15.5px] h-[8.5px]"
-              viewBox="0 0 16 9"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg className="w-[15.5px] h-[8.5px]" viewBox="0 0 16 9" fill="none">
               <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
             </svg>
           </div>

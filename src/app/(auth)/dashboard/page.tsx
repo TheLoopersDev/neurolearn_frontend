@@ -1,41 +1,131 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+
 import CourseDetail from '@/components/dashboard/CourseDetail';
 import CourseStatus from '@/components/dashboard/CourseStatus';
-import EvalueStatistic from '@/components/dashboard/EvalueStatistic';
-import RevenueStatisticChart from '@/components/dashboard/RevenueStatisticChart';
+import RelatedCourses from '@/components/dashboard/RelatedCourses';
 import StudentStatisticChart from '@/components/dashboard/StudentStatisticChart';
-import Image from 'next/image';
-import React from 'react';
+import UpcomingExam from '@/components/dashboard/UpcomingExam';
 
-export default function DashboardLayout() {
+export default function UserDashboard() {
+  const { user } = useSelector((state: any) => state.auth);
+  const router = useRouter();
+
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/users/dashboard/${user._id}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          }
+        );
+
+        const result = await res.json();
+        setData(result);
+      } catch (error) {
+        console.error('Fetch dashboard error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user?._id]);
+
+  const stats = [
+    {
+      label: 'Total Courses',
+      icon: '/assets/icons/blue-book.svg',
+      value: data?.stats?.totalCourses ?? 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      label: 'Completed',
+      icon: '/assets/icons/teacher-fill.svg',
+      value: data?.stats?.completedCourses ?? 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      label: 'Certificate',
+      icon: '/assets/icons/award-fill.svg',
+      value: data?.stats?.certificates ?? 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      label: 'Hour Spent',
+      icon: '/assets/icons/clock-fill.svg',
+      value: data?.stats?.hoursSpent ?? 0,
+      width: 50,
+      height: 50,
+    },
+  ];
+
+  const handleContinue = (courseId: string, status: string) => {
+    if (!courseId) return;
+    router.push(
+      status === 'draft'
+        ? `/dashboard/courses/edit-course/${courseId}`
+        : `/dashboard/courses/${courseId}`
+    );
+  };
+
   return (
-    <div className="flex h-full ">
-      {/* Sidebar chiếm 1/6 */}
-
-      {/* Nội dung chiếm 5/6 */}
+    <div className="flex h-full">
       <div className="w-full overflow-y-auto">
         <div className="rounded-2xl overflow-hidden w-full">
           <Image
             src="/assets/images/banner-dashboard.png"
-            alt="avatar"
+            alt="Dashboard Banner"
             width={1500}
             height={800}
             className="w-full h-auto object-cover"
           />
         </div>
+
         <div className="mt-6 space-y-6">
-          <CourseDetail />
-          <CourseStatus />
-          <StudentStatisticChart />
+          <CourseDetail isLoading={isLoading} stats={stats} />
+          <CourseStatus
+            isLoading={isLoading}
+            course={data?.latestCourse}
+            onContinue={handleContinue}
+          />
+          <StudentStatisticChart
+            isLoading={isLoading}
+            chartData={data?.studentStats ?? []}
+          />
+
           <div className="flex gap-6">
-            <div className="w-[70%]">
-              <RevenueStatisticChart />
-            </div>
-            <div className="w-[30%]">
+            <div className="w-[50%]">
               <div className="bg-white rounded-2xl p-4 w-full h-full flex flex-col">
-                <EvalueStatistic />
+                {isLoading ? (
+                  <span>Loading courses...</span>
+                ) : (
+                  <RelatedCourses
+                    courses={data?.relatedCourses || []}
+                    title="Related Courses"
+                    viewAllHref="/courses"
+                  />
+                )}
               </div>
+            </div>
+            <div className="w-[50%]">
+              <UpcomingExam items={data?.upcomingExams || []} />
             </div>
           </div>
         </div>

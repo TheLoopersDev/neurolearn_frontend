@@ -1,27 +1,22 @@
 'use client';
 
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
-import { skipToken } from '@reduxjs/toolkit/query';
-import { useRouter } from 'next/navigation';
-import { useGetLatestCourseQuery } from '@/lib/redux/features/course/courseApi';
+import React from 'react';
 
-export default function CourseStatus() {
-  const { user } = useSelector((state: any) => state.auth);
-  const { data, isLoading } = useGetLatestCourseQuery(user?._id ?? skipToken);
-  const router = useRouter();
-
-  const course = data?.course;
-
-  const handleNavigate = () => {
-    if (!course) return;
-    if (course.status === 'draft') {
-      router.push(`/dashboard/courses/edit-course/${course._id}`);
-    } else {
-      router.push(`/dashboard/courses/${course._id}`);
-    }
+interface CourseStatusProps {
+  isLoading: boolean;
+  course?: {
+    _id: string;
+    name: string;
+    thumbnail: string;
+    status: string;
+    stepsCompleted: number;
+    stepsTotal: number;
   };
+  onContinue?: (courseId: string, status: string) => void;
+}
 
+export default function CourseStatus({ isLoading, course, onContinue }: CourseStatusProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-2xl p-6">
@@ -45,11 +40,15 @@ export default function CourseStatus() {
   return (
     <div className="bg-white rounded-2xl p-6">
       <h2 className="text-2xl font-semibold mb-2 text-black">Course Status</h2>
+
+      {/* Header */}
       <div className="flex items-center text-gray-400 text-sm font-medium border-b pb-2">
         <div className="w-2/5">Course name</div>
         <div className="w-2/5">Progress</div>
         <div className="w-1/5 text-right">Active</div>
       </div>
+
+      {/* Content */}
       <div className="flex items-center pt-6 pb-4">
         {/* Course image and name */}
         <div className="flex items-center w-2/5 gap-4">
@@ -82,7 +81,7 @@ export default function CourseStatus() {
         {/* Active button */}
         <div className="w-1/5 flex justify-end">
           <button
-            onClick={handleNavigate}
+            onClick={() => onContinue?.(course._id, course.status)}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-2 rounded-full flex items-center gap-2 transition"
           >
             Continue

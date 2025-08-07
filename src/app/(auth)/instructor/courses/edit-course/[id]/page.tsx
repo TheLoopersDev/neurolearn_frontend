@@ -7,9 +7,16 @@ import CourseCreationForm from "../../create-course/_components/step1/CourseCrea
 
 export default function EditCoursePage() {
     const params = useParams();
-    const id = typeof params?.courseId === "string" ? params.courseId : Array.isArray(params?.courseId) ? params.courseId[0] : undefined;
+    const id =
+        typeof params?.id === "string"
+            ? params.id
+            : Array.isArray(params?.id)
+                ? params.id[0]
+                : undefined;
+
     const [formData, setFormData] = useState<Partial<Course>>({});
     const [courseId, setCourseId] = useState<string | null>(id || null);
+    const [isReady, setIsReady] = useState(false); // ✅ Flag để đảm bảo render sau khi set xong formData
 
     const {
         data: response,
@@ -19,22 +26,31 @@ export default function EditCoursePage() {
 
     const course = response?.courses;
 
-
     useEffect(() => {
         if (course) {
-            setFormData(course);
+            setFormData({
+                ...course,
+                tags: course.tags || [],
+                benefits: Array.isArray(course.benefits) ? course.benefits : [],
+                prerequisites: Array.isArray(course.prerequisites) ? course.prerequisites : [],
+                duration: course.duration || 1,
+            });
             setCourseId(course._id);
+            setIsReady(true); // ✅ Chỉ cho render sau khi dữ liệu được xử lý xong
         }
     }, [course]);
 
     if (loading && id) return <div>Loading...</div>;
     if (error) return <div className="text-red-500">Error loading course</div>;
+
     return (
-        <CourseCreationForm
-            isEdit={true} 
-            formData={formData}
-            setFormData={setFormData}
-            courseId={courseId}
-        />
+        isReady && (
+            <CourseCreationForm
+                isEdit={true}
+                formData={formData}
+                setFormData={setFormData}
+                courseId={courseId}
+            />
+        )
     );
 }

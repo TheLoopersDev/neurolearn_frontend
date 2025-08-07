@@ -75,9 +75,9 @@ const CardOption: React.FC<CardOptionProps> = ({
     }, []);
 
     const menuItems = [
-        { label: "Edit", action: () => handleNavigate(`/dashboard/courses/edit-course/${courseId}`), color: "text-gray-800" },
-        { label: "Course Detail", action: () => handleNavigate(`/dashboard/courses/${courseId}`), color: "text-gray-800" },
-        { label: "Analytics", action: () => handleNavigate(`/dashboard/courses/${courseId}/analytics`), color: "text-gray-800" },
+        { label: "Edit", action: () => handleNavigate(`/instructor/courses/edit-course/${courseId}`), color: "text-gray-800" },
+        { label: "Course Detail", action: () => handleNavigate(`/instructor/courses/${courseId}`), color: "text-gray-800" },
+        { label: "Analytics", action: () => handleNavigate(`/instructor/courses/${courseId}/analytics`), color: "text-gray-800" },
         onPublish && { label: "Publish", action: () => handleAction(onPublish), color: "text-green-600 hover:bg-green-50" },
         onUnpublish && { label: "Unpublish", action: () => handleAction(onUnpublish), color: "text-yellow-600 hover:bg-yellow-50" },
         onDelete && { label: "Delete", action: () => handleAction(onDelete), color: "text-red-600 hover:bg-red-50" },

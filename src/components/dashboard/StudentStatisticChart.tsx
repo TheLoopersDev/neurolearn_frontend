@@ -1,18 +1,13 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useSelector } from 'react-redux';
-import { skipToken } from '@reduxjs/toolkit/query';
-import { useGetStudentStatsQuery } from '@/lib/redux/features/course/courseApi';
 
-export default function StudentStatisticChart() {
-  const { user } = useSelector((state: any) => state.auth);
+interface StudentStatisticChartProps {
+  isLoading: boolean;
+  chartData: { name: string; view: number; buy: number }[];
+}
 
-  // Gọi API, skip nếu chưa có userId
-  const { data, isLoading } = useGetStudentStatsQuery(user?._id ?? skipToken);
-
-  const chartData = data?.stats ?? [];
-
+export default function StudentStatisticChart({ isLoading, chartData }: StudentStatisticChartProps) {
   return (
     <div className="bg-white rounded-2xl p-6">
       <div className="flex justify-between items-start mb-2">
@@ -32,8 +27,7 @@ export default function StudentStatisticChart() {
       <div className="w-full h-72 relative">
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600">
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600"></div>
           </div>
         ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -46,17 +40,6 @@ export default function StudentStatisticChart() {
               </BarChart>
             </ResponsiveContainer>
         )}
-        {/* <button className="absolute top-1/2 right-2 -translate-y-1/2 border border-blue-600 text-blue-600 rounded-full w-10 h-10 flex items-center justify-center hover:bg-blue-50 transition">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path
-              d="M13 5l7 7-7 7M5 12h14"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button> */}
       </div>
     </div>
   );
