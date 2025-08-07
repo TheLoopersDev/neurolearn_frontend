@@ -31,6 +31,7 @@ export default function EditCoursePage() {
     if (error) return <div className="text-red-500">Error loading course</div>;
     return (
         <CourseCreationForm
+            isEdit={true} 
             formData={formData}
             setFormData={setFormData}
             courseId={courseId}

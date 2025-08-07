@@ -7,7 +7,7 @@ interface CourseDetailsProps {
   creationDate: string;
   originalPrice: string;
   salePrice: string;
-  status: string;
+  status?: string;
 }
 
 export const CourseDetails: React.FC<CourseDetailsProps> = ({

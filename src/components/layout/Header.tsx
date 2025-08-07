@@ -19,15 +19,40 @@ import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
 import { userLoggerOut } from '@/lib/redux/features/auth/authSlice';
 import { useAppDispatch } from '@/lib/redux/hooks';
-
+import { Skeleton } from '../common/ui/Skeleton';
+import defaultCourseImage from '@/public/assets/images/default-course.png';
+import defaultInstructorImage from '@/public/assets/images/default-avatar.png';
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [results, setResults] = useState<SearchResults>({ courses: [], instructors: [] });
+  const [showResults, setShowResults] = useState(false);
+  const [isLoadings, setIsLoadings] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
   const { error, isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
   const dispatch = useAppDispatch();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  interface SearchResults {
+    courses: any[];
+    instructors: any[];
+  }
+
+  const SearchResultSkeleton = () => (
+    <div className="p-1 flex items-center">
+      <Skeleton className="h-10 w-10 rounded mr-2" />
+      <div className="w-full">
+        <Skeleton className="h-4 w-3/4 mb-2 rounded" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-1/4 rounded" />
+          <Skeleton className="h-3 w-1/2 rounded" />
+        </div>
+      </div>
+    </div>
+  );
 
   // Animation variants
   const headerVariants : Variants = {
@@ -109,6 +134,57 @@ const Header: React.FC = () => {
   }, []);
 
   let userSection = null;
+
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setResults({ courses: [], instructors: [] });
+      setShowResults(false);
+      return;
+    }
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    setIsLoadings(true);
+    setShowResults(true);
+
+    timeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search: searchValue }),
+        });
+
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      } finally {
+        setIsLoadings(false);
+      }
+    }, 1000);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [searchValue]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (searchContainerRef.current &&
+      !searchContainerRef.current.contains(event.target as Node)) {
+      setShowResults(false);
+      setIsSearchActive(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!isLoading) {
     if (!reduxUser) {
@@ -217,21 +293,103 @@ const Header: React.FC = () => {
 
             <AnimatePresence>
               {isSearchActive && (
+                <div
+                  ref={searchContainerRef}
+                  className="absolute right-full mr-3 top-1/2 -translate-y-1/2 z-50"
+                >
                 <motion.div
                   variants={searchVariants}
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
-                  className="absolute left-full ml-2 top-0"
+                    className="absolute right-full mr-3 top-1/2 -translate-y-1/2"
                 >
                   <input
                     ref={searchRef}
+                      value={searchValue}
+                      onChange={handleSearchChange}
+                      onFocus={() => searchValue.trim() && setShowResults(true)}
                     type="text"
                     placeholder="Search for courses..."
-                    className="w-64 px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded shadow-md bg-white focus:outline-none z-20"
-                    onBlur={() => setIsSearchActive(false)}
-                  />
+                      className="w-[550px] px-5 py-3 text-sm text-gray-700 border border-gray-300 rounded-full shadow-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 z-20 transition-all"
+                    />
+                    {showResults && (
+                      <div className="absolute z-40 w-full mt-2 bg-white border border-primary-100 rounded shadow-lg">
+                        <div className="py-2 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-primary-500 scrollbar-track-primary-100">
+                          {isLoadings ? (
+                            <div className="px-2">
+                              {[...Array(5)].map(() => (
+                                <SearchResultSkeleton key={crypto.randomUUID()} />
+                              ))}
+                            </div>
+                          ) : (
+                            <>
+                              {results.courses.length > 0 && (
+                                <div className="px-2">
+                                  {results.courses.map((course) => (
+                                    <Link key={course._id} href={`/courses/${course._id}`} legacyBehavior>
+                                      <button
+                                        className="p-1 hover:bg-primary-50 cursor-pointer flex items-center pt-2 w-full text-left"
+                                      >
+                                        <Image
+                                          src={course?.thumbnail?.url || defaultCourseImage}
+                                          alt="Course Image"
+                                          width={100}
+                                          height={90}
+                                          className="rounded mr-2"
+                                        />
+                                        <div>
+                                          <div className="font-medium text-black hover:text-accent-600">
+                                            {course?.name}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-sm text-gray-700 text-primary-500">
+                                              {course?.description?.length > 50
+                                                ? `${course.description.slice(0, 50)}...`
+                                                : course.description}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </button>
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
+                              {results.instructors.length > 0 && (
+                                <div className="px-2">
+                                  {results.instructors.map((user) => (
+                                    <Link key={user._id} href={`/instructors/${user._id}`} legacyBehavior>
+                                      <button
+                                        className="p-1 hover:bg-primary-50 cursor-pointer flex items-center pt-2 w-full text-left"
+                                      >
+                                        <Image
+                                          src={user?.avatar?.url || defaultInstructorImage}
+                                          alt="User Avatar"
+                                          width={40}
+                                          height={40}
+                                          className="rounded-full mr-2"
+                                        />
+                                        <div>
+                                          <div className="font-medium text-black hover:text-accent-600">
+                                            {user.name}
+                                          </div>
+                                          <div className="text-sm text-black text-primary-500">{user.role}</div>
+                                        </div>
+                                      </button>
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
+                              {results.courses.length === 0 && results.instructors.length === 0 && (
+                                <div className="text-center text-gray-500 p-2">No course or instructor match</div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
                 </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </div>

@@ -7,6 +7,7 @@ export default function CreateCoursePage() {
     const [formData, setFormData] = useState<Partial<Course>>({});
     return (
         <CourseCreationForm
+            isEdit={false} 
             formData={formData}
             setFormData={setFormData}
         />

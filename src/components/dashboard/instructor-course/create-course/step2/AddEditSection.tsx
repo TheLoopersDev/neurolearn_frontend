@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/common/ui/Button2";
 import { FormInput } from "../step1/FormInput";
 import { FormSelect } from "../step1/FormSelect";
-import { Save, Plus } from "lucide-react";
+import { Save, Plus, X } from "lucide-react";
 
 interface AddEditSectionProps {
+    onClose: () => void; // Đóng modal
     courseId: string;
     onSubmit: (data: {
         title: string;
@@ -19,14 +20,13 @@ interface AddEditSectionProps {
         description: string;
         isPublished: boolean;
     };
-    onCancel?: () => void;
 }
 
 const AddEditSection: React.FC<AddEditSectionProps> = ({
+    onClose,
     onSubmit,
     mode = "add",
     initialData,
-    onCancel
 }) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -37,6 +37,10 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
             setTitle(initialData.title || "");
             setDescription(initialData.description || "");
             setIsPublished(initialData.isPublished ? "true" : "false");
+        } else {
+            setTitle("");
+            setDescription("");
+            setIsPublished("false");
         }
     }, [initialData]);
 
@@ -45,74 +49,84 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
         onSubmit({
             title,
             description,
-            isPublished: isPublished === "true"
+            isPublished: isPublished === "true",
         });
-        if (mode === "add") {
-            setTitle("");
-            setDescription("");
-            setIsPublished("false");
-        }
+        onClose();
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 p-6 border border-input rounded-xl bg-white shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900">
-                {mode === "edit" ? "Edit Section" : "Create New Section"}
-            </h3>
-
-            <FormInput
-                label="Section Title"
-                placeholder="Enter section title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-            />
-
-            <FormInput
-                label="Description"
-                placeholder="Enter section description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-            />
-
-            <FormSelect
-                label="Published Status"
-                value={isPublished}
-                onChange={(e) => setIsPublished(e.target.value)}
-                options={[
-                    { label: "Draft", value: "false" },
-                    { label: "Published", value: "true" }
-                ]}
-            />
-
-            <div className="flex gap-3 pt-2">
-                <Button
-                    variant="ghost" size="sm"
-                    type="submit"
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            onClick={onClose}
+        >
+            <div
+                className="relative bg-white rounded-xl shadow-lg w-full max-w-lg p-6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
                 >
-                    {mode === "edit" ? (
-                        <>
-                            <Save className="mr-2" size={18} />
-                            Save Changes
-                        </>
-                    ) : (
-                        <>
-                            <Plus className="mr-2" size={18} />
-                            Add Section
-                        </>
-                    )}
-                </Button>
-                {onCancel && (
-                    <Button
-                        type="button"
-                        onClick={onCancel}
-                        variant="ghost" size="sm"
-                    >
-                        Cancel
-                    </Button>
-                )}
+                    <X size={20} />
+                </button>
+
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    {mode === "edit" ? "Edit Section" : "Create New Section"}
+                </h3>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <FormInput
+                        label="Section Title"
+                        placeholder="Enter section title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                    />
+
+                    <FormInput
+                        label="Description"
+                        placeholder="Enter section description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+
+                    <FormSelect
+                        label="Published Status"
+                        value={isPublished}
+                        onChange={(e) => setIsPublished(e.target.value)}
+                        options={[
+                            { label: "Draft", value: "false" },
+                            { label: "Published", value: "true" },
+                        ]}
+                    />
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            type="button"
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </Button>
+                        <Button variant="primary" size="sm" type="submit">
+                            {mode === "edit" ? (
+                                <>
+                                    <Save className="mr-2" size={18} />
+                                    Save Changes
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="mr-2" size={18} />
+                                    Add Section
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     );
 };
 

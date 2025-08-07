@@ -12,6 +12,7 @@ import { categoryApi } from './features/course/category/categoryApi';
 import { levelApi } from './features/course/level/levelApi';
 import { sectionApi } from './features/course/section/sectionApi';
 import { lessonApi } from './features/course/section/lesson/lessonApi';
+import { requestApi } from './features/request/requestApi';
 // import orderSlice from './features/order/orderSlice';
 
 // Create an array of all API middlewares
@@ -34,6 +35,7 @@ export const store = configureStore({
     [categoryApi.reducerPath]: categoryApi.reducer,
     [levelApi.reducerPath]: levelApi.reducer,
     [quizApi.reducerPath]: quizApi.reducer,
+    [requestApi.reducerPath]: requestApi.reducer,
 
     auth: authSlice,
     course: courseReducer,
@@ -51,6 +53,7 @@ export const store = configureStore({
       categoryApi.middleware,
       levelApi.middleware,
       quizApi.middleware,
+      requestApi.middleware,
     ),
 });
 
