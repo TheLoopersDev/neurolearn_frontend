@@ -76,15 +76,42 @@ export default function UserDashboard() {
     },
   ];
 
-  const handleContinue = (courseId: string, status: string) => {
+  // UserDashboard.tsx
+  const handleCourseCta = ({
+    courseId,
+    role,
+    status,
+    nextLessonId,
+  }: {
+    courseId: string;
+    role: "user" | "instructor";
+    status: string;
+    nextLessonId?: string | null;
+  }) => {
     if (!courseId) return;
-    router.push(
-      status === 'draft'
-        ? `/dashboard/courses/edit-course/${courseId}`
-        : `/dashboard/courses/${courseId}`
-    );
-  };
 
+    if (role === "instructor") {
+      router.push(
+        status === "draft"
+          ? `/dashboard/courses/edit-course/${courseId}`
+          : `/dashboard/courses/${courseId}`
+      );
+      return;
+    }
+
+    // role === "user"
+    // Ưu tiên đi thẳng tới bài tiếp theo (nếu còn)
+    if (nextLessonId) {
+      router.push(`/watch-course/${courseId}/`);
+      return;
+    }
+
+    // Hoàn thành 100% hoặc không có nextLesson -> tuỳ flow của bạn:
+    // 1) Về trang tổng quan khoá học:
+    router.push(`/watch-course/${courseId}`);
+    // 2) Hoặc mở trang chứng chỉ (nếu có):
+    // router.push(`/dashboard/certificates/${courseId}`);
+  };
   return (
     <div className="flex h-full">
       <div className="w-full overflow-y-auto">
@@ -102,12 +129,14 @@ export default function UserDashboard() {
           <CourseDetail isLoading={isLoading} stats={stats} />
           <CourseStatus
             isLoading={isLoading}
-            course={data?.latestCourse}
-            onContinue={handleContinue}
+            role="user" // hoặc bỏ qua để auto-detect theo shape
+            course={data?.latestCourse as any}
+            onContinue={handleCourseCta}
           />
           <StudentStatisticChart
             isLoading={isLoading}
             chartData={data?.studentStats ?? []}
+            isInstructor={!true} 
           />
 
           <div className="flex gap-6">

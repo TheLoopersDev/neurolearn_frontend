@@ -27,7 +27,7 @@ export default function RelatedCourses({
             </div>
 
             {/* Courses Scroll */}
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-4">
                 {courses.map((course) => (
                     <CourseCard key={course._id} course={course} />
                 ))}

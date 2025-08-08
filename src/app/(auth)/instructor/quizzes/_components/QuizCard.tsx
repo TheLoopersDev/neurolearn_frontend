@@ -1,28 +1,50 @@
 // app/(auth)/dashboard/create-quiz/_components/QuizCard.tsx
 'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { MoreHorizontal } from 'lucide-react';
 import { Quiz } from './types';
+import { useToast } from '@/hooks/use-toast';
+import { useDeleteQuizMutation } from '@/lib/redux/features/quiz/quizApi';
+import Image from 'next/image';
+import QuizOptions from './QuizOptions';
 
 interface QuizCardProps {
   quiz: Quiz;
 }
 
 const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
-  const handleMoreOptionsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('More options for quiz:', quiz._id);
-    // TODO: Implement dropdown menu
+  const [deleteQuiz,] = useDeleteQuizMutation();
+  const { toast } = useToast();
+
+  const handleDeleteQuiz = async (id: string) => {
+    if (!confirm('Bạn có chắc muốn xóa quiz này?')) return;
+
+    try {
+      await deleteQuiz(id).unwrap();
+      toast({
+        title: 'Success',
+        description: 'Quiz đã được xóa',
+        variant: 'success',
+      });
+      // Nếu danh sách đang tự quản state cục bộ, xoá luôn tại chỗ:
+      // setQuizzes(prev => prev.filter(q => q._id !== id));
+      // Nếu dùng RTKQ với invalidatesTags: ['Quiz'] thì nó sẽ tự refetch.
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err?.data?.message || 'Xóa quiz thất bại',
+        variant: 'destructive',
+      });
+      throw err; // để QuizOptions bắt được (nếu cần)
+    }
   };
 
   const numberOfQuestions = quiz.totalQuestions ?? quiz.questions?.length ?? 0;
 
   return (
     <Link
-      href={`/dashboard/create-quiz/builder/${quiz._id}`}
+      href={`/instructor/quizzes/builder/${quiz._id}`}
       className="block bg-white rounded-2xl hover:shadow-lg transition-all duration-300 overflow-hidden group "
       // Bỏ flex flex-col ở đây vì chúng ta sẽ dùng grid cho phần nội dung
     >
@@ -67,13 +89,13 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         )}
         {/* 3. Dấu 3 chấm (Cột 3, Hàng 1, căn phải) */}
         <div className="col-start-3  row-start-1 flex justify-end items-center">
-          <button
-            className="p-1 bg-white/50 hover:bg-gray-100 rounded-full transition-opacity"
-            onClick={handleMoreOptionsClick}
-            title="More options"
-          >
-            <MoreHorizontal size={16} className="text-gray-500 font-bold " />
-          </button>
+          <QuizOptions
+            quizId={quiz._id}
+            onDelete={handleDeleteQuiz as any}   // tạm thời chỉ cần xóa
+          // onEdit={(id) => router.push(`/instructor/quizzes/edit/${id}`)}
+          // onPreview={(id) => router.push(`/instructor/quizzes/preview/${id}`)}
+          // onDuplicate={(id) => console.log("duplicate", id)}
+          />
         </div>
         {/* 4. Title (Cột 2 & 3, Hàng 2) */}
         <h3 className="col-span-2 col-start-2 pr-30 row-start-2 text-sm sm:text-[15px] font-semibold text-gray-800 leading-tight group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">

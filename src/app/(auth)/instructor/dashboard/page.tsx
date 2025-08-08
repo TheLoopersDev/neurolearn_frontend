@@ -36,7 +36,14 @@ export default function InstructorDashboard() {
   const course = latestCourseData?.course;
   const chartData = studentStatsData?.stats ?? [];
 
-  const handleContinue = (courseId: string, status: string) => {
+  // InstructorDashboard.tsx
+  const handleContinue = ({
+    courseId,
+    status,
+  }: {
+    courseId: string;
+    status: string;
+  }) => {
     if (!courseId) return;
     router.push(
       status === 'draft'
@@ -44,6 +51,7 @@ export default function InstructorDashboard() {
         : `/dashboard/courses/${courseId}`
     );
   };
+
 
   const stats = [
     {
@@ -97,12 +105,15 @@ export default function InstructorDashboard() {
           {/* Latest Course */}
           <CourseStatus
             isLoading={isLoadingCourse}
+            role="instructor" 
             course={course || undefined}
-            onContinue={handleContinue}
+            onContinue={({ courseId, status }) =>
+              handleContinue({ courseId, status })
+            }
           />
 
           {/* Student Statistic */}
-          <StudentStatisticChart isLoading={isLoadingStudent} chartData={chartData} />
+          <StudentStatisticChart isLoading={isLoadingStudent} chartData={chartData} isInstructor={true} />
 
           {/* Revenue + Evaluation */}
           <div className="flex gap-6">

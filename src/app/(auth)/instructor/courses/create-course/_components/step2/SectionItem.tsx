@@ -3,7 +3,7 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/common/ui/Button2";
-import { GripVertical, ChevronUp, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { GripVertical, ChevronUp, ChevronDown, Plus, Trash2, HelpCircle } from "lucide-react";
 
 interface SectionItemProps {
     section: any;
@@ -17,6 +17,7 @@ interface SectionItemProps {
     onSave: (id: string) => void;
     onToggleExpand: (id: string) => void;
     onAddLesson: (id: string) => void;
+    onAddQuiz: (id: string) => void; // ✅ thêm prop mới
 }
 
 const SectionItem: React.FC<SectionItemProps> = ({
@@ -30,7 +31,8 @@ const SectionItem: React.FC<SectionItemProps> = ({
     onChange,
     onSave,
     onToggleExpand,
-    onAddLesson
+    onAddLesson,
+    onAddQuiz
 }) => {
     return (
         <Draggable draggableId={section._id} index={index}>
@@ -76,15 +78,30 @@ const SectionItem: React.FC<SectionItemProps> = ({
                             >
                                 {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </Button>
+
+                            {/* Nút Add Lesson */}
                             <Button
-                                variant="ghost" size="sm"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => onAddLesson(section._id)}
                             >
                                 <Plus size={16} className="mr-1" />
                                 Add Lesson
                             </Button>
+
+                            {/* ✅ Nút Add Quiz */}
                             <Button
-                                variant="ghost" size="sm"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onAddQuiz(section._id)}
+                            >
+                                <HelpCircle size={16} className="mr-1" />
+                                Add Quiz
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => onDelete(section._id)}
                             >
                                 <Trash2 size={16} className="mr-1" />

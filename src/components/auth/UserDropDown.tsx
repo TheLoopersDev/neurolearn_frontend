@@ -2,19 +2,27 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { IoSettingsOutline } from 'react-icons/io5';
-import { MdOutlineDashboardCustomize } from 'react-icons/md';
-import { PiBagBold } from 'react-icons/pi';
-import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave } from 'react-icons/fa';
-import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
-import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
-import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
-import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
-import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
+// import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
+// import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
 import LogoutIcon from '@/public/assets/home/user-dropdown/logout.svg';
+// Import icon từ assets
+import dashboard from '@/public/assets/icons/dashboard.svg';
+import courses from '@/public/assets/icons/book.svg';
+import createQuiz from '@/public/assets/icons/create.svg';
+import earning from '@/public/assets/icons/wallet.svg';
+import message from '@/public/assets/icons/message.svg';
+import setting from '@/public/assets/icons/setting.svg';
+import teacher from '@/public/assets/icons/teacher.svg';
+// import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
+import certificate from '@/public/assets/icons/award.svg';
+import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
+import reviewIcon from '@/public/assets/icons/book.svg';
+import withdrawIcon from '@/public/assets/review/withdrawal.svg';
+import businessIcon from '@/public/assets/review/business.svg';
+import peopleIcon from '@/public/assets/icons/teacher.svg';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import {
@@ -50,143 +58,70 @@ interface LoadUserResponse {
   user: User;
 }
 
-// =====================
-// Role-based routes
-// =====================
 function getDropdownList(user: User) {
   const isBusinessAdminOrManager =
     user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
-
-  const commonItems = [
-    {
-      title: 'Purchase History',
-      href: '/dashboard/purchase-history',
-      icon: <PiBagBold className="text-[20px]" />,
-    },
-    {
-      title: 'Setting',
-      href: '/dashboard/setting',
-      icon: <IoSettingsOutline className="text-[20px]" />,
-    },
-  ];
 
   const businessItems = isBusinessAdminOrManager
     ? [
       {
         title: 'Business Dashboard',
         href: `/business/dashboard/${user.businessInfo?.businessId}`,
-        icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
       },
-      {
-        title: 'My Courses',
-        href: '/business/mycourses',
-        icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-      },
-      {
-        title: 'Employee',
-        href: '/business/employees',
-        icon: <FaUsers className="text-[20px]" />,
-      },
-      {
-        title: 'Message',
-        href: '/business/message',
-        icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-      },
-      {
-        title: 'Purchase History',
-        href: '/business/purchase-history',
-        icon: <PiBagBold className="text-[20px]" />,
-      },
-      {
-        title: 'Discount',
-        href: '/business/discount',
-        icon: <FaMoneyBillWave className="text-[20px]" />,
-      },
-      {
-        title: 'Setting',
-        href: '/business/setting',
-        icon: <IoSettingsOutline className="text-[20px]" />,
-      },
+      { title: 'My Courses', href: '/business/mycourses', icon: <Image src={courses} alt="" width={20} height={20} /> },
+      { title: 'Employee', href: '/business/employees', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
+      { title: 'Message', href: '/business/message', icon: <Image src={message} alt="" width={20} height={20} /> },
+      { title: 'Purchase History', href: '/business/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
+      { title: 'Discount', href: '/business/discount', icon: <Image src={earning} alt="" width={20} height={20} /> },
+      { title: 'Setting', href: '/business/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
     ]
     : [];
 
   if (user.role === 'admin') {
     return [
-      {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
-      },
-      {
-        title: 'Course Requests',
-        href: '/dashboard/review-courses',
-        icon: <FaClipboardList className="text-[20px]" />,
-      },
-      {
-        title: 'Instructor Requests',
-        href: '/dashboard/review-instructor',
-        icon: <FaUsers className="text-[20px]" />,
-      },
-      {
-        title: 'Business Requests',
-        href: '/dashboard/business-requests',
-        icon: <FaBuilding className="text-[20px]" />,
-      },
-      {
-        title: 'Withdraw Requests',
-        href: '/dashboard/withdrawals',
-        icon: <FaMoneyBillWave className="text-[20px]" />,
-      },
-      ...commonItems,
+      { title: 'Dashboard', href: '/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
+      { title: 'Course Requests', href: '/dashboard/review-courses', icon: <Image src={reviewIcon} alt="" width={20} height={20} /> },
+      { title: 'Teacher', href: '/dashboard/teacher', icon: <Image src={teacher} alt="" width={20} height={20} /> },
+      { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
+      { title: 'Instructor Requests', href: '/dashboard/review-instructor', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
+      { title: 'Business Requests', href: '/dashboard/business-requests', icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
+      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
+      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
     ];
   }
 
   if (user.role === 'instructor') {
     return [
-      {
-        title: 'Dashboard User',
-        href: '/dashboard',
-        icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
-      },
-      {
-        title: 'Switch to Instructor',
-        href: '/switch/instructor',
-        icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
-      },
-      {
-        title: 'Switch to Business',
-        href: '/switch/business',
-        icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
-      },
+      { title: 'Dashboard', href: '/instructor/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
+      { title: 'Learning', href: '/instructor/learning', icon: <Image src={courses} alt="" width={20} height={20} /> },
+      { title: 'Courses', href: '/instructor/courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
+      { title: 'Quizzes', href: '/instructor/quizzes', icon: <Image src={createQuiz} alt="" width={20} height={20} /> },
+      { title: 'Earning', href: '/dashboard/earning', icon: <Image src={earning} alt="" width={20} height={20} /> },
+      { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
+      { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
+      { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
+      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
+      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
       ...businessItems,
-      {
-        title: 'Terms of Service',
-        href: '/terms',
-        icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
-      },
-      {
-        title: 'Help & Support',
-        href: '/help',
-        icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
-      },
-      ...commonItems,
     ];
   }
 
-  // Default: normal user
   return [
-    {
-      title: 'Watch Course',
-      href: '/dashboard/watch-course',
-      icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-    },
+    { title: 'Dashboard', href: '/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
+    { title: 'Courses', href: '/dashboard/my-courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
+    { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
+    { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
+    { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
+    { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
     ...businessItems,
-    ...commonItems,
   ];
 }
 
+
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
+  const pathname = usePathname();
   const { data: session } = useSession();
   const router = useRouter();
   const { data, isLoading } = useLoadUserQuery(undefined) as {
@@ -285,24 +220,29 @@ export function UserDropdown() {
             <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
 
             <DropdownMenuGroup>
-              {dropdownList.map((item, index) => (
-                <DropdownMenuItem asChild key={item.title}>
-                  <Link href={item.href}>
-                    <motion.div
-                      className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium"
-                      variants={itemVariants}
-                      custom={index}
-                      initial="hidden"
-                      animate="visible"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {item.icon}
-                      {item.title}
-                    </motion.div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
+              {dropdownList.map((item, index) => {
+                const isActive = pathname === item.href;
+                return (
+                  <DropdownMenuItem asChild key={item.title}>
+                    <Link href={item.href}>
+                      <motion.div
+                        className={`flex items-center gap-3 px-3 py-[14px] rounded-xl text-[15px] font-medium w-full
+                ${isActive ? 'bg-gray-100 text-[#3858F8]' : 'text-black hover:bg-gray-100'}
+              `}
+                        variants={itemVariants}
+                        custom={index}
+                        initial="hidden"
+                        animate="visible"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {item.icon}
+                        {item.title}
+                      </motion.div>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
