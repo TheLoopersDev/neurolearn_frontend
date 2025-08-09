@@ -6,6 +6,7 @@ interface ApiResponse<T> {
   success: boolean;
   message?: string;
   quiz?: T;
+  data?: T;
   quizzes?: T;
   question?: QuestionData;
   questions?: QuestionData[];

@@ -22,6 +22,21 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
     });
 
     const [newLink, setNewLink] = useState({ title: "", url: "" });
+    const [replaceVideo, setReplaceVideo] = useState(false);
+    useEffect(() => {
+        if (lesson) {
+            setFormData({
+                title: lesson.title || "",
+                description: lesson.description || "",
+                isFree: lesson.isFree || false,
+                videoUrl: lesson.videoUrl || { public_id: "", url: "" },
+                links: lesson.links || [],
+            });
+            setReplaceVideo(false); // mỗi lần mở lesson khác thì về preview
+        }
+    }, [lesson]);
+
+    const hasVideo = !!formData.videoUrl?.url;
 
     useEffect(() => {
         if (lesson) {
@@ -99,13 +114,36 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
 
                 <div>
                     <label className="block text-sm text-gray-600 font-medium mb-1">Video Content</label>
-                    <VideoUploader
-                        lessonId={lesson?._id || ""}
-                        onUploadComplete={(videoData) =>
-                            setFormData({ ...formData, videoUrl: videoData })
-                        }
-                        initialVideo={formData.videoUrl}
-                    />
+                    {/* Có video sẵn -> hiển thị preview + nút Replace; không thì hiện uploader */}
+                    {hasVideo && !replaceVideo ? (
+                        <div className="rounded-xl border border-slate-200 p-3 bg-slate-50">
+                            <video
+                                key={formData.videoUrl?.url} // đảm bảo refresh nguồn khi đổi
+                                className="w-full rounded-lg bg-black"
+                                src={formData.videoUrl.url}
+                                controls
+                                playsInline
+                            />
+                            <div className="mt-2 flex items-center gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setReplaceVideo(true)}>
+                                    Replace video
+                                </Button>
+                                <span className="text-xs text-slate-500">
+                                    Current: <code className="text-slate-600">{formData.videoUrl.public_id || "—"}</code>
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                            <VideoUploader
+                                key={lesson?._id || "new"}           // re-mount khi đổi lesson, tránh giữ state cũ
+                                lessonId={lesson?._id || ""}
+                                onUploadComplete={(videoData) => {
+                                    setFormData((prev) => ({ ...prev, videoUrl: videoData }));
+                                    setReplaceVideo(false);            // quay về preview sau khi upload xong
+                                }}
+                                initialVideo={formData.videoUrl}     // nếu bạn muốn uploader show lại file đã có
+                            />
+                    )}
                 </div>
 
                 {/* Links */}

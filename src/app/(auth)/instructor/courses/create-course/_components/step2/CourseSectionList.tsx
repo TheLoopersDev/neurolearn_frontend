@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import SectionItem from "./SectionItem";
-import LessonList from "./LessonList";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import {
-    useGetAllSectionsQuery,
+    // ❌ useGetAllSectionsQuery,
+    useGetSectionsByUserIdQuery,      // ✅
     useCreateSectionMutation,
     useUpdateSectionMutation,
     useDeleteSectionMutation,
     useReorderSectionsMutation,
+    useAddQuizToSectionMutation,
 } from "@/lib/redux/features/course/section/sectionApi";
 import { useCreateLessonMutation } from "@/lib/redux/features/course/section/lesson/lessonApi";
 import { Button } from "@/components/common/ui/Button2";
@@ -17,25 +18,29 @@ import SectionHeader from "./SectionHeader";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
+import SectionContentList from "./SectionContentList";
 
 interface Props {
     courseId: string;
 }
 
 export default function CourseSectionList({ courseId }: Props) {
-    const { data: sectionData, refetch: refetchSections } = useGetAllSectionsQuery(
-        courseId,
-        { skip: !courseId }
-    );
+    // 🔁 Lấy tất cả section của user, rồi lọc theo courseId ở client
+    const { data: allSectionData, refetch: refetchAllSections, isFetching } =
+        useGetSectionsByUserIdQuery(undefined, { skip: false });
 
     const [createSection] = useCreateSectionMutation();
     const [updateSection] = useUpdateSectionMutation();
     const [deleteSection] = useDeleteSectionMutation();
     const [reorderSections] = useReorderSectionsMutation();
     const [createLesson] = useCreateLessonMutation();
+    const [addQuizToSection] = useAddQuizToSectionMutation();       // ✅
 
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
     const { showModal } = useModal();
+
+    // Helper: chỉ refetch endpoint user-sections
+    const refetchSections = refetchAllSections;
 
     // 🟢 Add Section (modal)
     const handleAddSectionClick = () => {
@@ -46,17 +51,9 @@ export default function CourseSectionList({ courseId }: Props) {
                 try {
                     await createSection({ courseId, data }).unwrap();
                     await refetchSections();
-                    toast({
-                        title: "Success",
-                        description: "Section created successfully",
-                        variant: "success",
-                    });
+                    toast({ title: "Success", description: "Section created successfully", variant: "success" });
                 } catch {
-                    toast({
-                        title: "Error",
-                        description: "Failed to create section",
-                        variant: "destructive",
-                    });
+                    toast({ title: "Error", description: "Failed to create section", variant: "destructive" });
                 }
             },
         });
@@ -76,17 +73,9 @@ export default function CourseSectionList({ courseId }: Props) {
                 try {
                     await updateSection({ id: section._id, data }).unwrap();
                     await refetchSections();
-                    toast({
-                        title: "Success",
-                        description: "Section updated successfully",
-                        variant: "success",
-                    });
+                    toast({ title: "Success", description: "Section updated successfully", variant: "success" });
                 } catch {
-                    toast({
-                        title: "Error",
-                        description: "Failed to update section",
-                        variant: "destructive",
-                    });
+                    toast({ title: "Error", description: "Failed to update section", variant: "destructive" });
                 }
             },
         });
@@ -95,23 +84,11 @@ export default function CourseSectionList({ courseId }: Props) {
     // 🟢 Add Lesson
     const handleAddLesson = async (sectionId: string) => {
         try {
-            await createLesson({
-                courseId,
-                sectionId,
-                data: { title: "New Lesson", isFree: true },
-            }).unwrap();
+            await createLesson({ courseId, sectionId, data: { title: "New Lesson", isFree: true } }).unwrap();
             await refetchSections();
-            toast({
-                title: "Success",
-                description: "Lesson added successfully",
-                variant: "success",
-            });
+            toast({ title: "Success", description: "Lesson added successfully", variant: "success" });
         } catch {
-            toast({
-                title: "Error",
-                description: "Failed to add lesson",
-                variant: "destructive",
-            });
+            toast({ title: "Error", description: "Failed to add lesson", variant: "destructive" });
         }
     };
 
@@ -120,17 +97,9 @@ export default function CourseSectionList({ courseId }: Props) {
         try {
             await deleteSection(id).unwrap();
             await refetchSections();
-            toast({
-                title: "Success",
-                description: "Section deleted successfully",
-                variant: "success",
-            });
+            toast({ title: "Success", description: "Section deleted successfully", variant: "success" });
         } catch {
-            toast({
-                title: "Error",
-                description: "Failed to delete section",
-                variant: "destructive",
-            });
+            toast({ title: "Error", description: "Failed to delete section", variant: "destructive" });
         }
     };
 
@@ -139,16 +108,19 @@ export default function CourseSectionList({ courseId }: Props) {
         setExpandedSection(expandedSection === sectionId ? null : sectionId);
     };
 
-    // 🟢 Reorder
+    // 🟢 Reorder (⚠️ reorder chỉ trong course hiện tại)
     const handleReorderSections = async (result: DropResult) => {
         if (!result.destination) return;
 
         try {
-            const reordered = [...(sectionData?.data || [])];
+            const currentCourseSections = (allSectionData?.data || []).filter(
+                (s: any) => s.courseId === courseId
+            );
+            const reordered = [...currentCourseSections];
             const [removed] = reordered.splice(result.source.index, 1);
             reordered.splice(result.destination.index, 0, removed);
 
-            const orderUpdates = reordered.map((s, idx) => ({
+            const orderUpdates = reordered.map((s: any, idx: number) => ({
                 sectionId: s._id,
                 order: idx,
             }));
@@ -156,21 +128,26 @@ export default function CourseSectionList({ courseId }: Props) {
             await reorderSections({ sectionOrders: orderUpdates }).unwrap();
             await refetchSections();
 
-            toast({
-                title: "Success",
-                description: "Sections reordered successfully",
-                variant: "success",
-            });
+            toast({ title: "Success", description: "Sections reordered successfully", variant: "success" });
         } catch {
-            toast({
-                title: "Error",
-                description: "Failed to reorder sections",
-                variant: "destructive",
-            });
+            toast({ title: "Error", description: "Failed to reorder sections", variant: "destructive" });
         }
     };
 
-    const sections = sectionData?.data || [];
+    const handleAddQuiz = (sectionId: string) => {
+        showModal("pickQuizToAdd", {
+            sectionId,
+            courseId, // optional
+            // ✅ Trả về promise của unwrap() để modal biết khi nào lỗi/thành công
+            onSubmit: async ({ quizId, position }: { quizId: string; position?: number }) => {
+                const res = await addQuizToSection({ sectionId, quizId, position }).unwrap();
+                // Sau khi success: refetch ở đây (KHÔNG toast ở đây)
+                await refetchSections();
+                return res; // để modal có thể dùng res.quiz.name hiển thị
+            },
+        });
+    };
+    const sections = (allSectionData?.data || []).filter((s: any) => s.courseId === courseId);
 
     return (
         <div className="space-y-6">
@@ -179,22 +156,14 @@ export default function CourseSectionList({ courseId }: Props) {
             <DragDropContext onDragEnd={handleReorderSections}>
                 <Droppable droppableId="sections">
                     {(provided) => (
-                        <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="space-y-4 bg-white rounded-xl p-6"
-                        >
-                            {sections.length === 0 && (
+                        <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-4 bg-white rounded-xl p-6">
+                            {sections.length === 0 && !isFetching && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <div className="bg-secondary text-gray-400 rounded-full p-4 mb-4">
                                         <Plus className="text-primary w-8 h-8" />
                                     </div>
-                                    <h3 className="text-lg font-medium text-gray-400 mb-2">
-                                        No sections yet
-                                    </h3>
-                                    <p className="text-gray-500 mb-4">
-                                        Create your first section to start building your course
-                                    </p>
+                                    <h3 className="text-lg font-medium text-gray-400 mb-2">No sections yet</h3>
+                                    <p className="text-gray-500 mb-4">Create your first section to start building your course</p>
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -222,11 +191,12 @@ export default function CourseSectionList({ courseId }: Props) {
                                         onSave={() => { }}
                                         onToggleExpand={handleToggleExpand}
                                         onAddLesson={handleAddLesson}
+                                        onAddQuiz={handleAddQuiz}                 // ✅ pass vào
                                     />
 
                                     {expandedSection === section._id && (
                                         <div className="bg-secondary p-4">
-                                            <LessonList sectionId={section._id} />
+                                            <SectionContentList section={section} onRefetch={refetchSections} />
                                         </div>
                                     )}
                                 </div>
