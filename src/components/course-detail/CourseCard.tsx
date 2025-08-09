@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { useModal } from '@/context/ModalContext';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { redirect } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useModal } from '@/context/ModalContext';
 
 interface CourseCardProps {
@@ -28,14 +29,23 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
   const { user } = useSelector((state: any) => state.auth);
   const { showModal } = useModal();
   const [isOpen, setIsOpen] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
   const discount =
     typeof course.estimatedPrice === 'number' && typeof course.price === 'number'
       ? Math.round(((course.estimatedPrice - course.price) / course.estimatedPrice) * 100)
       : 0;
+  useEffect(() => {
+    if (!course._id) return;
 
-  const isPurchased = user?.purchasedCourses?.some(
-    (id: any) => id?.toString() === course._id.toString()
-  );
+    axios
+      .get(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/${course._id}/is-purchased`, { withCredentials: true })
+      .then(res => {
+        setIsPurchased(res.data.isPurchased);
+      })
+      .catch(err => {
+        console.error('Check purchased error:', err);
+      });
+  }, [course._id]);
 
   const checkCourseExistInCart = async () => {
     try {
@@ -74,7 +84,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       const alreadyExists = await checkCourseExistInCart();
 
       const isBusinessManager =
-        user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
+        user?.businessInfo?.role === 'admin';
 
       if (alreadyExists && !isBusinessManager) {
         toast({

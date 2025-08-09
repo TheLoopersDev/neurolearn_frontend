@@ -16,7 +16,7 @@ export default function LearningProgressChart({employeeMonthlyData, managerMonth
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground text-gray-900">
-          Learning Progress over time
+          Employees and Managers Chart
         </h2>
 
         <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">

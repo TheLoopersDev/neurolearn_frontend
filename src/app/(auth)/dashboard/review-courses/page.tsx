@@ -300,7 +300,6 @@ const CourseManagementSystem: React.FC = () => {
                         />
                         <div>
                               <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
-                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
                         </div>
                       </div>
                       {/* Course Title */}

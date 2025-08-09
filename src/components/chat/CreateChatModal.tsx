@@ -4,6 +4,8 @@ import { X, Search, Users } from 'lucide-react';
 import { getOrCreateChatRoom } from '@/lib/firestore/chat';
 import { useDispatch } from 'react-redux';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface UserInfo {
     _id: string;
@@ -79,9 +81,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                 const allValid = participants.every(id => id === currentUserId || users.find(u => u._id === id));
                 if (!allValid) return;
                 // Tạo chat room mới với groupName
-                const chatRoomsRef = (await import('firebase/firestore')).collection;
-                const { db } = await import('@/lib/firebase');
-                const { serverTimestamp, addDoc } = await import('firebase/firestore');
+                const chatRoomsRef = collection(db, 'chatRooms');
                 const newChatRoom = {
                     participants,
                     groupName: groupName || 'New Group',
@@ -89,7 +89,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                     isGroup: true,
                     lastMessageTime: serverTimestamp()
                 };
-                const docRef = await addDoc(chatRoomsRef(db, 'chatRooms'), newChatRoom);
+                const docRef = await addDoc(chatRoomsRef, newChatRoom);
                 chatRoomId = docRef.id;
             }
             dispatch(setActiveChat(chatRoomId));
@@ -103,7 +103,9 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
             }
             onClose();
         } catch (error) {
-            // Do nothing
+            console.error('Error creating chat:', error);
+            // Hiển thị lỗi cho user
+            alert('Failed to create chat. Please try again.');
         }
     };
 

@@ -11,6 +11,7 @@ import InviteModal from './InviteModal';
 export default function CourseCard({ course }: any) {
 
     const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [totalLicenses, setTotalLicenses] = useState(course?.totalLicenses);
 
     return (
         <>
@@ -76,7 +77,7 @@ export default function CourseCard({ course }: any) {
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-1">
                                 <Clock size={16} />
-                                <span>Total Licenses: {course.totalLicenses}</span>
+                                <span>Total Licenses: {totalLicenses}</span>
                             </div>
                         </div>
                     </div>
@@ -86,6 +87,8 @@ export default function CourseCard({ course }: any) {
                 isOpen={isInviteOpen}
                 onClose={() => setIsInviteOpen(false)}
                 course={course?.course}
+                totalLicenses={totalLicenses}
+                setTotalLicenses={setTotalLicenses}
             />
         </>
     );
