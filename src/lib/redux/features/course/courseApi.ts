@@ -252,6 +252,18 @@ export const courseApi = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Course', id }, { type: 'Course' }],
     }),
+    getAllPurchasedCourses: builder.query<ApiResponse<Course[]>, void>({
+      query: () => '/courses/purchased/my-course',
+      providesTags: ['Course'],
+      transformResponse: (response: ApiResponse<Course[]>) => {
+        console.log('Purchased courses response:', response);
+
+        return {
+          success: response.success,
+          data: response.data,
+        };
+      },
+    }),
   }),
 });
 
@@ -274,4 +286,5 @@ export const {
   useGetLatestCourseQuery,
   usePublishCourseMutation,
   useUnpublishCourseMutation,
+  useGetAllPurchasedCoursesQuery,
 } = courseApi;
