@@ -23,6 +23,7 @@ import reviewIcon from '@/public/assets/icons/book.svg';
 import withdrawIcon from '@/public/assets/review/withdrawal.svg';
 import businessIcon from '@/public/assets/review/business.svg';
 import peopleIcon from '@/public/assets/icons/teacher.svg';
+import discountIcon from '@/public/assets/business/discount.svg';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import {
@@ -59,65 +60,206 @@ interface LoadUserResponse {
 }
 
 function getDropdownList(user: User) {
-  const isBusinessAdminOrManager =
-    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
-
-  const businessItems = isBusinessAdminOrManager
-    ? [
+  const isBusinessAdminOrManager = user?.businessInfo?.role === 'manager';
+  if (user.role === 'user' && user?.businessInfo?.role === 'admin') {
+    return [
       {
         title: 'Business Dashboard',
         href: `/business/dashboard/${user.businessInfo?.businessId}`,
         icon: <Image src={businessIcon} alt="" width={20} height={20} />,
       },
-      { title: 'My Courses', href: '/business/mycourses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Employee', href: '/business/employees', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/business/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Purchase History', href: '/business/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-      { title: 'Discount', href: '/business/discount', icon: <Image src={earning} alt="" width={20} height={20} /> },
-      { title: 'Setting', href: '/business/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
-    ]
+      {
+        title: 'My Courses',
+        href: '/business/mycourses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Employee',
+        href: '/business/employees',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/business/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/business/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/business/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Business Setting',
+        href: '/business/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Account Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+    ];
+  }
+  const businessItems = isBusinessAdminOrManager
+    ? [
+        {
+          title: 'Business Dashboard',
+          href: `/business/dashboard/${user.businessInfo?.businessId}`,
+          icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+        },
+      ]
     : [];
 
   if (user.role === 'admin') {
     return [
-      { title: 'Dashboard', href: '/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
-      { title: 'Course Requests', href: '/dashboard/review-courses', icon: <Image src={reviewIcon} alt="" width={20} height={20} /> },
-      { title: 'Teacher', href: '/dashboard/teacher', icon: <Image src={teacher} alt="" width={20} height={20} /> },
-      { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
-      { title: 'Instructor Requests', href: '/dashboard/review-instructor', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
-      { title: 'Business Requests', href: '/dashboard/business-requests', icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+      {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Course Requests',
+        href: '/dashboard/review-courses',
+        icon: <Image src={reviewIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Teacher',
+        href: '/dashboard/teacher',
+        icon: <Image src={teacher} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Withdrawals',
+        href: '/dashboard/withdrawals',
+        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Instructor Requests',
+        href: '/dashboard/review-instructor',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Business Requests',
+        href: '/dashboard/business-requests',
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
     ];
   }
 
   if (user.role === 'instructor') {
     return [
-      { title: 'Dashboard', href: '/instructor/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
-      { title: 'Learning', href: '/instructor/learning', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Courses', href: '/instructor/courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Quizzes', href: '/instructor/quizzes', icon: <Image src={createQuiz} alt="" width={20} height={20} /> },
-      { title: 'Earning', href: '/dashboard/earning', icon: <Image src={earning} alt="" width={20} height={20} /> },
-      { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
-      { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-      { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+      {
+        title: 'Dashboard',
+        href: '/instructor/dashboard',
+        icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Learning',
+        href: '/instructor/learning',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Courses',
+        href: '/instructor/courses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Quizzes',
+        href: '/instructor/quizzes',
+        icon: <Image src={createQuiz} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Earning',
+        href: '/dashboard/earning',
+        icon: <Image src={earning} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Withdrawals',
+        href: '/dashboard/withdrawals',
+        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/dashboard/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Certificate',
+        href: '/dashboard/certificate',
+        icon: <Image src={certificate} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/dashboard/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
       ...businessItems,
     ];
   }
 
   return [
-    { title: 'Dashboard', href: '/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
-    { title: 'Courses', href: '/dashboard/my-courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-    { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-    { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
-    { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-    { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: <Image src={dashboard} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Courses',
+      href: '/dashboard/my-courses',
+      icon: <Image src={courses} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Purchase History',
+      href: '/dashboard/purchase-history',
+      icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Certificate',
+      href: '/dashboard/certificate',
+      icon: <Image src={certificate} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Discount',
+      href: '/dashboard/discount',
+      icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Message',
+      href: '/dashboard/message',
+      icon: <Image src={message} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Setting',
+      href: '/dashboard/setting',
+      icon: <Image src={setting} alt="" width={20} height={20} />,
+    },
     ...businessItems,
   ];
 }
-
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
