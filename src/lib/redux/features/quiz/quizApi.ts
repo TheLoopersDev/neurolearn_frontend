@@ -16,6 +16,34 @@ interface ApiResponse<T> {
   id?: string;
 }
 
+export type SubmitQuizPayload = {
+  answers: { questionId: string; selectedOptionIds: string[] }[];
+  timeTakenSeconds?: number;
+  meta?: Record<string, unknown>;
+};
+
+export type SubmitQuizResult = {
+  totalQuestions: number;
+  attemptedQuestions: number;
+  correctQuestions: number;
+  incorrectQuestions: number;
+  skippedQuestions: number;
+  totalScore: number;
+  maxPossibleScore: number;
+  overallStatus: 'completed' | 'time-out';
+  // tuỳ BE có hay không:
+  isPassed?: boolean;
+  score?: number;
+  breakdown?: Array<{
+    questionNumber: number;
+    questionId: string;
+    status: 'correct' | 'incorrect' | 'skipped';
+    pointsEarned: number;
+    maxPoints: number;
+    userSelectedOptionIds: string[];
+    correctAnswerIds: string[];
+  }>;
+};
 
 interface RootState {
   auth?: {
@@ -135,6 +163,18 @@ export const quizApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Quiz', id }],
     }),
+    submitQuiz: builder.mutation<
+      ApiResponse<SubmitQuizResult>,
+      { id: string; payload: SubmitQuizPayload }
+    >({
+      query: ({ id, payload }) => ({
+        url: `/${id}/submit`,
+        method: 'POST',
+        body: payload,
+      }),
+      // thường không cần invalidates, nhưng có thể invalidate chi tiết quiz (attempts…)
+      invalidatesTags: (res, err, { id }) => [{ type: 'Quiz', id }],
+    }),
   }),
 });
 
@@ -148,4 +188,5 @@ export const {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
   useReorderQuestionsMutation,
+  useSubmitQuizMutation,
 } = quizApi;

@@ -1,64 +1,78 @@
 // watch-course/[id]/quiz/results/QuestionResultsList.tsx
 import React from 'react';
 import { QuestionResultItemData } from '@/types/quiz';
-import { Card } from '../ui/Card'; // Assuming Card is in '../ui/Card'
+import { Card } from '../ui/Card';
+
+type ResultWithId = QuestionResultItemData & { __resultId: string };
 
 interface QuestionResultsListProps {
-  results: QuestionResultItemData[];
+  results: ResultWithId[];
   onQuestionSelect: (questionId: string) => void;
-  selectedQuestionId: string | null;
+  selectedQuestionId: string | null; // giữ nguyên chữ ký props (không dùng đến trong UI này)
 }
 
 export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
   results,
   onQuestionSelect,
-  selectedQuestionId,
 }) => {
+  const rawNumbers = results.map((it) =>
+    Number((it as any)?.questionData?.questionNumber ?? it?.questionNumber)
+  );
+  const freq = new Map<number, number>();
+  for (const n of rawNumbers) if (Number.isFinite(n) && n > 0) freq.set(n, (freq.get(n) || 0) + 1);
+
+  const getDisplayNumber = (idx: number) => {
+    const n = rawNumbers[idx];
+    if (!Number.isFinite(n) || n <= 0) return idx + 1;
+    if ((freq.get(n) || 0) > 1) return idx + 1;
+    return n;
+  };
+
   return (
     <Card className="p-6">
       <div className="flex flex-col gap-6">
         <div className="text-2xl font-semibold text-[#3858F8] leading-7">Question list</div>
-        <div className="grid grid-cols-4 gap-3">
-          {results.map((item) => {
-            const isSelected = item.questionData.id === selectedQuestionId;
-            let bgColor = '';
-            let textColor = 'text-white'; // Default text color for colored backgrounds
-            let borderColor = 'border-transparent'; // Default border color
 
+        <div className="grid grid-cols-4 gap-3">
+          {results.map((item, idx) => {
+            const itemId = item.__resultId;
+            const displayNumber = getDisplayNumber(idx);
+
+            // Màu nền / chữ theo status giống cách bạn đang làm
+            let bg = '';
+            let txt = 'text-white';
             switch (item.status) {
               case 'correct':
-                bgColor = 'bg-[#00CE9C]'; // Green
+                bg = 'bg-[#00CE9C]';
                 break;
               case 'incorrect':
-                bgColor = 'bg-[#FF7410]'; // Orange
+                bg = 'bg-[#FF7410]';
                 break;
-              case 'skipped':
               default:
-                bgColor = 'bg-[#F7F8FA]'; // Light gray
-                textColor = 'text-[#6B6B6B]'; // Gray text for skipped/default
-                break;
-            }
-
-            if (isSelected) {
-              // Override colors if selected
-              bgColor = 'bg-[#F7F8FA]'; // Light gray for selected
-              textColor = 'text-[#6B6B6B]'; // Gray text for selected
-              borderColor = 'border-2 border-[#3858F8]'; // Blue border for selected
+                bg = 'bg-[#F7F8FA]';
+                txt = 'text-[#6B6B6B]';
             }
 
             return (
               <div
-                key={item.questionData.id}
+                key={itemId}
+                role="button"
+                tabIndex={0}
+                aria-label={`Question ${displayNumber}`}
+                title={`Q${displayNumber} - ${item.status}`}
+                onClick={() => onQuestionSelect(itemId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') onQuestionSelect(itemId);
+                }}
                 className={`
                   flex items-center justify-center
-                  w-12 h-12 rounded-lg text-xl font-medium leading-6
+                  w-14 h-14 rounded-lg text-xl font-medium leading-6
                   cursor-pointer transition-all duration-200 ease-in-out
                   hover:opacity-80
-                  ${bgColor} ${textColor} ${borderColor}
+                  ${bg} ${txt}
                 `}
-                onClick={() => onQuestionSelect(item.questionData.id)}
               >
-                {item.questionNumber}
+                {displayNumber}
               </div>
             );
           })}
