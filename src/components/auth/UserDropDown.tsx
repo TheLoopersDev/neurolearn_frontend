@@ -158,6 +158,7 @@ export function UserDropdown() {
   if (isLoading || !data?.user) return null;
 
   const { user } = data;
+
   const dropdownList = getDropdownList(user);
 
   const dropdownVariants: Variants = {
