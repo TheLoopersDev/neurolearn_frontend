@@ -22,6 +22,7 @@ import { useAppDispatch } from '@/lib/redux/hooks';
 import { Skeleton } from '../common/ui/Skeleton';
 import defaultCourseImage from '@/public/assets/images/default-course.png';
 import defaultInstructorImage from '@/public/assets/images/default-avatar.png';
+
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,6 +37,7 @@ const Header: React.FC = () => {
   const dispatch = useAppDispatch();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
+
   interface SearchResults {
     courses: any[];
     instructors: any[];
@@ -55,16 +57,16 @@ const Header: React.FC = () => {
   );
 
   // Animation variants
-  const headerVariants : Variants = {
+  const headerVariants: Variants = {
     hidden: { y: -100, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 20,
         stiffness: 100,
-        when: "beforeChildren" 
+        when: "beforeChildren"
       }
     },
     scrolled: {
@@ -82,7 +84,7 @@ const Header: React.FC = () => {
     hover: {
       scale: 1.05,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         stiffness: 400,
         damping: 10
       }
@@ -98,9 +100,29 @@ const Header: React.FC = () => {
       opacity: 1,
       x: 0,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 20,
         stiffness: 200
+      }
+    }
+  };
+
+  const dropdownVariants: Variants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -10,
+      transition: {
+        duration: 0.2
       }
     }
   };
@@ -280,10 +302,10 @@ const Header: React.FC = () => {
         {/* Right group: Search – Buy – (Login/Signup or Cart + User) */}
         <div className="flex items-center gap-[13px]">
           {/* Search */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center" ref={searchContainerRef}>
             <motion.button
               onClick={() => setIsSearchActive(active => !active)}
-              className="bg-white rounded-full p-[16px] flex items-center justify-center"
+              className="bg-white rounded-full p-[16px] flex items-center justify-center ml-5"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -293,103 +315,109 @@ const Header: React.FC = () => {
 
             <AnimatePresence>
               {isSearchActive && (
-                <div
-                  ref={searchContainerRef}
-                  className="absolute right-full mr-3 top-1/2 -translate-y-1/2 z-50"
-                >
                 <motion.div
                   variants={searchVariants}
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
-                    className="absolute right-full mr-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-full top-1/2 transform -translate-y-1/2 translate-x-2 z-50"
                 >
-                  <input
-                    ref={searchRef}
+                  <div className="relative">
+                    <input
+                      ref={searchRef}
                       value={searchValue}
                       onChange={handleSearchChange}
                       onFocus={() => searchValue.trim() && setShowResults(true)}
-                    type="text"
-                    placeholder="Search for courses..."
-                      className="w-[550px] px-5 py-3 text-sm text-gray-700 border border-gray-300 rounded-full shadow-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 z-20 transition-all"
+                      type="text"
+                      placeholder="Search for courses..."
+                      className="w-[400px] px-5 py-3 text-sm text-gray-700 border border-gray-300 rounded-full shadow-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 z-20 transition-all"
                     />
-                    {showResults && (
-                      <div className="absolute z-40 w-full mt-2 bg-white border border-primary-100 rounded shadow-lg">
-                        <div className="py-2 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-primary-500 scrollbar-track-primary-100">
-                          {isLoadings ? (
-                            <div className="px-2">
-                              {[...Array(5)].map(() => (
-                                <SearchResultSkeleton key={crypto.randomUUID()} />
-                              ))}
-                            </div>
-                          ) : (
-                            <>
-                              {results.courses.length > 0 && (
-                                <div className="px-2">
-                                  {results.courses.map((course) => (
-                                    <Link key={course._id} href={`/courses/${course._id}`} legacyBehavior>
-                                      <button
-                                        className="p-1 hover:bg-primary-50 cursor-pointer flex items-center pt-2 w-full text-left"
-                                      >
-                                        <Image
-                                          src={course?.thumbnail?.url || defaultCourseImage}
-                                          alt="Course Image"
-                                          width={100}
-                                          height={90}
-                                          className="rounded mr-2"
-                                        />
-                                        <div>
-                                          <div className="font-medium text-black hover:text-accent-600">
-                                            {course?.name}
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <p className="text-sm text-gray-700 text-primary-500">
-                                              {course?.description?.length > 50
-                                                ? `${course.description.slice(0, 50)}...`
-                                                : course.description}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </button>
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
-                              {results.instructors.length > 0 && (
-                                <div className="px-2">
-                                  {results.instructors.map((user) => (
-                                    <Link key={user._id} href={`/instructors/${user._id}`} legacyBehavior>
-                                      <button
-                                        className="p-1 hover:bg-primary-50 cursor-pointer flex items-center pt-2 w-full text-left"
-                                      >
-                                        <Image
-                                          src={user?.avatar?.url || defaultInstructorImage}
-                                          alt="User Avatar"
-                                          width={40}
-                                          height={40}
-                                          className="rounded-full mr-2"
-                                        />
-                                        <div>
-                                          <div className="font-medium text-black hover:text-accent-600">
-                                            {user.name}
-                                          </div>
-                                          <div className="text-sm text-black text-primary-500">{user.role}</div>
-                                        </div>
-                                      </button>
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
-                              {results.courses.length === 0 && results.instructors.length === 0 && (
-                                <div className="text-center text-gray-500 p-2">No course or instructor match</div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
+
+                    <AnimatePresence>
+                      {showResults && (
+                        <motion.div
+                          variants={dropdownVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="absolute z-40 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                        >
+                          <div className="py-2 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-primary-500 scrollbar-track-primary-100">
+                            {isLoadings ? (
+                              <div className="px-2">
+                                {[...Array(5)].map(() => (
+                                  <SearchResultSkeleton key={crypto.randomUUID()} />
+                                ))}
+                              </div>
+                            ) : (
+                              <>
+                                {results.courses.length > 0 && (
+                                  <div className="px-2">
+                                      <h3 className="px-3 py-1 text-sm font-medium text-gray-500">Courses</h3>
+                                      {results.courses.map((course) => (
+                                        <Link key={course._id} href={`/courses/${course._id}`} legacyBehavior>
+                                          <a className="block hover:bg-gray-50">
+                                            <div className="flex items-center p-3">
+                                              <div className="flex-shrink-0">
+                                                <Image
+                                                  src={course?.thumbnail?.url || defaultCourseImage}
+                                                  alt="Course Image"
+                                                  width={60}
+                                                  height={45}
+                                                  className="rounded object-cover"
+                                                />
+                                              </div>
+                                              <div className="ml-3">
+                                                <p className="text-sm font-medium text-gray-900">{course?.name}</p>
+                                                <p className="text-xs text-gray-500 truncate">
+                                                  {course?.description?.length > 50
+                                                    ? `${course.description.slice(0, 50)}...`
+                                                    : course.description}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </a>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {results.instructors.length > 0 && (
+                                    <div className="px-2">
+                                      <h3 className="px-3 py-1 text-sm font-medium text-gray-500">Instructors</h3>
+                                      {results.instructors.map((user) => (
+                                        <Link key={user._id} href={`/instructors/${user._id}`} legacyBehavior>
+                                          <a className="block hover:bg-gray-50">
+                                            <div className="flex items-center p-3">
+                                              <div className="flex-shrink-0">
+                                                <Image
+                                                  src={user?.avatar?.url || defaultInstructorImage}
+                                                  alt="User Avatar"
+                                                  width={40}
+                                                  height={40}
+                                                  className="rounded-full object-cover"
+                                                />
+                                              </div>
+                                              <div className="ml-3">
+                                                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                                <p className="text-xs text-gray-500">{user.role}</p>
+                                              </div>
+                                            </div>
+                                          </a>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {results.courses.length === 0 && results.instructors.length === 0 && (
+                                  <div className="text-center text-gray-500 p-4">No results found</div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.div>
-                </div>
               )}
             </AnimatePresence>
           </div>

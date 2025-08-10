@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { useModal } from '@/context/ModalContext';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { redirect } from 'next/navigation';
