@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { redirect } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import { Fragment, useEffect, useState } from 'react';
-import { useModal } from '@/context/ModalContext';
 
 interface CourseCardProps {
   course: {
