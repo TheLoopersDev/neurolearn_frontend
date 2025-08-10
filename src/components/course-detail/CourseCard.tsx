@@ -37,7 +37,9 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
     if (!course._id) return;
 
     axios
-      .get(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/${course._id}/is-purchased`, { withCredentials: true })
+      .get(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/${course._id}/is-purchased`, {
+        withCredentials: true,
+      })
       .then(res => {
         setIsPurchased(res.data.isPurchased);
       })
@@ -82,8 +84,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
     try {
       const alreadyExists = await checkCourseExistInCart();
 
-      const isBusinessManager =
-        user?.businessInfo?.role === 'admin';
+      const isBusinessManager = user?.businessInfo?.role === 'admin';
 
       if (alreadyExists && !isBusinessManager) {
         toast({
@@ -139,8 +140,8 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
           description: `Buy course from Academix`,
           courseIds: [course._id],
           licenseQuantities: {
-            [course._id]: 1
-          }
+            [course._id]: 1,
+          },
         },
         { withCredentials: true }
       );

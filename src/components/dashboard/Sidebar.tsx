@@ -22,7 +22,7 @@ import reviewIcon from '@/public/assets/icons/book.svg';
 import withdrawIcon from '@/public/assets/review/withdrawal.svg';
 import businessIcon from '@/public/assets/review/business.svg';
 import peopleIcon from '@/public/assets/icons/teacher.svg';
-
+import discountIcon from '@/public/assets/business/discount.svg';
 interface MenuItem {
   icon: any;
   label: string;
@@ -43,12 +43,18 @@ const Sidebar = () => {
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: discountIcon, label: 'Discount', path: '/dashboard/discount' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     instructor: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-      { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz', suffixIcon: magicPenIcon },
+      {
+        icon: createQuiz,
+        label: 'Create Quiz',
+        path: '/dashboard/create-quiz',
+        suffixIcon: magicPenIcon,
+      },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
