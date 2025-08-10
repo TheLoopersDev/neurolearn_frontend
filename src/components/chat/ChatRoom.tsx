@@ -1,21 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Chat } from '@/types/chat';
 import { getChatDisplayName, getChatAvatar } from '@/utils/chatUtils';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import GroupChatModal from './GroupChatModal';
 
 interface ChatRoomProps {
     chat: Chat | null;
     currentUserId: string;
     messages: any[];
-    sendMessage: (receiverId: string, content: string) => Promise<void>;
+    sendMessage: (receiverId: string, content: string, type?: 'text' | 'image' | 'file', replyTo?: any) => Promise<void>;
+    sendReaction: (messageId: string, emoji: string) => Promise<void>;
+    updateGroupName?: (newName: string) => Promise<void>;
+    addMembersToGroup?: (memberIds: string[]) => Promise<void>;
+    removeMemberFromGroup?: (memberId: string) => Promise<void>;
     loading: boolean;
     error: string | null;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, sendMessage, loading, error }) => {
-
+const ChatRoom: React.FC<ChatRoomProps> = ({
+    chat,
+    currentUserId,
+    messages,
+    sendMessage,
+    sendReaction,
+    updateGroupName,
+    addMembersToGroup,
+    removeMemberFromGroup,
+    loading,
+    error,
+}) => {
+    const [replyTo, setReplyTo] = useState<any>(null);
+    const [showGroupModal, setShowGroupModal] = useState(false);
 
     // Lấy messages trực tiếp từ props
     const mappedMessages = messages.map((msg: any) => ({
@@ -23,6 +40,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
         sender: msg.senderId,
         content: msg.content,
         timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate().toISOString() : '',
+        replyTo: msg.replyTo,
+        reactions: msg.reactions || [],
     }));
 
     // Dùng trực tiếp chat.members
@@ -35,13 +54,69 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
     const role = !chat?.isGroup && otherMember ? otherMember.role : undefined;
 
     const handleSendMessage = async (content: string) => {
-        if (!chat || !content.trim() || !otherMember) {
+        if (!chat || !content.trim()) {
             return;
         }
+
         try {
-            await sendMessage(otherMember._id, content.trim());
+            if (chat.isGroup) {
+                // Group chat: gửi tin nhắn cho tất cả thành viên (receiverId có thể là bất kỳ member nào)
+                const firstMember = members.find((m: import('@/types/chat').ChatMember) => m._id !== currentUserId);
+                if (firstMember) {
+                    await sendMessage(firstMember._id, content.trim(), 'text', replyTo);
+                }
+            } else {
+                // 1-1 chat: gửi tin nhắn cho user còn lại
+                const otherMember = members.find((m: import('@/types/chat').ChatMember) => m._id !== currentUserId);
+                if (otherMember) {
+                    await sendMessage(otherMember._id, content.trim(), 'text', replyTo);
+                }
+            }
+            setReplyTo(null); // Clear reply after sending
         } catch (error) {
             console.error('Failed to send message:', error);
+        }
+    };
+
+    const handleReply = (message: any) => {
+        setReplyTo({
+            messageId: message._id,
+            content: message.content,
+            senderId: message.sender,
+        });
+    };
+
+    const handleReaction = async (messageId: string, emoji: string) => {
+        try {
+            await sendReaction(messageId, emoji);
+        } catch (error) {
+            console.error('Failed to send reaction:', error);
+        }
+    };
+
+    const handleCancelReply = () => {
+        setReplyTo(null);
+    };
+
+    const handleGroupSettingsClick = () => {
+        setShowGroupModal(true);
+    };
+
+    const handleUpdateGroupName = async (newName: string) => {
+        if (updateGroupName) {
+            await updateGroupName(newName);
+        }
+    };
+
+    const handleAddMembers = async (memberIds: string[]) => {
+        if (addMembersToGroup) {
+            await addMembersToGroup(memberIds);
+        }
+    };
+
+    const handleRemoveMember = async (memberId: string) => {
+        if (removeMemberFromGroup) {
+            await removeMemberFromGroup(memberId);
         }
     };
 
@@ -54,8 +129,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-                    <p className="text-gray-500">Choose a chat from the list to start messaging</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Select a chat</h3>
+                    <p className="text-gray-500">Choose a conversation to start messaging</p>
                 </div>
             </div>
         );
@@ -73,6 +148,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
                 isGroup={chat.isGroup}
                 memberCount={chat.isGroup ? members.length : undefined}
                 role={role}
+                onGroupSettingsClick={chat.isGroup ? handleGroupSettingsClick : undefined}
             />
 
             {/* Messages */}
@@ -81,12 +157,16 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
                     messages={mappedMessages}
                     currentUserId={currentUserId}
                     chatMembers={members}
+                    onReply={handleReply}
+                    onReaction={handleReaction}
                 />
             </div>
 
             {/* Input */}
             <MessageInput
                 onSendMessage={handleSendMessage}
+                replyTo={replyTo}
+                onCancelReply={handleCancelReply}
                 disabled={loading}
             />
 
@@ -95,6 +175,20 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, currentUserId, messages, send
                 <div className="p-4 bg-red-50 border-t border-red-200">
                     <p className="text-red-600 text-sm">{error}</p>
                 </div>
+            )}
+
+            {/* Group Chat Modal */}
+            {chat.isGroup && (
+                <GroupChatModal
+                    isOpen={showGroupModal}
+                    onClose={() => setShowGroupModal(false)}
+                    chatName={displayName}
+                    currentMembers={members}
+                    onUpdateGroupName={handleUpdateGroupName}
+                    onAddMembers={handleAddMembers}
+                    onRemoveMember={handleRemoveMember}
+                    currentUserId={currentUserId}
+                />
             )}
         </div>
     );

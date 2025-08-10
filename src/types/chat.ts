@@ -3,16 +3,23 @@ export interface ChatMessage {
   sender: string;
   content: string;
   timestamp: string;
+  replyTo?: ChatMessage; // Message được reply
+  reactions?: MessageReaction[]; // Reactions của message
+}
+
+export interface MessageReaction {
+  userId: string;
+  emoji: string;
+  timestamp: Date; // Thay đổi từ string sang Date để đồng bộ với firestore
 }
 
 export interface ChatMember {
   _id: string;
   name: string;
-  email: string;
   avatar?: {
-    url?: string;
+    url: string;
   };
-  role: 'user' | 'instructor' | 'admin' | 'business';
+  role?: string;
 }
 
 export interface Chat {
@@ -20,9 +27,8 @@ export interface Chat {
   members: ChatMember[];
   isGroup: boolean;
   groupName?: string;
-  messages: ChatMessage[];
   lastMessage?: ChatMessage;
-  unreadCount?: number;
+  updatedAt: string;
 }
 
 export interface CreateChatRequest {

@@ -29,29 +29,32 @@ export default function DiscountDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Mock data - in real app, fetch from API
-        const mockDiscount: Discount = {
-            _id: params.id as string,
-            code: 'SUMMER2024',
-            name: 'Summer Sale 2024',
-            description: 'Get 20% off on all summer courses. Perfect for students looking to enhance their skills during the summer break.',
-            discountType: 'percentage',
-            discountValue: 20,
-            minAmount: 100000,
-            maxDiscount: 500000,
-            usageLimit: 100,
-            usedCount: 45,
-            startDate: '2024-06-01',
-            endDate: '2024-08-31',
-            isActive: true,
-            applicableCourses: ['Course 1', 'Course 2', 'Course 3'],
-            createdAt: '2024-05-15'
+        // Fetch discount data from API
+        const fetchDiscount = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/discounts/${params.id}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setDiscount(data.discount || data);
+                } else {
+                    console.error('Failed to fetch discount');
+                }
+            } catch (error) {
+                console.error('Error fetching discount:', error);
+            } finally {
+                setIsLoading(false);
+            }
         };
 
-        setTimeout(() => {
-            setDiscount(mockDiscount);
-            setIsLoading(false);
-        }, 1000);
+        if (params.id) {
+            fetchDiscount();
+        }
     }, [params.id]);
 
     const formatDate = (dateString: string) => {

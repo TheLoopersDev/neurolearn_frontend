@@ -1,11 +1,12 @@
 // redux/api/quizApi.ts
-import { QuestionData, Quiz } from '@/components/dashboard/create-quiz/types';
+import { QuestionData, Quiz } from '@/app/(auth)/instructor/quizzes/_components/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 interface ApiResponse<T> {
   success: boolean;
   message?: string;
   quiz?: T;
+  data?: T;
   quizzes?: T;
   question?: QuestionData;
   questions?: QuestionData[];

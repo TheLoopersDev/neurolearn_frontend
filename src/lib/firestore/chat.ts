@@ -5,6 +5,7 @@ import {
   updateDoc, 
   deleteDoc, 
   getDocs, 
+  getDoc,
   query, 
   orderBy, 
   onSnapshot,
@@ -14,6 +15,12 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 
+export interface MessageReaction {
+  userId: string;
+  emoji: string;
+  timestamp: Date; // Thay đổi từ Timestamp sang Date
+}
+
 export interface ChatMessage {
   id?: string;
   senderId: string;
@@ -22,6 +29,12 @@ export interface ChatMessage {
   timestamp: Timestamp;
   type?: 'text' | 'image' | 'file';
   read?: boolean;
+  replyTo?: {
+    messageId: string;
+    content: string;
+    senderId: string;
+  };
+  reactions?: MessageReaction[];
 }
 
 export interface ChatRoom {
@@ -66,23 +79,30 @@ export const getOrCreateChatRoom = async (userId1: string, userId2: string): Pro
   return docRef.id;
 };
 
-// Gửi tin nhắn
+// Gửi tin nhắn với reply support
 export const sendMessage = async (
   chatRoomId: string,
   senderId: string,
-  receiverId: string, // thêm receiverId
+  receiverId: string,
   content: string,
-  type: 'text' | 'image' | 'file' = 'text'
+  type: 'text' | 'image' | 'file' = 'text',
+  replyTo?: {
+    messageId: string;
+    content: string;
+    senderId: string;
+  }
 ): Promise<string> => {
   const messagesRef = collection(db, `chatRooms/${chatRoomId}/messages`);
 
   const message: Omit<ChatMessage, 'id'> = {
     senderId,
-    receiverId, // lưu đúng receiverId
+    receiverId,
     content,
     timestamp: serverTimestamp() as Timestamp,
     type,
     read: false,
+    replyTo,
+    reactions: [],
   };
 
   const docRef = await addDoc(messagesRef, message);
@@ -95,6 +115,66 @@ export const sendMessage = async (
   });
 
   return docRef.id;
+};
+
+// Thêm reaction vào tin nhắn
+export const addReaction = async (
+  chatRoomId: string,
+  messageId: string,
+  userId: string,
+  emoji: string
+): Promise<void> => {
+  const messageRef = doc(db, `chatRooms/${chatRoomId}/messages`, messageId);
+  
+  // Lấy tin nhắn hiện tại
+  const messageSnap = await getDoc(messageRef);
+  const messageData = messageSnap.data() as ChatMessage;
+  
+  if (messageData) {
+    const currentReactions = messageData.reactions || [];
+    
+    // Kiểm tra xem user đã reaction emoji này chưa
+    const existingReactionIndex = currentReactions.findIndex(
+      reaction => reaction.userId === userId && reaction.emoji === emoji
+    );
+    
+    if (existingReactionIndex === -1) {
+      // Thêm reaction mới - sử dụng new Date() thay vì serverTimestamp() để tránh lỗi
+      const newReaction: MessageReaction = {
+        userId,
+        emoji,
+        timestamp: new Date() as any, // Sử dụng client timestamp thay vì serverTimestamp
+      };
+      
+      await updateDoc(messageRef, {
+        reactions: [...currentReactions, newReaction],
+      });
+    }
+  }
+};
+
+// Xóa reaction khỏi tin nhắn
+export const removeReaction = async (
+  chatRoomId: string,
+  messageId: string,
+  userId: string,
+  emoji: string
+): Promise<void> => {
+  const messageRef = doc(db, `chatRooms/${chatRoomId}/messages`, messageId);
+  
+  // Lấy tin nhắn hiện tại để tìm reaction cần xóa
+  const messageSnap = await getDoc(messageRef);
+  const messageData = messageSnap.data() as ChatMessage;
+  
+  if (messageData?.reactions) {
+    const updatedReactions = messageData.reactions.filter(
+      reaction => !(reaction.userId === userId && reaction.emoji === emoji)
+    );
+    
+    await updateDoc(messageRef, {
+      reactions: updatedReactions,
+    });
+  }
 };
 
 // Lấy tin nhắn của một chat room
@@ -172,4 +252,64 @@ export const markMessageAsRead = async (chatRoomId: string, messageId: string) =
 export const deleteMessage = async (chatRoomId: string, messageId: string) => {
   const messageRef = doc(db, `chatRooms/${chatRoomId}/messages`, messageId);
   await deleteDoc(messageRef);
+};
+
+// Group management functions
+
+// Cập nhật tên group chat
+export const updateGroupName = async (chatRoomId: string, newName: string): Promise<void> => {
+  const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
+  await updateDoc(chatRoomRef, { 
+    groupName: newName, // Sử dụng groupName thay vì name
+    updatedAt: serverTimestamp() as Timestamp
+  });
+};
+
+// Thêm thành viên vào group chat
+export const addMembersToGroup = async (chatRoomId: string, memberIds: string[]): Promise<void> => {
+  const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
+  
+  // Lấy thông tin chat room hiện tại
+  const chatRoomSnap = await getDoc(chatRoomRef);
+  const chatRoomData = chatRoomSnap.data();
+  
+  if (!chatRoomData) {
+    throw new Error('Chat room not found');
+  }
+  
+  // Thêm members mới vào participants
+  const currentParticipants = chatRoomData.participants || [];
+  const newParticipants = [...new Set([...currentParticipants, ...memberIds])];
+  
+  await updateDoc(chatRoomRef, {
+    participants: newParticipants,
+    updatedAt: serverTimestamp() as Timestamp
+  });
+};
+
+// Xóa thành viên khỏi group chat
+export const removeMemberFromGroup = async (chatRoomId: string, memberId: string): Promise<void> => {
+  const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
+  
+  // Lấy thông tin chat room hiện tại
+  const chatRoomSnap = await getDoc(chatRoomRef);
+  const chatRoomData = chatRoomSnap.data();
+  
+  if (!chatRoomData) {
+    throw new Error('Chat room not found');
+  }
+  
+  // Xóa member khỏi participants
+  const currentParticipants = chatRoomData.participants || [];
+  const updatedParticipants = currentParticipants.filter((id: string) => id !== memberId);
+  
+  // Kiểm tra xem có còn đủ 2 người không (minimum cho group)
+  if (updatedParticipants.length < 2) {
+    throw new Error('Group must have at least 2 members');
+  }
+  
+  await updateDoc(chatRoomRef, {
+    participants: updatedParticipants,
+    updatedAt: serverTimestamp() as Timestamp
+  });
 };

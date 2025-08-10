@@ -8,6 +8,11 @@ import {
   subscribeToChatRooms,
   markMessageAsRead,
   deleteMessage,
+  addReaction,
+  removeReaction,
+  updateGroupName,
+  addMembersToGroup,
+  removeMemberFromGroup,
   ChatMessage,
   ChatRoom,
 } from '@/lib/firestore/chat';
@@ -98,7 +103,16 @@ export const useFirestoreChat = () => {
   }, [unsubscribeChatRooms]);
 
   const sendMessageHandler = useCallback(
-    async (receiverId: string, content: string, type: 'text' | 'image' | 'file' = 'text') => {
+    async (
+      receiverId: string, 
+      content: string, 
+      type: 'text' | 'image' | 'file' = 'text',
+      replyTo?: {
+        messageId: string;
+        content: string;
+        senderId: string;
+      }
+    ) => {
       const userId = getUserId();
       if (!userId) {
         setError('User not authenticated');
@@ -109,21 +123,61 @@ export const useFirestoreChat = () => {
         setLoading(true);
         setError(null);
 
-        // Get or create chat room
-        const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
-
-        // Send message (truyền receiverId)
-        await sendMessage(chatRoomId, userId, receiverId, content, type);
-
-        // Set active chat room if not already set
-        if (!activeChatRoomId) {
+        // Nếu có activeChatRoomId, sử dụng nó (cho group chat)
+        if (activeChatRoomId) {
+          // Send message trực tiếp vào chat room hiện tại
+          await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo);
+        } else {
+          // Get or create chat room (cho 1-1 chat)
+          const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
+          await sendMessage(chatRoomId, userId, receiverId, content, type, replyTo);
+          
+          // Set active chat room if not already set
           setActiveChatRoomId(chatRoomId);
         }
       } catch (err) {
-        console.error('Error sending message:', err); // DEBUG LOG
+        console.error('Error sending message:', err);
         setError(err instanceof Error ? err.message : 'Failed to send message');
       } finally {
         setLoading(false);
+      }
+    },
+    [user, activeChatRoomId, getUserId]
+  );
+
+  const sendReactionHandler = useCallback(
+    async (messageId: string, emoji: string) => {
+      const userId = getUserId();
+      if (!userId || !activeChatRoomId) {
+        setError('User not authenticated or no active chat');
+        return;
+      }
+
+      try {
+        setError(null);
+        await addReaction(activeChatRoomId, messageId, userId, emoji);
+      } catch (err) {
+        console.error('Error adding reaction:', err);
+        setError(err instanceof Error ? err.message : 'Failed to add reaction');
+      }
+    },
+    [user, activeChatRoomId, getUserId]
+  );
+
+  const removeReactionHandler = useCallback(
+    async (messageId: string, emoji: string) => {
+      const userId = getUserId();
+      if (!userId || !activeChatRoomId) {
+        setError('User not authenticated or no active chat');
+        return;
+      }
+
+      try {
+        setError(null);
+        await removeReaction(activeChatRoomId, messageId, userId, emoji);
+      } catch (err) {
+        console.error('Error removing reaction:', err);
+        setError(err instanceof Error ? err.message : 'Failed to remove reaction');
       }
     },
     [user, activeChatRoomId, getUserId]
@@ -168,6 +222,64 @@ export const useFirestoreChat = () => {
     [activeChatRoomId]
   );
 
+  // Group management functions
+  const updateGroupNameHandler = useCallback(
+    async (newName: string) => {
+      if (!activeChatRoomId) {
+        setError('No active chat room');
+        return;
+      }
+
+      try {
+        setError(null);
+        await updateGroupName(activeChatRoomId, newName);
+      } catch (err) {
+        console.error('Error updating group name:', err);
+        setError(err instanceof Error ? err.message : 'Failed to update group name');
+        throw err;
+      }
+    },
+    [activeChatRoomId]
+  );
+
+  const addMembersToGroupHandler = useCallback(
+    async (memberIds: string[]) => {
+      if (!activeChatRoomId) {
+        setError('No active chat room');
+        return;
+      }
+
+      try {
+        setError(null);
+        await addMembersToGroup(activeChatRoomId, memberIds);
+      } catch (err) {
+        console.error('Error adding members to group:', err);
+        setError(err instanceof Error ? err.message : 'Failed to add members to group');
+        throw err;
+      }
+    },
+    [activeChatRoomId]
+  );
+
+  const removeMemberFromGroupHandler = useCallback(
+    async (memberId: string) => {
+      if (!activeChatRoomId) {
+        setError('No active chat room');
+        return;
+      }
+
+      try {
+        setError(null);
+        await removeMemberFromGroup(activeChatRoomId, memberId);
+      } catch (err) {
+        console.error('Error removing member from group:', err);
+        setError(err instanceof Error ? err.message : 'Failed to remove member from group');
+        throw err;
+      }
+    },
+    [activeChatRoomId]
+  );
+
   return {
     messages,
     chatRooms,
@@ -175,10 +287,15 @@ export const useFirestoreChat = () => {
     error,
     activeChatRoomId,
     sendMessage: sendMessageHandler,
+    sendReaction: sendReactionHandler,
+    removeReaction: removeReactionHandler,
     joinChat,
     leaveChat,
     markAsRead,
     deleteMessage: deleteMessageHandler,
     setActiveChatRoomId: setActiveChatRoomIdHandler,
+    updateGroupName: updateGroupNameHandler,
+    addMembersToGroup: addMembersToGroupHandler,
+    removeMemberFromGroup: removeMemberFromGroupHandler,
   };
 };
