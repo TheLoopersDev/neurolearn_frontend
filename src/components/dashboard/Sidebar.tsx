@@ -43,6 +43,7 @@ const Sidebar = () => {
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: discountIcon, label: 'Discount', path: '/dashboard/discount' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     instructor: [
