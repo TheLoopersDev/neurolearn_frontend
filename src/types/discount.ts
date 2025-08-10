@@ -58,10 +58,11 @@ export type UpdateDiscountRequest = {
 };
 
 export type DiscountResponse = {
-  discounts: Discount[];
-  totalPages: number;
-  currentPage: number;
-  totalDiscounts: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
+  success: boolean;
+  data: Discount[];
+  totalPages?: number;
+  currentPage?: number;
+  totalDiscounts?: number;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
 };

@@ -28,7 +28,7 @@ const DiscountManagementPage = () => {
 
   const queryParams = {
     page: currentPage,
-    limit: 12,
+    limit: 6,
     search: searchTerm,
     // You can add more filters here if your API supports
   };
@@ -202,7 +202,7 @@ const DiscountManagementPage = () => {
                 Try Again
               </button>
             </div>
-          ) : !discountData?.discounts || discountData.discounts.length === 0 ? (
+            ) : !discountData?.data || discountData.data.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,8 +214,8 @@ const DiscountManagementPage = () => {
             </div>
           ) : (
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                {discountData?.discounts?.map((discount: Discount) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {discountData?.data?.map((discount: Discount) => (
                   <DiscountCard
                     key={discount._id}
                     discount={discount}
@@ -225,11 +225,12 @@ const DiscountManagementPage = () => {
                   />
                 ))}
               </div>
-              {discountData && discountData.totalPages > 1 && (
+                    {/* Always show pagination when there's data */}
+                    {discountData?.data && discountData.data.length > 0 && (
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <ReviewPagination
-                    currentPage={discountData.currentPage}
-                    totalPages={discountData.totalPages}
+                          currentPage={discountData.currentPage || currentPage}
+                          totalPages={discountData.totalPages || Math.ceil(discountData.data.length / 6)}
                     onPageChange={setCurrentPage}
                   />
                 </div>
