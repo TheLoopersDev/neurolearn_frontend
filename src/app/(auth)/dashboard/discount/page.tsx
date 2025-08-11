@@ -6,13 +6,20 @@ import Loading from '@/components/common/Loading';
 
 interface Discount {
   _id: string;
-  name: string;
   code: string;
-  amount: number;
-  discountType: string;
-  isActive: boolean;
+  name: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  amount: number; 
+  minOrderAmount?: number;
+  maxDiscountAmount?: number;
+  usageLimit?: number;
+  usedCount: number;
   startDate: string;
   endDate: string;
+  isActive: boolean;
+  courseIds?: string[];
+  createdAt: string;
 }
 
 const ITEMS_PER_PAGE = 6;
@@ -65,7 +72,7 @@ export default function Page() {
 
                 {/* Discount Table */}
                 <div className="w-full">
-            <DiscountTable discounts={currentDiscounts} />
+            <DiscountTable discounts={currentDiscounts as Discount[]} />
           </div>
 
           {/* Pagination Controls */}
