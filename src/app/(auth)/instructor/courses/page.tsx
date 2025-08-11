@@ -11,7 +11,7 @@ export default function CoursesPage() {
     const router = useRouter();
 
     const handleOpenCreateCourse = () => {
-        router.push('/dashboard/instructor/courses/create-course');
+        router.push('/instructor/courses/create-course');
     };
 
     const handleSearchChange = useCallback((value: string) => {
