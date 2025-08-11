@@ -23,7 +23,6 @@ export default async function CourseDetailPage({ params }: any) {
   }
 
   const { course, learners } = await res.json();
-  console.log('business course', course);
 
   return (
     <div className="min-h-screen">
