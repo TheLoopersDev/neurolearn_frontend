@@ -235,11 +235,16 @@ export function UserDropdown() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 max-w-[150px]">
-            <span className="font-medium truncate text-base text-black whitespace-nowrap hidden md:inline">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-[150px] min-w-0">
+            <span className="hidden md:block font-medium text-base text-black truncate leading-none">
               {user.name}
             </span>
-            <svg className="w-[15.5px] h-[8.5px]" viewBox="0 0 16 9" fill="none">
+            <svg
+              className="w-4 h-4 shrink-0 -translate-y-[1px]"
+              viewBox="0 0 16 9"
+              fill="none"
+              aria-hidden="true"
+            >
               <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
             </svg>
           </div>
@@ -250,54 +255,53 @@ export function UserDropdown() {
         <DropdownMenuContent
           asChild
           forceMount
-          className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100"
+          className="w-[248px] rounded-[20px] bg-white shadow-lg border border-gray-100 max-h-[70vh] overflow-y-auto"
+          align="end"
+          sideOffset={8}
+          style={{
+            transform: 'translateX(-10px)' // Adjust this value to align perfectly
+          }}
         >
           <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit">
             <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500" />
-            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+            <DropdownMenuSeparator className="border-t border-gray-200" />
 
-            <DropdownMenuGroup>
-              {dropdownList.map((item, index) => {
-                const isActive = pathname === item.href;
-                return (
+            {/* Scrollable Menu Items */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              <DropdownMenuGroup>
+                {dropdownList.map((item, index) => (
                   <DropdownMenuItem asChild key={item.title}>
                     <Link href={item.href}>
                       <motion.div
-                        className={`flex items-center gap-3 px-3 py-[14px] rounded-xl text-[15px] font-medium w-full
-                ${isActive ? 'bg-gray-100 text-[#3858F8]' : 'text-black hover:bg-gray-100'}
-              `}
+                        className={`flex items-center gap-3 px-3 py-[10px] rounded-xl text-[15px] font-medium w-full
+                          ${pathname === item.href ? 'bg-gray-100 text-[#3858F8]' : 'text-black hover:bg-gray-100'}
+                        `}
                         variants={itemVariants}
                         custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
                       >
                         {item.icon}
                         {item.title}
                       </motion.div>
                     </Link>
                   </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuGroup>
+                ))}
+              </DropdownMenuGroup>
+            </div>
 
-            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-            <DropdownMenuItem asChild>
-              <motion.button
-                onClick={logoutHandler}
-                className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
-                variants={itemVariants}
-                custom={dropdownList.length}
-                initial="hidden"
-                animate="visible"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
-                Sign Out
-              </motion.button>
-            </DropdownMenuItem>
+            {/* Fixed Sign Out Button at Bottom */}
+            <div className="sticky bottom-0 bg-white pt-2 border-t border-gray-200">
+              <DropdownMenuItem asChild>
+                <motion.button
+                  onClick={logoutHandler}
+                  className="flex items-center gap-3 px-3 py-[10px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
+                  variants={itemVariants}
+                  custom={dropdownList.length}
+                >
+                  <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
+                  Sign Out
+                </motion.button>
+              </DropdownMenuItem>
+            </div>
           </motion.div>
         </DropdownMenuContent>
       </AnimatePresence>
