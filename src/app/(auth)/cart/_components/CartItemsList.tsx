@@ -10,7 +10,7 @@ interface CartItemListProps {
 }
 
 export function CartItemList({ courses, onRemoveItem, onQuantityChange, role }: CartItemListProps) {
-  const isBusinessRole = role === 'admin' || role === 'manager';
+  const isBusinessRole = role === 'admin';
   if (courses.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-secondary p-12 text-center">
@@ -33,10 +33,10 @@ export function CartItemList({ courses, onRemoveItem, onQuantityChange, role }: 
 
       {/* Items List Container */}
       <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-background md:rounded-none md:border-x md:border-b md:border-t-0">
-        {courses.map(course => (
+        {courses.map((course, index) => (
           <CartItem
             quantity={course.quantity}
-            key={course._id}
+            key={course._id || `course-${index}`}
             course={course}
             onRemove={onRemoveItem}
             onQuantityChange={onQuantityChange}

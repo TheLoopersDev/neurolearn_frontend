@@ -308,7 +308,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden gap-5">
       {/* Chat List */}
       <ChatList
         chats={chatRooms.map(mapChatRoomToChat)}
@@ -334,16 +334,16 @@ const MessagePage: React.FC = () => {
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-            <div className="text-center">
-              <span className="text-gray-400">
-                {usersLoading ? 'Loading users...' : 'Loading chat...'}
-              </span>
-              {retryCount > 0 && (
-                <p className="text-xs text-gray-300 mt-2">
-                  Retrying... ({retryCount}/3)
-                </p>
-              )}
-            </div>
+            <Loading
+              message={usersLoading ? 'Loading users...' : 'Loading chat...'}
+              size="sm"
+              className="min-h-[200px]"
+            />
+            {retryCount > 0 && (
+              <p className="text-xs text-gray-300 mt-2">
+                Retrying... ({retryCount}/3)
+              </p>
+            )}
         </div>
       )}
     </div>

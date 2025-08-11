@@ -1,27 +1,24 @@
+// middleware.ts (hoặc src/middleware.ts)
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function middleware(req: NextRequest) {
-    // List of protected routes
-    // const protectedRoutes = ['/dashboard', '/profile', '/settings'];
+  // đừng chặn các route auth của NextAuth
+  if (req.nextUrl.pathname.startsWith('/api/auth')) return NextResponse.next();
 
-    // Check if the route is protected
-    // Fetch the user token (e.g., using NextAuth.js)
-    const normalToken = req.cookies.get('access_token')?.value; // Adjust based on your auth system
+  // chỉ kiểm tra session NextAuth — cookie BE ở domain/port khác sẽ không đọc được trong middleware
+  const session = await getToken({ req }); // uses NEXTAUTH_SECRET from env
 
-    const secret = process.env.NEXTAUTH_SECRET;
-    const socialToken = await getToken({ req, secret });
+  if (!session) {
+    const url = new URL('/', req.url);
+    // optional: nhớ đường cũ để quay lại sau khi login
+    url.searchParams.set('callbackUrl', req.nextUrl.pathname + req.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
 
-    // If the user is not logged in, redirect to the home page with a query parameter to open the modal
-    if (!normalToken && !socialToken) {
-        const homeUrl = new URL('/', req.url);
-        // homeUrl.searchParams.set('showLoginModal', 'true'); // Add a query parameter to trigger the modal
-        return NextResponse.redirect(homeUrl);
-    }
-
-    // Allow the request to continue if the user is logged in or the route is not protected
-    return NextResponse.next();
+  return NextResponse.next();
 }
+
 export const config = {
-    matcher: []
+  matcher: ['/dashboard/:path*', '/instructor/:path*', '/business/:path*', '/profile/:path*'],
 };

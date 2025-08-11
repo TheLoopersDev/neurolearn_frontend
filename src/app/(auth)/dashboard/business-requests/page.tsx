@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import BusinessCard from '@/components/business/BusinessCard';
 import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
 import { Business } from '@/types/business';
+import Loading from '@/components/common/Loading';
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -33,7 +34,7 @@ const BusinessRequestsPage = () => {
   // API call for all businesses
   const { data: businessData, isLoading: isBusinessLoading } = useGetAllBusinessesQuery({
     page: businessPage,
-    limit: 12,
+    limit: 6,
     search: searchTerm
   });
 
@@ -124,7 +125,7 @@ const BusinessRequestsPage = () => {
             {/* actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div> */}
             <ReviewTable headers={headers}>
               {isRequestLoading ? (
-                <div className="text-center py-8">Loading...</div>
+                <Loading message="Loading requests..." size="sm" className="py-8" />
               ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestData || requestData.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">No data</div>
               ) : (
@@ -219,10 +220,7 @@ const BusinessRequestsPage = () => {
           // Tab Business: Grid card view
           <>
             {isBusinessLoading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="mt-2 text-gray-500">Loading businesses...</p>
-              </div>
+              <Loading message="Loading businesses..." size="md" className="py-12" />
             ) : !businessData?.data || businessData.data.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No businesses found</p>
