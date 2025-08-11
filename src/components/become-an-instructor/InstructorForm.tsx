@@ -74,26 +74,27 @@ export default function InstructorForm() {
         if (!validate()) return;
         setLoading(true);
 
-        const body = {
-            fullName,
-            email,
-            phoneNumber,
-            dob,
-            address,
-            category,
-            description,
-            experience,
-            role,
-            company,
-            documents: docImages.map(f => f.name)
-        };
         try {
+            const formData = new FormData();
+            formData.append('fullName', fullName);
+            formData.append('email', email);
+            formData.append('phoneNumber', phoneNumber);
+            formData.append('dob', dob);
+            formData.append('address', address);
+            formData.append('category', category);
+            formData.append('description', description);
+            formData.append('experience', experience);
+            formData.append('role', role);
+            formData.append('company', company);
+
+            // Append files
+            docImages.forEach((file) => {
+                formData.append('docImages', file);
+            });
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body),
+                body: formData,
                 credentials: 'include'
             });
             const data = await res.json();
