@@ -8,7 +8,6 @@ interface LoadingProps {
 }
 
 const Loading: React.FC<LoadingProps> = ({
-  title,
   message = "Loading...",
   size = 'md',
   className = "min-h-screen"
