@@ -16,7 +16,10 @@ import {
   useReducedMotion,
 } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-
+import { useSession } from 'next-auth/react';
+import { setAuthState } from '@/lib/redux/features/auth/authSlice';
+import { useDispatch } from 'react-redux';
+import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 function useRouteDir(pathname: string) {
   const prevDepth = useRef(0);
   const depth = pathname.split('/').filter(Boolean).length;
@@ -27,9 +30,51 @@ function useRouteDir(pathname: string) {
 
 export default function ClientLayout({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
+  const dispatch = useDispatch();
   const reduce = useReducedMotion();
   const dir = useRouteDir(pathname);
+  const { data: session, status } = useSession();
+  const { data: me } = useLoadUserQuery(undefined, { skip: status !== 'authenticated' }) as any;
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      dispatch(setAuthState({ token: null, user: null, isAuthenticated: false }));
+      return;
+    }
+
+    if (status === 'authenticated') {
+      // 1) fallback từ session (role tạm) để UI không "trắng"
+      if (session?.user) {
+        dispatch(setAuthState({
+          token: (session as any).accessToken ?? null,
+          user: {
+            _id: (session.user as any).id ?? '',          
+            name: session.user.name ?? '',
+            email: session.user.email ?? '',
+            role: 'user',                                
+            avatar: { url: session.user.image ?? '' },
+          },
+          isAuthenticated: true,
+        }));
+      }
+
+      // 2) khi BE đã trả user -> override có role thật
+      if (me?.user) {
+        const u = me.user;
+        dispatch(setAuthState({
+          token: (session as any)?.accessToken ?? null,
+          user: {
+            _id: u.id ?? u._id ?? '',                      
+            name: u.name ?? '',
+            email: u.email ?? '',
+            role: u.role ?? 'user',                     
+            avatar: { url: u?.avatar?.url ?? '' },
+          },
+          isAuthenticated: true,
+        }));
+      }
+    }
+  }, [status, session, me, dispatch]);
   // iOS push/pop: slide theo X rất ngắn + fade. Back thì trượt ngược.
   const pageVariants = useMemo(() => {
     if (reduce) {

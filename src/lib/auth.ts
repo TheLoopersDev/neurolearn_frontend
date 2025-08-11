@@ -1,6 +1,20 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import { DefaultSession } from 'next-auth';
 
+declare module 'next-auth' {
+  interface Session {
+    accessToken?: string;
+    user: {
+      id?: string;
+    } & DefaultSession['user'];
+  }
+
+  interface User {
+    id?: string;
+    role?: string;
+  }
+}
 const authConfig = {
   providers: [
     Google({

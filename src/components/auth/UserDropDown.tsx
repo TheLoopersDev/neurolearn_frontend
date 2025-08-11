@@ -37,7 +37,7 @@ import {
 
 import defaultAvatar from '@/public/assets/images/avatar.png';
 import { signOutAction } from '@/lib/actions/auth';
-import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
+import { useLogoutQuery, useSocialAuthMutation } from '@/lib/redux/features/auth/authApi';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
 interface User {
@@ -121,16 +121,51 @@ function getDropdownList(user: User) {
 
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
   const router = useRouter();
+  const [socialAuth] = useSocialAuthMutation();
+
   const { data, isLoading } = useLoadUserQuery(undefined) as {
     data?: LoadUserResponse;
     isLoading: boolean;
   };
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
 
+  useEffect(() => {
+    console.log('Social Auth Effect - Current state:', {
+      user: data?.user,
+      isLoggingOut,
+      sessionUser: session?.user
+    });
+
+    if (!data?.user && !isLoggingOut) {
+      if (session?.user) {
+        console.log('Attempting social auth with:', {
+          email: session.user.email,
+          name: session.user.name,
+          avatar: session.user.image
+        });
+
+        socialAuth({
+          email: session.user.email,
+          name: session.user.name,
+          avatar: session.user.image
+        })
+          .unwrap()
+          .then((response) => {
+            console.log('Social auth successful:', response);
+          })
+          .catch((error) => {
+            console.error('Social auth failed:', error);
+          });
+      }
+    }
+  }, [session, data?.user, isLoggingOut, socialAuth]);
+
   const logoutHandler = async () => {
+    setIsLoggingOut(true); // Set logging out state
     if (session) {
       await signOut({ redirect: false });
     }
@@ -145,7 +180,8 @@ export function UserDropdown() {
             if (!session) router.push('/');
           });
         })
-        .catch(() => router.push('/'));
+        .catch(() => router.push('/'))
+        .finally(() => setIsLoggingOut(false));
     }
   }, [logoutTriggered, logoutApi, router, session]);
 

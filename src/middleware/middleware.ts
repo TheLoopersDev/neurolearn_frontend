@@ -9,8 +9,12 @@ export async function middleware(req: NextRequest) {
     // Fetch the user token (e.g., using NextAuth.js)
     const normalToken = req.cookies.get('access_token')?.value; // Adjust based on your auth system
 
-    const secret = process.env.NEXTAUTH_SECRET;
-    const socialToken = await getToken({ req, secret });
+        const secret = process.env.NEXTAUTH_SECRET;
+        const socialToken = await getToken({
+          req,
+          secret: secret!, 
+          salt: process.env.AUTH_SALT!,
+        });
 
     // If the user is not logged in, redirect to the home page with a query parameter to open the modal
     if (!normalToken && !socialToken) {
@@ -23,5 +27,5 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 export const config = {
-    matcher: []
+  matcher: ['/dashboard/:path*', '/instructor/:path*', '/business/:path*', '/profile/:path*'],
 };
