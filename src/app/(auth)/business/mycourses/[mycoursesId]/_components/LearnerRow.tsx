@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ILearner } from '@/types/leaner';
 import CircularProgress from './CircularProgress';
-import { format } from "date-fns";
+import { format } from 'date-fns';
 import defaultAvatar from '@/public/assets/images/default-avatar.png';
 
 interface LearnerRowProps {
@@ -35,9 +35,16 @@ const getStatusColor = (status: 'not_started' | 'in_progress' | 'completed') => 
   }
 };
 
+const getStatusFromProgress = (progress: number) => {
+  if (progress === 0) return 'not_started';
+  if (progress === 100) return 'completed';
+  return 'in_progress';
+};
+
 const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
-  const statusLabel = getStatusLabel(learner.status as any);
-  const statusDotColor = getStatusColor(learner.status as any);
+  const status = getStatusFromProgress(learner.progress);
+  const statusLabel = getStatusLabel(status);
+  const statusDotColor = getStatusColor(status);
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd MMM, yyyy');
@@ -89,9 +96,7 @@ const LearnerRow: React.FC<LearnerRowProps> = ({ learner, index }) => {
       {/* Progress */}
       <div className="col-span-2 flex items-center gap-3 pl-2">
         <CircularProgress value={learner.progress} />
-        <span className="w-10 text-[14px] font-medium text-gray-900">
-          {learner.progress}%
-        </span>
+        <span className="w-10 text-[14px] font-medium text-gray-900">{learner.progress}%</span>
       </div>
     </div>
   );
