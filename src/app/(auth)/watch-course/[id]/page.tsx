@@ -46,7 +46,7 @@ function CoursePage() {
     }
   }, [course]);
 
-  // Find the first lesson that has a playable video
+  // Find the first playable lesson
   const firstLesson = useMemo(() => {
     const secs = course?.sections || [];
     for (const sec of secs) {
@@ -57,41 +57,51 @@ function CoursePage() {
     return null;
   }, [course]);
 
-  // If we need a CTA, prefer nextLesson (after finishing), else the very first lesson
+  // CTA lesson: prefer "nextLesson" after completing, else the very first
   const ctaLesson = nextLesson ?? firstLesson;
 
   const handleLessonClick = (url: string, lessonId: string) => {
     setCurrentVideoUrl(url);
     setCurrentLessonId(lessonId);
-    setNextLesson(null); // hide CTA if we were showing it
+    setNextLesson(null);
     hasUpdatedProgress.current = false;
   };
 
-  // Optimistic mark lesson completed in local state
+  // Optimistic mark as completed
   const markLessonCompleted = (lessonId: string) => {
     setCourse((prev: any) => {
       if (!prev) return prev;
 
       const sections = prev.sections.map((sec: any) => {
-        const updatedLessons = sec.lessons.map((l: any) =>
+        // Cập nhật lessons
+        const updatedLessons = sec.lessons?.map((l: any) =>
           l._id === lessonId ? { ...l, isCompleted: true } : l
         );
-        const completedCount = updatedLessons.filter((l: any) => l.isCompleted).length;
-        const sectionProgressPercentage = updatedLessons.length
-          ? Math.round((completedCount / updatedLessons.length) * 100)
-          : 0;
+
+        // Cập nhật items nếu có
+        const updatedItems = sec.items?.map((item: any) => {
+          if (item.kind === 'lesson' && item._id === lessonId) {
+            return {
+              ...item,
+              payload: {
+                ...item.payload,
+                isCompleted: true
+              }
+            };
+          }
+          return item;
+        });
 
         return {
           ...sec,
-          lessons: updatedLessons,
-          completedCount,
-          sectionProgressPercentage,
+          lessons: updatedLessons || sec.lessons,
+          items: updatedItems || sec.items
         };
       });
 
-      const totalLessons = sections.reduce((a: number, s: any) => a + s.lessons.length, 0);
+      const totalLessons = sections.reduce((a: number, s: any) => a + (s.lessons?.length || 0), 0);
       const totalCompleted = sections.reduce(
-        (a: number, s: any) => a + s.lessons.filter((l: any) => l.isCompleted).length,
+        (a: number, s: any) => a + (s.lessons?.filter((l: any) => l.isCompleted).length || 0),
         0
       );
       const progress = {
@@ -104,24 +114,73 @@ function CoursePage() {
     });
   };
 
-  // Compute the immediate next lesson (without navigating)
+  // Find next lesson for CTA (no auto navigate)
   const findNextLesson = (lessonId?: string | null) => {
     if (!course?.sections?.length || !lessonId) return null;
 
     for (let i = 0; i < course.sections.length; i++) {
       const section = course.sections[i];
-      const idx = section.lessons.findIndex((l: any) => l._id === lessonId);
-      if (idx !== -1) {
-        // next in same section
-        if (idx + 1 < section.lessons.length) {
-          const n = section.lessons[idx + 1];
+
+      // Kiểm tra trong lessons trước
+      const lessonIdx = section.lessons?.findIndex((l: any) => l._id === lessonId) ?? -1;
+      if (lessonIdx !== -1) {
+        // next in same section lessons
+        if (lessonIdx + 1 < section.lessons?.length) {
+          const n = section.lessons[lessonIdx + 1];
           if (n?.videoUrl?.url) return { id: n._id, url: n.videoUrl.url, title: n.title };
+        }
+        // kiểm tra tiếp trong items nếu có
+        const items = section.items || [];
+        const itemIdx = items.findIndex((it: any) => it.kind === 'lesson' && it._id === lessonId);
+        if (itemIdx !== -1 && itemIdx + 1 < items.length) {
+          const nextItem = items[itemIdx + 1];
+          if (nextItem.kind === 'lesson' && nextItem.payload?.videoUrl?.url) {
+            return {
+              id: nextItem._id,
+              url: nextItem.payload.videoUrl.url,
+              title: nextItem.title
+            };
+          }
         }
         // first in next section
         if (i + 1 < course.sections.length) {
           const nextSection = course.sections[i + 1];
-          const n = nextSection.lessons?.[0];
-          if (n?.videoUrl?.url) return { id: n._id, url: n.videoUrl.url, title: n.title };
+          const n = nextSection.lessons?.[0] || nextSection.items?.find((it: any) => it.kind === 'lesson');
+          if (n?.videoUrl?.url || n?.payload?.videoUrl?.url) {
+            return {
+              id: n._id,
+              url: n.videoUrl?.url || n.payload.videoUrl.url,
+              title: n.title || n.payload.title
+            };
+          }
+        }
+        break;
+      }
+
+      // Kiểm tra trong items nếu không tìm thấy trong lessons
+      const items = section.items || [];
+      const itemIdx = items.findIndex((it: any) => it.kind === 'lesson' && it._id === lessonId);
+      if (itemIdx !== -1) {
+        if (itemIdx + 1 < items.length) {
+          const nextItem = items[itemIdx + 1];
+          if (nextItem.kind === 'lesson' && nextItem.payload?.videoUrl?.url) {
+            return {
+              id: nextItem._id,
+              url: nextItem.payload.videoUrl.url,
+              title: nextItem.title
+            };
+          }
+        }
+        if (i + 1 < course.sections.length) {
+          const nextSection = course.sections[i + 1];
+          const n = nextSection.items?.find((it: any) => it.kind === 'lesson') || nextSection.lessons?.[0];
+          if (n) {
+            return {
+              id: n._id,
+              url: n.payload?.videoUrl?.url || n.videoUrl?.url,
+              title: n.title || n.payload?.title
+            };
+          }
         }
         break;
       }
@@ -129,10 +188,14 @@ function CoursePage() {
     return null;
   };
 
-  // Called by ReactPlayer to track progress; we only mark completed & show CTA
+  // ReactPlayer progress
   const handleProgress = async (state: { played: number }) => {
     if (state.played >= 0.8 && currentLessonId && !hasUpdatedProgress.current) {
       hasUpdatedProgress.current = true;
+
+      // Optimistic update trước
+      markLessonCompleted(currentLessonId);
+
       try {
         await axios.put(
           `${process.env.NEXT_PUBLIC_SERVER_URI}/progress/update-lesson-completion/${courseId}`,
@@ -140,14 +203,22 @@ function CoursePage() {
           { withCredentials: true }
         );
 
-        markLessonCompleted(currentLessonId);
+        // Fetch lại dữ liệu mới nhất từ server để đảm bảo đồng bộ
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/course-data/${courseId}`,
+          { credentials: 'include', cache: 'no-store' }
+        );
+        const data = await res.json();
+        if (data.success) setCourse(data.course);
 
-        // Prepare CTA for next lesson; DO NOT auto-navigate
+        // Chuẩn bị CTA cho bài kế tiếp
         const n = findNextLesson(currentLessonId);
         setNextLesson(n);
-        setCurrentVideoUrl(null); // hide player → display CTA card
+        setCurrentVideoUrl(null); // Ẩn player → hiện CTA
       } catch (error) {
         console.error('Failed to update progress:', error);
+        // Rollback nếu có lỗi
+        markLessonCompleted(currentLessonId); // Gọi lại để đảo trạng thái
       }
     }
   };
@@ -197,9 +268,8 @@ function CoursePage() {
                       onClick={startCtaLesson}
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
                       ${ctaLesson?.url
-                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'}
-                    `}
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
                     >
                       {ctaLesson?.title ? `Start: ${ctaLesson.title}` : 'No video lesson available yet'}
                     </button>
@@ -217,6 +287,8 @@ function CoursePage() {
               sections={course?.sections}
               onLessonClick={handleLessonClick}
               progress={course?.progress}
+              /** 👇 highlight + đảm bảo status thẳng hàng */
+              currentLessonId={currentLessonId ?? undefined}
             />
           </div>
         </div>

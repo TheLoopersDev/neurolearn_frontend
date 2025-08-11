@@ -1,4 +1,3 @@
-// watch-course/[id]/quiz/question/QuestionList.tsx
 import React from 'react';
 
 interface QuestionListProps {
@@ -17,7 +16,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-2xl font-semibold text-[#3858F8] leading-7">Question list</div>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-20"> {/* Tăng gap từ 3 lên 4 */}
         {Array.from({ length: totalQuestions }).map((_, i) => {
           const isCurrentQuestion = i === currentQuestionIndex;
           const isCompleted = completedQuestions.has(i);
@@ -25,28 +24,26 @@ export const QuestionList: React.FC<QuestionListProps> = ({
           // Định nghĩa các class cơ bản
           let itemClasses = `
             flex items-center justify-center
-            w-14 h-14 rounded-lg text-xl font-medium leading-6
+            w-16 h-16 rounded-xl text-xl font-medium leading-6
             cursor-pointer transition-all duration-200 ease-in-out
-            hover:opacity-80
+            hover:opacity-90 hover:scale-105
           `;
 
           // Áp dụng style dựa trên trạng thái
           if (isCompleted && !isCurrentQuestion) {
-            // Câu hỏi đã hoàn thành (nhưng không phải câu hiện tại)
-            itemClasses += ' bg-[#3858F8] text-white';
+            itemClasses += ' bg-[#3858F8] text-white shadow-md';
           } else if (isCurrentQuestion) {
-            // Câu hỏi đang được chọn (hiện tại)
-            itemClasses += ' bg-[#F7F8FA] text-[#6B6B6B] outline outline-2 outline-[#3858F8] outline-offset-[-1px]';
+            itemClasses += ' bg-white text-[#3858F8] border-2 border-[#3858F8] shadow-md';
           } else {
-            // Câu hỏi chưa hoàn thành và không phải câu hiện tại
-            itemClasses += ' bg-[#F7F8FA] text-[#6B6B6B]';
+            itemClasses += ' bg-[#F7F8FA] text-[#6B6B6B] hover:bg-[#EDEFF5]';
           }
 
           return (
             <div
               key={i}
-              className={itemClasses} // Sử dụng biến đã xây dựng các class
+              className={itemClasses}
               onClick={() => onQuestionSelect(i)}
+              aria-label={`Question ${i + 1}`}
             >
               {i + 1}
             </div>
