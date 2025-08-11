@@ -9,7 +9,7 @@ interface ProviderProps {
   children: React.ReactNode;
 }
 
-const clientId = process.env.NEXT_PUBLIC_GG_CLIENT_ID!;
+const clientId = process.env.AUTH_GOOGLE_ID!;
 
 export function Providers({ children }: ProviderProps) {
   return (

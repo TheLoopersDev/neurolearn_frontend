@@ -6,6 +6,7 @@ import { PlusCircle } from 'lucide-react';
 import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
 import InstructorCard from './InstructorCard';
 import SearchInstructor from './SearchInstructor';
+import Loading from '@/components/common/Loading';
 import {
   Pagination,
   PaginationContent,
@@ -30,9 +31,12 @@ const InstructorListPage: React.FC = () => {
   const [allInstructors, setAllInstructors] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchInstructors().then(setAllInstructors);
+    fetchInstructors()
+      .then(setAllInstructors)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const filteredInstructors = useMemo(
@@ -81,6 +85,10 @@ const InstructorListPage: React.FC = () => {
     }
     return finalPages;
   };
+
+  if (isLoading) {
+    return <Loading message="Loading instructors..." className="min-h-[400px]" />;
+  }
 
   return (
     <div className="w-full">

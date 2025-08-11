@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
-import { ChatList, ChatRoom, CreateChatModal } from '@/components/chat';
+import { ChatList, ChatRoom } from '@/components/chat';
+import Loading from '@/components/common/Loading';
 
 // Check if Firebase is available
 const isFirebaseAvailable = () => {
@@ -36,7 +37,11 @@ const MessagePage: React.FC = () => {
     messages,
     sendMessage,
     loading,
-    error
+    error,
+    sendReaction,
+    updateGroupName,
+    addMembersToGroup,
+    removeMemberFromGroup
   } = useFirestoreChat();
 
   // State loading cho box chat
@@ -106,6 +111,55 @@ const MessagePage: React.FC = () => {
     }
   }, [allUsers.length, retryCount]);
 
+  // Helper function để lấy user info với fallback tốt hơn
+  const getUserInfo = (userId: string) => {
+    const user = allUsers.find(u => String(u._id) === String(userId));
+    if (user) {
+      return user;
+    }
+
+    // Nếu không tìm thấy trong allUsers, thử fetch từ API
+    // Đây là fallback cho trường hợp user mới được thêm vào group
+    return {
+      _id: userId,
+      name: `User ${userId.slice(-4)}`, // Fallback với 4 ký tự cuối của ID
+      email: '',
+      avatar: { url: '/assets/images/avatar-default.png' }
+    };
+  };
+
+  // Helper: Map ChatRoom to Chat (for UI compatibility)
+  const mapChatRoomToChat = function (room: any): any {
+    if (room.isGroup) {
+      return {
+        _id: room.id,
+        members: room.participants.map((id: string) => getUserInfo(id)),
+        isGroup: true,
+        groupName: room.groupName || 'Group',
+        messages: [],
+        lastMessage: room.lastMessage,
+        unreadCount: 0,
+        avatar: '/assets/images/avatar-default.png',
+      };
+    } else {
+      // 1-1 chat: get the other user
+      const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
+      const otherUser = getUserInfo(otherId);
+
+      return {
+        _id: room.id,
+        members: [otherUser],
+        isGroup: false,
+        groupName: undefined,
+        messages: [],
+        lastMessage: room.lastMessage,
+        unreadCount: 0,
+        avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png',
+        displayName: otherUser.name
+      };
+    }
+  };
+
   // Khi chọn chat mới, set loading và clear messages cũ
   const handleSelectChat = useCallback(async (chatRoomId: string) => {
     if (activeChatRoomIdHook && activeChatRoomIdHook !== chatRoomId) {
@@ -161,104 +215,6 @@ const MessagePage: React.FC = () => {
     }
   }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId, hasAutoSelected]);
 
-  // Helper: Map ChatRoom to Chat (for UI compatibility)
-  const mapChatRoomToChat = function (room: any): any {
-    if (room.isGroup) {
-      return {
-        _id: room.id,
-        members: room.participants.map((id: string) => {
-          const user = allUsers.find(u => String(u._id) === String(id));
-          return user || {
-            _id: id,
-            name: `User ${id.slice(-4)}`, // Fallback với 4 ký tự cuối của ID
-            email: '',
-            avatar: { url: '/assets/images/avatar-default.png' }
-          };
-        }),
-        isGroup: true,
-        groupName: room.groupName || 'Group',
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: '/assets/images/avatar-default.png',
-      };
-    } else {
-      // 1-1 chat: get the other user
-      const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-      const otherUser = allUsers.find(u => String(u._id) === String(otherId));
-
-      // Fallback name nếu không tìm thấy user
-      const fallbackName = otherUser?.name || `User ${otherId?.slice(-4) || 'Unknown'}`;
-
-      return {
-        _id: room.id,
-        members: [otherUser || {
-          _id: otherId,
-          name: fallbackName,
-          email: '',
-          avatar: { url: '/assets/images/avatar-default.png' }
-        }],
-        isGroup: false,
-        groupName: undefined,
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png',
-        displayName: fallbackName
-      };
-    }
-  };
-
-  // Callback khi tạo chat mới
-  const handleChatCreated = (chatRoomId: string) => {
-    if (!currentUserId) return;
-    setUsersLoading(true);
-    const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
-    fetch(url, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        console.log('Chat created - Related users data:', data);
-        setAllUsers(data.users || []);
-      })
-      .catch(error => {
-        console.error('Error fetching related users after chat creation:', error);
-        // Fallback: thử fetch tất cả users nếu related-users fail
-        const fallbackUrl = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/users`;
-        return fetch(fallbackUrl, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(res => res.json())
-          .then(data => {
-            console.log('Chat created - Fallback users data:', data);
-            setAllUsers(data.users || []);
-          })
-          .catch(fallbackError => {
-            console.error('Chat created - Fallback error:', fallbackError);
-            setAllUsers([]);
-          });
-      })
-      .finally(() => setUsersLoading(false));
-    dispatch(setActiveChat(chatRoomId));
-    setActiveChatRoomId(chatRoomId);
-    // Đảm bảo join vào phòng chat vừa tạo sau một delay nhỏ để Firestore cập nhật
-    setTimeout(() => {
-      joinChat(chatRoomId);
-    }, 200);
-  };
-
   if (!currentUserId) {
     return (
       <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
@@ -282,8 +238,28 @@ const MessagePage: React.FC = () => {
   // Sử dụng selectedChatRoomId thay vì activeChatRoomIdHook để UI
   const currentActiveChatId = selectedChatRoomId || activeChatRoomIdHook;
 
+  // Wrapper for sendMessage to support reply parameter
+  const handleSendMessage = async (receiverId: string, content: string, type?: 'text' | 'image' | 'file', replyTo?: any) => {
+    try {
+      console.log('Sending message:', { receiverId, content, type, replyTo });
+      await sendMessage(receiverId, content, type || 'text', replyTo);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
+  // Handle send reaction
+  const handleSendReaction = async (messageId: string, emoji: string) => {
+    try {
+      console.log('Sending reaction:', { messageId, emoji });
+      await sendReaction(messageId, emoji);
+    } catch (error) {
+      console.error('Failed to send reaction:', error);
+    }
+  };
+
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden gap-5">
       {/* Chat List */}
       <ChatList
         chats={chatRooms.map(mapChatRoomToChat)}
@@ -299,32 +275,28 @@ const MessagePage: React.FC = () => {
           chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
           currentUserId={currentUserId}
           messages={messages}
-          sendMessage={sendMessage}
+          sendMessage={handleSendMessage}
+          sendReaction={handleSendReaction}
+          updateGroupName={updateGroupName}
+          addMembersToGroup={addMembersToGroup}
+          removeMemberFromGroup={removeMemberFromGroup}
           loading={loading}
           error={error}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-            <div className="text-center">
-              <span className="text-gray-400">
-                {usersLoading ? 'Loading users...' : 'Loading chat...'}
-              </span>
-              {retryCount > 0 && (
-                <p className="text-xs text-gray-300 mt-2">
-                  Retrying... ({retryCount}/3)
-                </p>
-              )}
-            </div>
+            <Loading
+              message={usersLoading ? 'Loading users...' : 'Loading chat...'}
+              size="sm"
+              className="min-h-[200px]"
+            />
+            {retryCount > 0 && (
+              <p className="text-xs text-gray-300 mt-2">
+                Retrying... ({retryCount}/3)
+              </p>
+            )}
         </div>
       )}
-
-      {/* Modal tạo chat */}
-      <CreateChatModal
-        open={/* trạng thái modal */ false}
-        onClose={() => { }}
-        currentUserId={currentUserId}
-        onChatCreated={handleChatCreated}
-      />
     </div>
   );
 };

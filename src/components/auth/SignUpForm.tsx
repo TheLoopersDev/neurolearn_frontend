@@ -18,7 +18,10 @@ import { User, X } from 'lucide-react';
 
 const formSchema = z
   .object({
-    name: z.string().min(1, { message: 'Please enter your name' }),
+    name: z
+      .string()
+      .trim()
+      .regex(/(?:.*[A-Za-z]){3,}/, { message: 'Name must contain at least 3 letters' }),
     email: z.string().email({ message: 'Invalid email address' }),
     password: z
       .string()

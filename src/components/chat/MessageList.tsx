@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChatMessage, ChatMember } from '@/types/chat';
 import MessageItem from './MessageItem';
 
@@ -6,19 +6,28 @@ interface MessageListProps {
     messages: ChatMessage[];
     currentUserId: string;
     chatMembers: ChatMember[];
+    onReply?: (message: ChatMessage) => void;
+    onReaction?: (messageId: string, emoji: string) => void;
 }
 
 const MessageList: React.FC<MessageListProps> = ({
     messages,
     currentUserId,
     chatMembers,
+    onReply,
+    onReaction,
 }) => {
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
+    const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
 
-    // Auto-scroll to bottom when new messages arrive (only scroll chat area, not entire page)
     useEffect(() => {
+        // Auto scroll to bottom when new messages arrive
         endOfMessagesRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }, [messages]);
+
+    const handleMessageHover = (messageId: string) => {
+        setHoveredMessageId(messageId);
+    };
 
     if (messages.length === 0) {
         return (
@@ -49,6 +58,10 @@ const MessageList: React.FC<MessageListProps> = ({
                         sender={sender}
                         isMe={isMe}
                         showAvatar={!isMe}
+                        onReply={onReply}
+                        onReaction={onReaction}
+                        onHover={handleMessageHover}
+                        isHovered={hoveredMessageId === message._id}
                     />
                 );
             })}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Plus } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
@@ -22,7 +22,6 @@ const ChatList: React.FC<ChatListProps> = ({
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [mockChats, setMockChats] = useState<Chat[]>([]);
     const { user } = useSelector((state: RootState) => state.auth);
     const { unreadCounts, onlineUsers } = useSelector((state: RootState) => state.chat);
 
@@ -30,23 +29,8 @@ const ChatList: React.FC<ChatListProps> = ({
     const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
     const currentUserId = currentUser?._id || currentUser?.id;
 
-    // Load mock chats from localStorage
-    useEffect(() => {
-        const storedChats = JSON.parse(localStorage.getItem('mockChats') || '[]');
-        setMockChats(storedChats);
-    }, []);
-
-    // Refresh mock chats when API chats change (in case of conflicts)
-    useEffect(() => {
-        const storedChats = JSON.parse(localStorage.getItem('mockChats') || '[]');
-        setMockChats(storedChats);
-    }, [chats]);
-
-    // Combine API chats with mock chats
-    const allChats = [...chats, ...mockChats];
-
     // Filter chats based on search query
-    const filteredChats = allChats.filter(chat => {
+    const filteredChats = chats.filter(chat => {
         const displayName = getChatDisplayName(chat, currentUserId);
         return displayName.toLowerCase().includes(searchQuery.toLowerCase());
     });
@@ -62,9 +46,6 @@ const ChatList: React.FC<ChatListProps> = ({
     };
 
     const handleChatCreated = () => {
-        // Refresh mock chats from localStorage
-        const storedChats = JSON.parse(localStorage.getItem('mockChats') || '[]');
-        setMockChats(storedChats);
         // Trigger a refresh of the chat list
         onCreateChat();
     };
@@ -82,30 +63,6 @@ const ChatList: React.FC<ChatListProps> = ({
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
                 <div className="flex gap-2">
-                    {mockChats.length > 0 && (
-                        <>
-                            <button
-                                onClick={() => {
-                                    const storedChats = JSON.parse(localStorage.getItem('mockChats') || '[]');
-                                    setMockChats(storedChats);
-                                }}
-                                className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors text-xs"
-                                title="Refresh mock chats"
-                            >
-                                Refresh
-                            </button>
-                            <button
-                                onClick={() => {
-                                    localStorage.removeItem('mockChats');
-                                    setMockChats([]);
-                                }}
-                                className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors text-xs"
-                                title="Clear mock chats"
-                            >
-                                Clear
-                            </button>
-                        </>
-                    )}
                     <button
                         onClick={handleCreateChat}
                         className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"

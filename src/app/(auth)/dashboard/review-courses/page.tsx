@@ -16,6 +16,7 @@ import InstructorInfo from '@/components/common/ui/InstuctorInfo';
 import { StatusBadge } from '@/components/review-common';
 import { useToast } from '@/hooks/use-toast';
 import SearchCourseRequest from './_components/SearchCourseRequest';
+import Loading from '@/components/common/Loading';
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -119,8 +120,8 @@ const CourseManagementSystem: React.FC = () => {
     return finalMatch && matchesCategory;
   });
 
-  const requestItemsPerPage = 10;
-  const coursesItemsPerPage = 9;
+  const requestItemsPerPage = 6;
+  const coursesItemsPerPage = 6;
   const itemsPerPage = activeTab === 'request' ? requestItemsPerPage : coursesItemsPerPage;
 
   // Calculate pagination based on active tab
@@ -260,7 +261,7 @@ const CourseManagementSystem: React.FC = () => {
     );
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isLoading) return <Loading message="Loading courses..." className="min-h-screen" />;
   if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
 
   // If no courses found in active tab
@@ -401,7 +402,7 @@ const CourseManagementSystem: React.FC = () => {
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
-                  <div className="text-center py-8">Loading...</div>
+                  <Loading message="Loading requests..." size="sm" className="py-8" />
                 ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                       {searchTerm ? `No requests found matching &quot;${searchTerm}&quot;` : 'No data'}
@@ -422,6 +423,7 @@ const CourseManagementSystem: React.FC = () => {
                         <div>
                           <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
                           <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
+
                         </div>
                       </div>
                       {/* Course Title */}

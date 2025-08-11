@@ -14,7 +14,6 @@ import createQuiz from '@/public/assets/icons/create.svg';
 import earning from '@/public/assets/icons/wallet.svg';
 import message from '@/public/assets/icons/message.svg';
 import setting from '@/public/assets/icons/setting.svg';
-import teacher from '@/public/assets/icons/teacher.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 import certificate from '@/public/assets/icons/award.svg';
 import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
@@ -22,6 +21,7 @@ import reviewIcon from '@/public/assets/icons/book.svg';
 import withdrawIcon from '@/public/assets/review/withdrawal.svg';
 import businessIcon from '@/public/assets/review/business.svg';
 import peopleIcon from '@/public/assets/icons/teacher.svg';
+import discountIcon from '@/public/assets/business/discount.svg';
 
 interface MenuItem {
   icon: any;
@@ -39,28 +39,32 @@ const Sidebar = () => {
   const menuByRole: Record<string, MenuItem[]> = {
     user: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-      { icon: courses, label: 'Courses', path: '/dashboard/courses' },
+      { icon: courses, label: 'Courses', path: '/dashboard/my-courses' },
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: discountIcon, label: 'Discount', path: '/dashboard/discount' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     instructor: [
-      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
-      { icon: courses, label: 'Courses', path: '/dashboard/courses' },
-      { icon: createQuiz, label: 'Create Quiz', path: '/dashboard/create-quiz', suffixIcon: magicPenIcon },
+      { icon: dashboard, label: 'Dashboard', path: '/instructor/dashboard' },
+      { icon: courses, label: 'Learning', path: '/instructor/learning' },
+      { icon: courses, label: 'Courses', path: '/instructor/courses' },
+      { icon: createQuiz, label: 'Quizzes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
+      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
+      { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     admin: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
-      { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
-      { icon: message, label: 'Message', path: '/dashboard/message' },
+      { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
   };

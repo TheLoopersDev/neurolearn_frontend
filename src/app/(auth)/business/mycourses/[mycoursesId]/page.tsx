@@ -23,16 +23,12 @@ export default async function CourseDetailPage({ params }: any) {
   }
 
   const { course, learners } = await res.json();
-
-
+  console.log('business course', course);
 
   return (
     <div className="min-h-screen">
       <div className="flex flex-col gap-8">
-        <CourseDetailsCard
-          course={course}
-          learners={learners}
-        />
+        <CourseDetailsCard course={course} learners={learners} />
         <LearnerList learners={learners} />
       </div>
     </div>

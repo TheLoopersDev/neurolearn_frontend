@@ -22,14 +22,14 @@ export default function LearningProgressChart({employeeMonthlyData, managerMonth
         <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
           <Button
             size="sm"
-            variant={view === 'employee' ? 'secondary2' : 'primary'}
+            variant={view === 'employee' ? 'secondary' : 'primary'}
             onClick={() => setView('employee')}
           >
             Employee
           </Button>
           <Button
             size="sm"
-            variant={view === 'manager' ? 'secondary2' : 'primary'}
+            variant={view === 'manager' ? 'secondary' : 'primary'}
             onClick={() => setView('manager')}
           >
             Manager
