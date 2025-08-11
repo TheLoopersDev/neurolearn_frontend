@@ -8,6 +8,7 @@ import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
 import CreateQuizModal from './CreateQuizModal';
 import SearchQuiz from './SearchQuiz';
+import Loading from '@/components/common/Loading';
 import {
   Pagination,
   PaginationContent,
@@ -22,7 +23,7 @@ import {
   useCreateQuizMutation,
 } from '@/lib/redux/features/quiz/quizApi';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 6;
 
 const QuizListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -168,7 +169,7 @@ const QuizListPage: React.FC = () => {
 
   const renderQuizContent = () => {
     if (isLoading || isFetching) {
-      return <p className="text-center py-12">Loading quizzes...</p>;
+      return <Loading message="Loading quizzes..." size="md" className="min-h-[calc(100vh-200px)]" />;
     }
 
     if (quizzesForCurrentPage.length > 0) {

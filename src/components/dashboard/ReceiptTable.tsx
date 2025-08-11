@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Loading from '@/components/common/Loading';
 
 interface Course {
     name: string;
@@ -21,13 +22,18 @@ interface ReceiptTableProps {
     userType: 'user' | 'business';
 }
 
+const ITEMS_PER_PAGE = 6;
+
 export default function ReceiptTable({ userType }: ReceiptTableProps) {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
     const router = useRouter();
 
     useEffect(() => {
         const fetchOrders = async () => {
             try {
+                setIsLoading(true);
                 const response = await axios.post(
                     `${process.env.NEXT_PUBLIC_SERVER_URI}/orders/user-orders`,
                     { userType },
@@ -39,11 +45,17 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                 }
             } catch (error) {
                 console.error('Failed to fetch user orders:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchOrders();
-    }, []);
+    }, [userType]);
+
+    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const currentOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     const handleReceiptClick = (orderId: string) => {
         if (userType === 'business') {
@@ -52,6 +64,10 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
             router.push(`/dashboard/purchase-history/${orderId}`);
         }
     };
+
+    if (isLoading) {
+        return <Loading message="Loading purchase history..." />;
+    }
 
     return (
         <div className="bg-white pt-6 px-6 rounded-2xl shadow-sm">
@@ -67,14 +83,14 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {orders.map((order, idx) => {
+                    {currentOrders.map((order, idx) => {
                         const totalPrice = order.courseIds.reduce((acc, course) => acc + course.price, 0);
                         const formattedDate = new Date(order.createdAt).toLocaleDateString('en-GB');
 
                         return (
                             <tr
                                 key={order._id}
-                                className={`text-sm text-black ${idx !== orders.length - 1 ? 'border-b border-gray-200' : ''}`}
+                                className={`text-sm text-black ${idx !== currentOrders.length - 1 ? 'border-b border-gray-200' : ''}`}
                             >
                                 <td className="py-6">{order.orderCode}</td>
                                 <td className="py-6">
@@ -114,6 +130,27 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                     })}
                 </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex justify-center mt-6 gap-3">
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
+                    <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

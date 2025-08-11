@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination } from "@/components/review-common";
 import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import Loading from "@/components/common/Loading";
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 
@@ -163,17 +164,13 @@ const WithdrawalsPage = () => {
     { label: '', className: 'col-span-1' },
   ];
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
   const totalPages = Math.ceil(filteredWithdraws.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentWithdraws = filteredWithdraws.slice(startIndex, startIndex + itemsPerPage);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <Loading message="Loading withdrawals..." className="min-h-screen" />;
   }
 
   return (

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import DiscountCard from '@/components/discount/DiscountCard';
 import DiscountForm from '@/components/discount/DiscountForm';
 import { Discount, CreateDiscountRequest } from '@/types/discount';
+import Loading from '@/components/common/Loading';
 
 const categories = ['All discounts', 'Percentage', 'Fixed Amount', 'Public', 'Private'];
 
@@ -124,10 +125,10 @@ const DiscountManagementPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header with Search and Filters */}
-        <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-4 w-full">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4 w-full text-black">
             <div className="relative w-80">
               <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -178,11 +179,7 @@ const DiscountManagementPage = () => {
         {/* Content Area */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
           {isDiscountLoading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
-              <p className="mt-4 text-gray-600 font-medium">Loading discounts...</p>
-              <p className="text-sm text-gray-500">Please wait while we fetch your data</p>
-            </div>
+            <Loading message="Loading discounts..." size="lg" className="min-h-[calc(100vh-300px)]" />
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">

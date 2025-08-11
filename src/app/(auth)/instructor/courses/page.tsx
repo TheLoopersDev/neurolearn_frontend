@@ -23,8 +23,8 @@ export default function CoursesPage() {
     };
 
     return (
-        <>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+        <div className="min-h-screen">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full mb-4">
                 <SearchCourse
                     searchTerm={searchTerm}
                     onSearchChange={handleSearchChange}
@@ -35,6 +35,6 @@ export default function CoursesPage() {
                 </div>
             </div>
             <CourseCardGrid searchTerm={searchTerm} />
-        </>
+        </div>
     );
 }

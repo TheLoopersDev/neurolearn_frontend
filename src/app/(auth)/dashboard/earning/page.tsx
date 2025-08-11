@@ -8,6 +8,7 @@ import { TransactionHistory } from '@/components/instructor/revenue/TransactionH
 import { useModal } from '@/context/ModalContext';
 import { useMemo } from 'react';
 import { useGetTotalIncomeQuery } from '@/lib/redux/features/income/incomeApi';
+import Loading from '@/components/common/Loading';
 
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
@@ -37,6 +38,10 @@ const WithdrawDashboard: React.FC = () => {
     }).format(value);
   };
 
+  if (isLoading) {
+    return <Loading message="Loading earnings..." className="min-h-screen" />;
+  }
+
   return (
     <div className="min-h-screen" >
       <main className="max-w-6xl mx-auto">
@@ -44,14 +49,14 @@ const WithdrawDashboard: React.FC = () => {
           {/* Left Section */}
           <section className="flex-1 min-w-[400px]">
             <WithdrawForm
-              totalRevenue={isLoading ? 'Đang tải...' : errorMessage ? errorMessage : formatCurrency(income)}
+              totalRevenue={errorMessage ? errorMessage : formatCurrency(income)}
               maxWithdrawAmount={currentBalance}
             />
 
             <BalanceOverview
-              totalIncome={isLoading ? 'Đang tải...' : formatCurrency(income)}
-              serviceFee={isLoading ? 'Đang tải...' : formatCurrency(serviceFee)}
-              currentBalance={isLoading ? 'Đang tải...' : formatCurrency(currentBalance)}
+              totalIncome={formatCurrency(income)}
+              serviceFee={formatCurrency(serviceFee)}
+              currentBalance={formatCurrency(currentBalance)}
             />
           </section>
 

@@ -46,7 +46,7 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
     return courses;
   }, [courseData, requestData, searchTerm]);
 
-  if (loadingCourses || loadingRequests) return <Loading />;
+  if (loadingCourses || loadingRequests) return <Loading message="Loading courses..." className="min-h-[calc(100vh-200px)]" />;
   if (isError || !courseData?.data)
     return <p className="text-center text-red-500">There is no course found!</p>;
 

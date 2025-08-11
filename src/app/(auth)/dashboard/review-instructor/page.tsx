@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@headlessui/react';
 import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 import SearchInstructorRequest from './_components/SearchInstructorRequest';
+import Loading from '@/components/common/Loading';
 
 const categories = ['All categories', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -69,7 +70,7 @@ const ReviewInstructorPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const requestsPerPage = 10;
+  const requestsPerPage = 6;
   const requestTotalPages = Math.ceil(filteredRequests.length / requestsPerPage);
   const requestStartIndex = (currentPage - 1) * requestsPerPage;
   const currentRequests = filteredRequests.slice(requestStartIndex, requestStartIndex + requestsPerPage);
@@ -129,7 +130,7 @@ const ReviewInstructorPage = () => {
   });
 
   // Pagination for instructors
-  const instructorsPerPage = 9;
+  const instructorsPerPage = 6;
   const instructorTotalPages = Math.ceil(filteredInstructors.length / instructorsPerPage);
   const instructorStartIndex = (currentPage - 1) * instructorsPerPage;
   const currentInstructors = filteredInstructors.slice(instructorStartIndex, instructorStartIndex + instructorsPerPage);
@@ -240,7 +241,7 @@ const ReviewInstructorPage = () => {
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
-                  <div className="text-center py-8">Loading...</div>
+                  <Loading message="Loading requests..." size="sm" className="py-8" />
                 ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
@@ -412,7 +413,7 @@ const ReviewInstructorPage = () => {
         ) : (
           <>
             {isInstructorLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <Loading message="Loading instructors..." size="sm" className="py-8" />
             ) : instructorError ? (
               <div className="text-center py-8 text-gray-500">{instructorError}</div>
             ) : currentInstructors.length === 0 ? (
