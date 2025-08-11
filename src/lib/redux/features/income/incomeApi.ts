@@ -8,6 +8,12 @@ type IncomeResponse = {
   yearlyChart: ChartData[];
 };
 
+type TotalIncomeResponse = {
+  success: boolean;
+  income: number;
+  message?: string;
+};
+
 export const incomeApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
     getIncome: builder.query<IncomeResponse, string>({
@@ -19,7 +25,17 @@ export const incomeApi = apiSlice.injectEndpoints({
       }),
       providesTags: ['Income'],
     }),
+    
+    // Thêm endpoint mới để lấy total income
+    getTotalIncome: builder.query<TotalIncomeResponse, void>({
+      query: () => ({
+        url: 'revenue/income/me',
+        method: 'GET',
+        credentials: 'include' as const,
+      }),
+      providesTags: ['Income'],
+    }),
   }),
 });
 
-export const { useGetIncomeQuery } = incomeApi;
+export const { useGetIncomeQuery, useGetTotalIncomeQuery } = incomeApi;

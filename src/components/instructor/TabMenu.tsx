@@ -22,7 +22,6 @@ type TabMenuProps = Readonly<{
 
 export default function TabMenu({ course }: TabMenuProps) {
   const [activeTab, setActiveTab] = useState('chat');
-  console.log(course);
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -19,27 +19,54 @@ import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
 import { userLoggerOut } from '@/lib/redux/features/auth/authSlice';
 import { useAppDispatch } from '@/lib/redux/hooks';
+import { Skeleton } from '../common/ui/Skeleton';
+import defaultCourseImage from '@/public/assets/images/default-course.png';
+import defaultInstructorImage from '@/public/assets/images/default-avatar.png';
 
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [results, setResults] = useState<SearchResults>({ courses: [], instructors: [] });
+  const [showResults, setShowResults] = useState(false);
+  const [isLoadings, setIsLoadings] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
   const { error, isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
   const dispatch = useAppDispatch();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+
+  interface SearchResults {
+    courses: any[];
+    instructors: any[];
+  }
+
+  const SearchResultSkeleton = () => (
+    <div className="p-1 flex items-center">
+      <Skeleton className="h-10 w-10 rounded mr-2" />
+      <div className="w-full">
+        <Skeleton className="h-4 w-3/4 mb-2 rounded" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-1/4 rounded" />
+          <Skeleton className="h-3 w-1/2 rounded" />
+        </div>
+      </div>
+    </div>
+  );
 
   // Animation variants
-  const headerVariants : Variants = {
+  const headerVariants: Variants = {
     hidden: { y: -100, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 20,
         stiffness: 100,
-        when: "beforeChildren" 
+        when: "beforeChildren"
       }
     },
     scrolled: {
@@ -57,7 +84,7 @@ const Header: React.FC = () => {
     hover: {
       scale: 1.05,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         stiffness: 400,
         damping: 10
       }
@@ -73,9 +100,29 @@ const Header: React.FC = () => {
       opacity: 1,
       x: 0,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 20,
         stiffness: 200
+      }
+    }
+  };
+
+  const dropdownVariants: Variants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -10,
+      transition: {
+        duration: 0.2
       }
     }
   };
@@ -109,6 +156,57 @@ const Header: React.FC = () => {
   }, []);
 
   let userSection = null;
+
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setResults({ courses: [], instructors: [] });
+      setShowResults(false);
+      return;
+    }
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    setIsLoadings(true);
+    setShowResults(true);
+
+    timeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search: searchValue }),
+        });
+
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      } finally {
+        setIsLoadings(false);
+      }
+    }, 1000);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [searchValue]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (searchContainerRef.current &&
+      !searchContainerRef.current.contains(event.target as Node)) {
+      setShowResults(false);
+      setIsSearchActive(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!isLoading) {
     if (!reduxUser) {
@@ -204,10 +302,10 @@ const Header: React.FC = () => {
         {/* Right group: Search – Buy – (Login/Signup or Cart + User) */}
         <div className="flex items-center gap-[13px]">
           {/* Search */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center" ref={searchContainerRef}>
             <motion.button
               onClick={() => setIsSearchActive(active => !active)}
-              className="bg-white rounded-full p-[16px] flex items-center justify-center"
+              className="bg-white rounded-full p-[16px] flex items-center justify-center ml-5"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -222,15 +320,103 @@ const Header: React.FC = () => {
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
-                  className="absolute left-full ml-2 top-0"
+                  className="absolute right-full top-1/2 transform -translate-y-1/2 translate-x-2 z-50"
                 >
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    placeholder="Search for courses..."
-                    className="w-64 px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded shadow-md bg-white focus:outline-none z-20"
-                    onBlur={() => setIsSearchActive(false)}
-                  />
+                  <div className="relative">
+                    <input
+                      ref={searchRef}
+                      value={searchValue}
+                      onChange={handleSearchChange}
+                      onFocus={() => searchValue.trim() && setShowResults(true)}
+                      type="text"
+                      placeholder="Search for courses..."
+                      className="w-[400px] px-5 py-3 text-sm text-gray-700 border border-gray-300 rounded-full shadow-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 z-20 transition-all"
+                    />
+
+                    <AnimatePresence>
+                      {showResults && (
+                        <motion.div
+                          variants={dropdownVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="absolute z-40 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                        >
+                          <div className="py-2 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-primary-500 scrollbar-track-primary-100">
+                            {isLoadings ? (
+                              <div className="px-2">
+                                {[...Array(5)].map(() => (
+                                  <SearchResultSkeleton key={crypto.randomUUID()} />
+                                ))}
+                              </div>
+                            ) : (
+                              <>
+                                {results.courses.length > 0 && (
+                                  <div className="px-2">
+                                      <h3 className="px-3 py-1 text-sm font-medium text-gray-500">Courses</h3>
+                                      {results.courses.map((course) => (
+                                        <Link key={course._id} href={`/courses/${course._id}`} legacyBehavior>
+                                          <a className="block hover:bg-gray-50">
+                                            <div className="flex items-center p-3">
+                                              <div className="flex-shrink-0">
+                                                <Image
+                                                  src={course?.thumbnail?.url || defaultCourseImage}
+                                                  alt="Course Image"
+                                                  width={60}
+                                                  height={45}
+                                                  className="rounded object-cover"
+                                                />
+                                              </div>
+                                              <div className="ml-3">
+                                                <p className="text-sm font-medium text-gray-900">{course?.name}</p>
+                                                <p className="text-xs text-gray-500 truncate">
+                                                  {course?.description?.length > 50
+                                                    ? `${course.description.slice(0, 50)}...`
+                                                    : course.description}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </a>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {results.instructors.length > 0 && (
+                                    <div className="px-2">
+                                      <h3 className="px-3 py-1 text-sm font-medium text-gray-500">Instructors</h3>
+                                      {results.instructors.map((user) => (
+                                        <Link key={user._id} href={`/instructors/${user._id}`} legacyBehavior>
+                                          <a className="block hover:bg-gray-50">
+                                            <div className="flex items-center p-3">
+                                              <div className="flex-shrink-0">
+                                                <Image
+                                                  src={user?.avatar?.url || defaultInstructorImage}
+                                                  alt="User Avatar"
+                                                  width={40}
+                                                  height={40}
+                                                  className="rounded-full object-cover"
+                                                />
+                                              </div>
+                                              <div className="ml-3">
+                                                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                                <p className="text-xs text-gray-500">{user.role}</p>
+                                              </div>
+                                            </div>
+                                          </a>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {results.courses.length === 0 && results.instructors.length === 0 && (
+                                  <div className="text-center text-gray-500 p-4">No results found</div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -15,9 +15,17 @@ interface InviteModalProps {
   onClose: () => void;
   course: any;
   invitees?: any[];
+  totalLicenses?: number;
+  setTotalLicenses?: (count: number) => void;
 }
 
-export default function InviteModal({ isOpen, onClose, course }: InviteModalProps) {
+export default function InviteModal({
+  isOpen,
+  onClose,
+  course,
+  totalLicenses,
+  setTotalLicenses,
+}: InviteModalProps) {
   const [activeTab, setActiveTab] = useState<'email' | 'import'>('email');
   const [emails, setEmails] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -41,7 +49,6 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
   const handleRemoveEmail = (idx: number) => {
     setEmails(prev => prev.filter((_, i) => i !== idx));
   };
-
 
   useEffect(() => {
     const fetchInvitees = async () => {
@@ -79,9 +86,8 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
 
     const lowerInput = inputValue.toLowerCase();
     const filtered = inviteesData.filter(
-      (emp) =>
-        emp.name.toLowerCase().includes(lowerInput) ||
-        emp.email.toLowerCase().includes(lowerInput)
+      emp =>
+        emp.name.toLowerCase().includes(lowerInput) || emp.email.toLowerCase().includes(lowerInput)
     );
 
     setFilteredInvitees(filtered);
@@ -113,6 +119,9 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
         description: 'Assigned successfully!',
         variant: 'success',
       });
+      if (setTotalLicenses && typeof totalLicenses === 'number') {
+        setTotalLicenses(totalLicenses - 1);
+      }
       setIsDateModalOpen(false);
       onClose();
     } catch (error) {
@@ -153,9 +162,7 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
           >
             <Dialog.Panel className="bg-white rounded-2xl w-full max-w-lg p-6">
               <div className="flex justify-between items-center border-b mb-6">
-                <Dialog.Title className="text-xl font-bold text-black">
-                  Assign Courses
-                </Dialog.Title>
+                <Dialog.Title className="text-xl font-bold text-black">Assign Courses</Dialog.Title>
                 <div className="flex space-x-6">
                   <button
                     className={`pb-2 ${activeTab === 'email' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
@@ -179,7 +186,12 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                           >
                             <span>{e}</span>
                             <button onClick={() => handleRemoveEmail(i)}>
-                              <Image src="/assets/icons/close.svg" alt="Remove" width={12} height={12} />
+                              <Image
+                                src="/assets/icons/close.svg"
+                                alt="Remove"
+                                width={12}
+                                height={12}
+                              />
                             </button>
                           </div>
                         ))}
@@ -199,17 +211,17 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                     <div className="relative w-40 h-24 flex-shrink-0">
                       <Image
                         src={course?.thumbnail?.url}
-                        alt={course.name}
+                        alt={course?.name}
                         fill
                         style={{ objectFit: 'cover' }}
                         className="rounded-lg"
                       />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-black">{course.name}</h4>
+                      <h4 className="text-sm font-semibold text-black">{course?.name}</h4>
                       <h6 className="text-sm text-gray-600">
-                        {course.description?.split(' ').slice(0, 10).join(' ') +
-                          (course.description?.split(' ').length > 10 ? '...' : '')}
+                        {course?.description?.split(' ').slice(0, 10).join(' ') +
+                          (course?.description?.split(' ').length > 10 ? '...' : '')}
                       </h6>
                     </div>
                   </div>
@@ -217,18 +229,18 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                   {/* Invitees List */}
                   <ul className="mt-4 max-h-48 overflow-y-auto divide-y">
                     {filteredInvitees?.map(inv => (
-                      <li key={inv.id} className="py-3 flex items-center justify-between">
+                      <li key={inv?.id} className="py-3 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Image
-                            src={inv.avatarUrl}
-                            alt={inv.name}
+                            src={inv?.avatarUrl}
+                            alt={inv?.name}
                             width={32}
                             height={32}
                             className="rounded-full"
                           />
                           <div>
-                            <p className="font-medium text-sm text-black">{inv.name}</p>
-                            <p className="text-xs text-gray-500">{inv.email}</p>
+                            <p className="font-medium text-sm text-black">{inv?.name}</p>
+                            <p className="text-xs text-gray-500">{inv?.email}</p>
                           </div>
                         </div>
                         <button
@@ -257,11 +269,13 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                 </Dialog.Title>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Date
+                    </label>
                     <div className="relative">
                       <DatePicker
                         selected={startDate}
-                        onChange={(date) => setStartDate(date)}
+                        onChange={date => setStartDate(date)}
                         dateFormat="yyyy-MM-dd"
                         placeholderText="Select start date"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -276,8 +290,13 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
-      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -287,7 +306,7 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                     <div className="relative">
                       <DatePicker
                         selected={dueDate}
-                        onChange={(date) => setDueDate(date)}
+                        onChange={date => setDueDate(date)}
                         dateFormat="yyyy-MM-dd"
                         placeholderText="Select due date"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -302,8 +321,13 @@ export default function InviteModal({ isOpen, onClose, course }: InviteModalProp
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
-      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                   </div>

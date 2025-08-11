@@ -2,19 +2,28 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { IoSettingsOutline } from 'react-icons/io5';
-import { MdOutlineDashboardCustomize } from 'react-icons/md';
-import { PiBagBold } from 'react-icons/pi';
-import { FaUsers, FaClipboardList, FaBuilding, FaMoneyBillWave } from 'react-icons/fa';
-import UserIcon from '@/public/assets/home/user-dropdown/iconsax-user.svg';
-import InstructorIcon from '@/public/assets/home/user-dropdown/iconsax-teacher.svg';
-import BusinessIcon from '@/public/assets/home/user-dropdown/iconsax-building.svg';
-import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
-import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
+// import TermsIcon from '@/public/assets/home/user-dropdown/iconsax-clipboard-text.svg';
+// import HelpIcon from '@/public/assets/home/user-dropdown/iconsax-info-circle.svg';
 import LogoutIcon from '@/public/assets/home/user-dropdown/logout.svg';
+// Import icon từ assets
+import dashboard from '@/public/assets/icons/dashboard.svg';
+import courses from '@/public/assets/icons/book.svg';
+import createQuiz from '@/public/assets/icons/create.svg';
+import earning from '@/public/assets/icons/wallet.svg';
+import message from '@/public/assets/icons/message.svg';
+import setting from '@/public/assets/icons/setting.svg';
+import teacher from '@/public/assets/icons/teacher.svg';
+// import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
+import certificate from '@/public/assets/icons/award.svg';
+import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
+import reviewIcon from '@/public/assets/icons/book.svg';
+import withdrawIcon from '@/public/assets/review/withdrawal.svg';
+import businessIcon from '@/public/assets/review/business.svg';
+import peopleIcon from '@/public/assets/icons/teacher.svg';
+import discountIcon from '@/public/assets/business/discount.svg';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 
 import {
@@ -29,14 +38,14 @@ import {
 
 import defaultAvatar from '@/public/assets/images/avatar.png';
 import { signOutAction } from '@/lib/actions/auth';
-import { useLogoutQuery } from '@/lib/redux/features/auth/authApi';
+import { useLogoutQuery, useSocialAuthMutation } from '@/lib/redux/features/auth/authApi';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'instructor' | 'user' | string;
+  role: 'admin' | 'instructor' | 'user' | string;
   avatar?: {
     url?: string;
   };
@@ -50,17 +59,255 @@ interface LoadUserResponse {
   user: User;
 }
 
+function getDropdownList(user: User) {
+  const isBusinessAdminOrManager = user?.businessInfo?.role === 'manager';
+  if (user.role === 'user' && user?.businessInfo?.role === 'admin') {
+    return [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'My Courses',
+        href: '/business/mycourses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Employee',
+        href: '/business/employees',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/business/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/business/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/business/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Business Setting',
+        href: '/business/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Account Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+    ];
+  }
+  const businessItems = isBusinessAdminOrManager
+    ? [
+        {
+          title: 'Business Dashboard',
+          href: `/business/dashboard/${user.businessInfo?.businessId}`,
+          icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+        },
+      ]
+    : [];
+
+  if (user.role === 'admin') {
+    return [
+      {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Course Requests',
+        href: '/dashboard/review-courses',
+        icon: <Image src={reviewIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Teacher',
+        href: '/dashboard/teacher',
+        icon: <Image src={teacher} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Withdrawals',
+        href: '/dashboard/withdrawals',
+        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Instructor Requests',
+        href: '/dashboard/review-instructor',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Business Requests',
+        href: '/dashboard/business-requests',
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+    ];
+  }
+
+  if (user.role === 'instructor') {
+    return [
+      {
+        title: 'Dashboard',
+        href: '/instructor/dashboard',
+        icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Learning',
+        href: '/instructor/learning',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Courses',
+        href: '/instructor/courses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Quizzes',
+        href: '/instructor/quizzes',
+        icon: <Image src={createQuiz} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Earning',
+        href: '/dashboard/earning',
+        icon: <Image src={earning} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Withdrawals',
+        href: '/dashboard/withdrawals',
+        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/dashboard/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Certificate',
+        href: '/dashboard/certificate',
+        icon: <Image src={certificate} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/dashboard/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+      ...businessItems,
+    ];
+  }
+
+  return [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: <Image src={dashboard} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Courses',
+      href: '/dashboard/my-courses',
+      icon: <Image src={courses} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Purchase History',
+      href: '/dashboard/purchase-history',
+      icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Certificate',
+      href: '/dashboard/certificate',
+      icon: <Image src={certificate} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Discount',
+      href: '/dashboard/discount',
+      icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Message',
+      href: '/dashboard/message',
+      icon: <Image src={message} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Setting',
+      href: '/dashboard/setting',
+      icon: <Image src={setting} alt="" width={20} height={20} />,
+    },
+    ...businessItems,
+  ];
+}
+
 export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const pathname = usePathname();
   const { data: session } = useSession();
   const router = useRouter();
+  const [socialAuth] = useSocialAuthMutation();
+
   const { data, isLoading } = useLoadUserQuery(undefined) as {
     data?: LoadUserResponse;
     isLoading: boolean;
   };
   const { refetch: logoutApi } = useLogoutQuery(undefined, { skip: !logoutTriggered });
 
+  useEffect(() => {
+    console.log('Social Auth Effect - Current state:', {
+      user: data?.user,
+      isLoggingOut,
+      sessionUser: session?.user
+    });
+
+    if (!data?.user && !isLoggingOut) {
+      if (session?.user) {
+        console.log('Attempting social auth with:', {
+          email: session.user.email,
+          name: session.user.name,
+          avatar: session.user.image
+        });
+
+        socialAuth({
+          email: session.user.email,
+          name: session.user.name,
+          avatar: session.user.image
+        })
+          .unwrap()
+          .then((response) => {
+            console.log('Social auth successful:', response);
+          })
+          .catch((error) => {
+            console.error('Social auth failed:', error);
+          });
+      }
+    }
+  }, [session, data?.user, isLoggingOut, socialAuth]);
+
   const logoutHandler = async () => {
+    setIsLoggingOut(true); // Set logging out state
     if (session) {
       await signOut({ redirect: false });
     }
@@ -72,15 +319,11 @@ export function UserDropdown() {
       logoutApi()
         .then(() => {
           signOutAction().then(() => {
-            if (!session) {
-              router.push('/');
-            }
+            if (!session) router.push('/');
           });
         })
-        .catch(error => {
-          console.error('Logout API call failed:', error);
-          router.push('/');
-        });
+        .catch(() => router.push('/'))
+        .finally(() => setIsLoggingOut(false));
     }
   }, [logoutTriggered, logoutApi, router, session]);
 
@@ -90,107 +333,11 @@ export function UserDropdown() {
     }
   }, [session, logoutTriggered, router]);
 
-  if (isLoading || !data?.user) {
-    return null;
-  }
+  if (isLoading || !data?.user) return null;
 
   const { user } = data;
-  const isBusinessAdminOrManager =
-    user?.businessInfo?.role === 'admin' || user?.businessInfo?.role === 'manager';
 
-  const commonNavbarItems = [
-    {
-      title: 'Order History',
-      href: '/dashboard/purchase-history',
-      icon: <PiBagBold className="text-[20px]" />,
-    },
-    {
-      title: 'Setting',
-      href: '/dashboard/setting',
-      icon: <IoSettingsOutline className="text-[20px]" />,
-    },
-  ];
-
-  const businessDashboardItem = isBusinessAdminOrManager
-    ? [
-        {
-          title: 'Business Dashboard',
-          href: `/business/dashboard/${user.businessInfo?.businessId}`,
-          icon: <Image src={BusinessIcon} alt="Business Dashboard" width={20} height={20} />,
-        },
-      ]
-    : [];
-
-  const adminItems = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: <Image src={UserIcon} alt="Dashboard" width={20} height={20} />,
-    },
-    {
-      title: 'Course Requests',
-      href: '/dashboard/review-courses',
-      icon: <FaClipboardList className="text-[20px]" />,
-    },
-    {
-      title: 'Instructor Requests',
-      href: '/dashboard/review-instructor',
-      icon: <FaUsers className="text-[20px]" />,
-    },
-    {
-      title: 'Business Requests',
-      href: '/dashboard/business-requests',
-      icon: <FaBuilding className="text-[20px]" />,
-    },
-    {
-      title: 'Withdraw Requests',
-      href: '/dashboard/withdrawals',
-      icon: <FaMoneyBillWave className="text-[20px]" />,
-    },
-  ];
-
-  const dropdownList =
-    user.role === 'admin'
-      ? [...adminItems]
-      : user.role === 'instructor'
-        ? [
-            {
-              title: 'Dashboard User',
-              href: '/dashboard',
-              icon: <Image src={UserIcon} alt="Dashboard User" width={20} height={20} />,
-            },
-            {
-              title: 'Switch to Instructor',
-              href: '/switch/instructor',
-              icon: <Image src={InstructorIcon} alt="Instructor" width={20} height={20} />,
-            },
-            {
-              title: 'Switch to Business',
-              href: '/switch/business',
-              icon: <Image src={BusinessIcon} alt="Business" width={20} height={20} />,
-            },
-            ...businessDashboardItem,
-            {
-              title: 'Terms of Service',
-              href: '/terms',
-              icon: <Image src={TermsIcon} alt="Terms" width={20} height={20} />,
-            },
-            {
-              title: 'Help & Support',
-              href: '/help',
-              icon: <Image src={HelpIcon} alt="Help" width={20} height={20} />,
-            },
-            ...commonNavbarItems,
-          ]
-        : [
-            {
-              title: 'Watch Course',
-              href: '/dashboard/watch-course',
-              icon: <MdOutlineDashboardCustomize className="text-[20px]" />,
-            },
-            ...businessDashboardItem,
-            ...commonNavbarItems,
-          ];
+  const dropdownList = getDropdownList(user);
 
   const dropdownVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
@@ -198,12 +345,7 @@ export function UserDropdown() {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: {
-        type: 'spring' as const,
-        damping: 20,
-        stiffness: 300,
-        mass: 0.5,
-      },
+      transition: { type: 'spring', damping: 20, stiffness: 300, mass: 0.5 },
     },
     exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
   };
@@ -213,11 +355,7 @@ export function UserDropdown() {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: i * 0.05,
-        type: 'spring' as const,
-        stiffness: 300,
-      },
+      transition: { delay: i * 0.05, type: 'spring', stiffness: 300 },
     }),
   };
 
@@ -239,16 +377,15 @@ export function UserDropdown() {
               referrerPolicy="no-referrer"
             />
           </div>
-
-          <div className="flex items-center gap-1 sm:gap-2 w-auto">
-            <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-[150px] min-w-0">
+            <span className="hidden md:block font-medium text-base text-black truncate leading-none">
               {user.name}
             </span>
             <svg
-              className="w-[15.5px] h-[8.5px]"
+              className="w-4 h-4 shrink-0 -translate-y-[1px]"
               viewBox="0 0 16 9"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
               <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
             </svg>
@@ -260,49 +397,53 @@ export function UserDropdown() {
         <DropdownMenuContent
           asChild
           forceMount
-          className="w-[248px] rounded-[20px] p-3 bg-white shadow-lg border border-gray-100"
+          className="w-[248px] rounded-[20px] bg-white shadow-lg border border-gray-100 max-h-[70vh] overflow-y-auto"
+          align="end"
+          sideOffset={8}
+          style={{
+            transform: 'translateX(-10px)' // Adjust this value to align perfectly
+          }}
         >
           <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit">
             <DropdownMenuLabel className="px-3 py-2 text-sm text-gray-500" />
-            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
+            <DropdownMenuSeparator className="border-t border-gray-200" />
 
-            <DropdownMenuGroup>
-              {dropdownList.map((item, index) => (
-                <DropdownMenuItem asChild key={item.title}>
-                  <Link href={item.href}>
-                    <motion.div
-                      className="flex items-center gap-3 px-3 py-[14px] hover:bg-gray-100 rounded-xl text-black w-full text-[15px] font-medium"
-                      variants={itemVariants}
-                      custom={index}
-                      initial="hidden"
-                      animate="visible"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {item.icon}
-                      {item.title}
-                    </motion.div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
+            {/* Scrollable Menu Items */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              <DropdownMenuGroup>
+                {dropdownList.map((item, index) => (
+                  <DropdownMenuItem asChild key={item.title}>
+                    <Link href={item.href}>
+                      <motion.div
+                        className={`flex items-center gap-3 px-3 py-[10px] rounded-xl text-[15px] font-medium w-full
+                          ${pathname === item.href ? 'bg-gray-100 text-[#3858F8]' : 'text-black hover:bg-gray-100'}
+                        `}
+                        variants={itemVariants}
+                        custom={index}
+                      >
+                        {item.icon}
+                        {item.title}
+                      </motion.div>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+            </div>
 
-            <DropdownMenuSeparator className="my-2 border-t border-gray-200" />
-            <DropdownMenuItem asChild>
-              <motion.button
-                onClick={logoutHandler}
-                className="flex items-center gap-3 px-3 py-[14px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
-                variants={itemVariants}
-                custom={dropdownList.length}
-                initial="hidden"
-                animate="visible"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
-                Sign Out
-              </motion.button>
-            </DropdownMenuItem>
+            {/* Fixed Sign Out Button at Bottom */}
+            <div className="sticky bottom-0 bg-white pt-2 border-t border-gray-200">
+              <DropdownMenuItem asChild>
+                <motion.button
+                  onClick={logoutHandler}
+                  className="flex items-center gap-3 px-3 py-[10px] text-red-600 hover:bg-red-50 rounded-xl w-full text-[15px] font-medium"
+                  variants={itemVariants}
+                  custom={dropdownList.length}
+                >
+                  <Image src={LogoutIcon} alt="Sign Out" width={20} height={20} />
+                  Sign Out
+                </motion.button>
+              </DropdownMenuItem>
+            </div>
           </motion.div>
         </DropdownMenuContent>
       </AnimatePresence>

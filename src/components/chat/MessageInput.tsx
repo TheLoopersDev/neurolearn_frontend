@@ -1,18 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Smile, X } from 'lucide-react';
+import { ChatMessage } from '@/types/chat';
 
 interface MessageInputProps {
     onSendMessage: (content: string) => void;
     disabled?: boolean;
+    replyTo?: ChatMessage | null;
+    onCancelReply?: () => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
     onSendMessage,
     disabled = false,
+    replyTo,
+    onCancelReply,
 }) => {
     const [message, setMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const commonEmojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😍', '😎', '🤔', '😢', '😡', '👏'];
 
     // Handle typing indicator
     useEffect(() => {
@@ -51,9 +59,43 @@ const MessageInput: React.FC<MessageInputProps> = ({
         }
     };
 
+    const handleEmojiClick = (emoji: string) => {
+        setMessage(prev => prev + emoji);
+        setShowEmojiPicker(false);
+        textareaRef.current?.focus();
+    };
+
     return (
         <div className="p-4 bg-white border-t border-gray-200">
+            {/* Reply preview */}
+            {replyTo && (
+                <div className="mb-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                            <div className="text-xs text-blue-600 mb-1">Replying to message</div>
+                            <div className="text-sm text-gray-700 truncate">
+                                {replyTo.content}
+                            </div>
+                        </div>
+                        <button
+                            onClick={onCancelReply}
+                            className="p-1 hover:bg-blue-100 rounded transition-colors"
+                        >
+                            <X size={16} className="text-blue-600" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-end gap-3">
+                {/* Emoji button */}
+                <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                    <Smile size={20} />
+                </button>
+
                 {/* Message input */}
                 <div className="flex-1 relative">
                     <textarea
@@ -67,6 +109,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                         rows={1}
                     />
                 </div>
+
                 {/* Send button */}
                 <button
                     onClick={handleSend}
@@ -76,6 +119,23 @@ const MessageInput: React.FC<MessageInputProps> = ({
                     <Send size={18} />
                 </button>
             </div>
+
+            {/* Emoji picker */}
+            {showEmojiPicker && (
+                <div className="mt-3 p-3 bg-white rounded-lg shadow-lg border">
+                    <div className="grid grid-cols-6 gap-2">
+                        {commonEmojis.map((emoji) => (
+                            <button
+                                key={emoji}
+                                onClick={() => handleEmojiClick(emoji)}
+                                className="p-2 hover:bg-gray-100 rounded transition-colors text-lg"
+                            >
+                                {emoji}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import { User } from '@/types/user';
 import { BusinessResponse } from '@/types/business';
+import { DiscountResponse, Discount, CreateDiscountRequest, UpdateDiscountRequest } from '@/types/discount';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -130,6 +131,55 @@ export const apiSlice = createApi({
         };
       },
     }),
+    // Discount APIs
+    getAllDiscounts: builder.query<DiscountResponse, { 
+      page?: number; 
+      limit?: number; 
+      search?: string;
+      type?: string;
+      accessType?: string;
+      isActive?: boolean;
+      businessId?: string;
+    }>({
+      query: ({ page = 1, limit = 10, search = '', type, accessType, isActive, businessId }) => {
+        let url = `/discount?page=${page}&limit=${limit}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (type) url += `&type=${type}`;
+        if (accessType) url += `&accessType=${accessType}`;
+        if (isActive !== undefined) url += `&isActive=${isActive}`;
+        if (businessId) url += `&businessId=${businessId}`;
+        return {
+          url,
+          method: 'GET',
+        };
+      },
+    }),
+    getDiscountById: builder.query<Discount, string>({
+      query: (id) => ({
+        url: `/discount/${id}`,
+        method: 'GET',
+      }),
+    }),
+    createDiscount: builder.mutation<Discount, CreateDiscountRequest>({
+      query: (discountData) => ({
+        url: '/discount',
+        method: 'POST',
+        body: discountData,
+      }),
+    }),
+    updateDiscount: builder.mutation<Discount, UpdateDiscountRequest>({
+      query: ({ id, ...discountData }) => ({
+        url: `/discount/${id}`,
+        method: 'PUT',
+        body: discountData,
+      }),
+    }),
+    deleteDiscount: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/discount/${id}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
 });
 
@@ -143,4 +193,10 @@ export const {
   useGetPendingRequestsQuery,
   useHandleRequestMutation,
   useGetAllBusinessesQuery,
+  // Discount hooks
+  useGetAllDiscountsQuery,
+  useGetDiscountByIdQuery,
+  useCreateDiscountMutation,
+  useUpdateDiscountMutation,
+  useDeleteDiscountMutation,
 } = apiSlice;

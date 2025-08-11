@@ -31,7 +31,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
     }
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/add-employee`,
         { email, role: 'employee' },
         { withCredentials: true }
@@ -39,7 +39,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
 
       toast({
         title: 'Success',
-        description: 'Employee added successfully.',
+        description: res.data.message,
         variant: 'success',
       });
       onRefresh();
