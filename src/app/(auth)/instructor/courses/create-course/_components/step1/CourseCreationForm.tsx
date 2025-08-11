@@ -35,7 +35,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const [isContinuing, setIsContinuing] = useState(false);
     const [draftSaved, setDraftSaved] = useState(false);
 
-    const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId!, { skip: !courseId });
+    const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId as string, { skip: !courseId });
     const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
@@ -207,11 +207,11 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                         loading={{ continue: isContinuing, draft: isSavingDraft, publish: isPublishing }}
                     />
 
-                    {step === 1 && formData._id && (
+                    {step === 1 && (
                         <section className="flex flex-row gap-6 items-start w-full max-w-[1120px] h-full">
                             <div className="w-4/5">
                                 <CourseInformationForm
-                                    key={formData._id || "new-course"}
+                                    key={courseId ?? "new-course"}
                                     formData={formData}
                                     setFormData={setFormData}
                                     courseId={courseId}
@@ -220,7 +220,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                                         setCourseId(id);
                                     }}
                                 />
-
                             </div>
                             <div className="flex flex-col gap-6">
                                 <FileUploadArea
@@ -232,6 +231,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                             </div>
                         </section>
                     )}
+
 
                     {step === 2 && courseId && (
                         <section className="w-full max-w-4xl mx-auto mt-8">

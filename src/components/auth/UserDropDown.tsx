@@ -412,7 +412,7 @@ export function UserDropdown() {
             <div className="max-h-[50vh] overflow-y-auto">
               <DropdownMenuGroup>
                 {dropdownList.map((item, index) => (
-                  <DropdownMenuItem asChild key={item.title}>
+                  <DropdownMenuItem asChild key={`${item.title}-${item.href}`}>
                     <Link href={item.href}>
                       <motion.div
                         className={`flex items-center gap-3 px-3 py-[10px] rounded-xl text-[15px] font-medium w-full
