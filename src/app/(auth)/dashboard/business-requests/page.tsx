@@ -88,9 +88,11 @@ const BusinessRequestsPage = () => {
   ];
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil((requestData?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil((Array.isArray(requestData) ? requestData.length : 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentRequests = requestData?.slice(startIndex, startIndex + itemsPerPage) || [];
+  const currentRequests = Array.isArray(requestData)
+    ? requestData.slice(startIndex, startIndex + itemsPerPage)
+    : [];
 
   return (
     <div className="min-h-screen">

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/redux/store';
 import Image from 'next/image';
 import { X, Search, Users } from 'lucide-react';
 import { getOrCreateChatRoom } from '@/lib/firestore/chat';
@@ -63,8 +65,19 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     // Group chat UI: Hiện input groupName nếu chọn nhiều hơn 1 user
     const showGroupNameInput = selectedUsers.length > 1;
 
+    const { user } = useSelector((state: RootState) => state.auth);
+    const currentUserObj = typeof user === 'string' ? (user ? JSON.parse(user) : undefined) : user;
+    const currentUserName = currentUserObj?.name || '';
+
     const handleCreateChat = async () => {
         if (selectedUsers.length === 0) return;
+
+        // Validate group name for group chats
+        if (selectedUsers.length > 1 && (!groupName || groupName.trim() === '')) {
+            alert('Please enter a group name');
+            return;
+        }
+
         try {
             let chatRoomId: string;
             if (selectedUsers.length === 1) {
@@ -73,24 +86,64 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                 // Đảm bảo otherUserId có trong users
                 const validUser = users.find(u => u._id === otherUserId);
                 if (!validUser) return; // Không tạo chat nếu user không hợp lệ
-                chatRoomId = await getOrCreateChatRoom(currentUserId, otherUserId);
+                chatRoomId = await getOrCreateChatRoom(
+                    currentUserId,
+                    otherUserId,
+                    currentUserName,
+                    validUser.name,
+                );
             } else {
                 // Group chat
                 const participants = [currentUserId, ...selectedUsers];
                 // Ensure all participants are valid
                 const allValid = participants.every(id => id === currentUserId || users.find(u => u._id === id));
                 if (!allValid) return;
-                // Tạo chat room mới với groupName
+
+                // Debug: Log group creation details
+                console.log('Creating group chat with:', {
+                    participants,
+                    groupName: groupName || 'New Group',
+                    currentUserId,
+                    selectedUsers
+                });
+
+                // Lấy thông tin user để lưu vào Firestore
+                const participantUsers = participants.map(id => {
+                    if (id === currentUserId) {
+                        return {
+                            _id: id,
+                            name: currentUserName,
+                            email: currentUserObj?.email || '',
+                            avatar: currentUserObj?.avatar || null
+                        };
+                    } else {
+                        const user = users.find(u => u._id === id);
+                        return {
+                            _id: id,
+                            name: user?.name || 'Unknown User',
+                            email: user?.email || '',
+                            avatar: user?.avatar || null
+                        };
+                    }
+                });
+
+                // Tạo chat room mới với groupName và user info
                 const chatRoomsRef = collection(db, 'chatRooms');
                 const newChatRoom = {
                     participants,
-                    groupName: groupName || 'New Group',
+                    participantUsers, // Lưu thông tin user trực tiếp
+                    groupName: groupName.trim() || 'New Group',
                     createdAt: serverTimestamp(),
                     isGroup: true,
                     lastMessageTime: serverTimestamp()
                 };
+
+                console.log('New chat room data:', newChatRoom);
+
                 const docRef = await addDoc(chatRoomsRef, newChatRoom);
                 chatRoomId = docRef.id;
+
+                console.log('Group chat created successfully with ID:', chatRoomId);
             }
             dispatch(setActiveChat(chatRoomId));
             setSelectedUsers([]);
@@ -128,8 +181,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+        <div className="bg-white rounded-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <h2 className="text-xl font-semibold text-gray-900">New Conversation</h2>
@@ -219,8 +271,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
                         disabled={selectedUsers.length === 0 || isLoading}
                     >
                         Create Chat
-                    </button>
-                </div>
+                </button>
             </div>
         </div>
     );
