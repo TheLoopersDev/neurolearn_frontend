@@ -50,7 +50,7 @@ const Sidebar = () => {
       { icon: dashboard, label: 'Dashboard', path: '/instructor/dashboard' },
       { icon: courses, label: 'Learning', path: '/instructor/learning' },
       { icon: courses, label: 'Courses', path: '/instructor/courses' },
-      { icon: createQuiz, label: 'Quizes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
+      { icon: createQuiz, label: 'Quizzes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },

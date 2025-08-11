@@ -5,19 +5,27 @@ import { CourseCard } from "./CourseCard";
 import { useGetUserCoursesQuery } from "@/lib/redux/features/course/courseApi";
 import { useGetInstructorCourseRequestsQuery } from "@/lib/redux/features/request/requestApi";
 import Loading from "@/components/common/Loading";
-import CoursePagination from "@/app/(unauth)/courses/_components/CoursePagination";
 
 const ITEMS_PER_PAGE = 6;
 
-const CourseCardGrid: React.FC = () => {
+interface CourseCardGridProps {
+  searchTerm?: string;
+}
+
+const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
   const { data: courseData, isLoading: loadingCourses, isError } = useGetUserCoursesQuery();
   const { data: requestData, isLoading: loadingRequests } = useGetInstructorCourseRequestsQuery();
   const [currentPage, setCurrentPage] = useState(1);
 
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const mergedCourses = useMemo(() => {
     if (!courseData?.data) return [];
     const requests = requestData?.data || [];
-    return courseData.data.map((course) => {
+
+    let courses = courseData.data.map((course) => {
       const req = requests.find((r: any) => r.courseId?._id === course._id);
 
       let status = "Draft";
@@ -27,11 +35,29 @@ const CourseCardGrid: React.FC = () => {
 
       return { ...course, status };
     });
-  }, [courseData, requestData]);
 
-  if (loadingCourses || loadingRequests) return <Loading />;
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      courses = courses.filter((course) => {
+        const courseName = course.name?.toLowerCase() || '';
+        return courseName.includes(searchLower);
+      });
+    }
+    return courses;
+  }, [courseData, requestData, searchTerm]);
+
+  if (loadingCourses || loadingRequests) return <Loading message="Loading courses..." className="min-h-[calc(100vh-200px)]" />;
   if (isError || !courseData?.data)
     return <p className="text-center text-red-500">There is no course found!</p>;
+
+  if (searchTerm.trim() && mergedCourses.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p>Can&#39;t find any course matching &quot;{searchTerm}&quot;</p>
+        <p className="text-gray-400 text-sm mt-2">Try a different keyword</p>
+      </div>
+    );
+  }
 
   const totalPages = Math.ceil(mergedCourses.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -46,14 +72,25 @@ const CourseCardGrid: React.FC = () => {
           </div>
         ))}
       </div>
-
+      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <CoursePagination
-          page={currentPage}
-          totalPages={totalPages}
-          isFetching={loadingCourses || loadingRequests}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        <div className="flex justify-center mt-6 gap-3">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       )}
     </section>
   );
