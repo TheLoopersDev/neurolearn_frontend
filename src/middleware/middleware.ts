@@ -10,10 +10,11 @@ export async function middleware(req: NextRequest) {
     const normalToken = req.cookies.get('access_token')?.value; // Adjust based on your auth system
 
         const secret = process.env.NEXTAUTH_SECRET;
+        const salt = process.env.AUTH_SALT;
         const socialToken = await getToken({
           req,
-          secret: secret!, 
-          salt: process.env.AUTH_SALT!,
+          secret: secret,
+          salt: salt,
         });
 
     // If the user is not logged in, redirect to the home page with a query parameter to open the modal

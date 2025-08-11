@@ -20,6 +20,7 @@ import { useSession } from 'next-auth/react';
 import { setAuthState } from '@/lib/redux/features/auth/authSlice';
 import { useDispatch } from 'react-redux';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
+import { useSocialAuthMutation } from '@/lib/redux/features/auth/authApi';
 function useRouteDir(pathname: string) {
   const prevDepth = useRef(0);
   const depth = pathname.split('/').filter(Boolean).length;
@@ -34,47 +35,71 @@ export default function ClientLayout({ children }: { readonly children: React.Re
   const reduce = useReducedMotion();
   const dir = useRouteDir(pathname);
   const { data: session, status } = useSession();
-  const { data: me } = useLoadUserQuery(undefined, { skip: status !== 'authenticated' }) as any;
+  const { data: me, refetch } = useLoadUserQuery(undefined, {
+    skip: status !== 'authenticated',
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  }) as any;
+  const [socialAuth] = useSocialAuthMutation();
+  const didBridge = useRef(false);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status !== 'authenticated') {
       dispatch(setAuthState({ token: null, user: null, isAuthenticated: false }));
+      didBridge.current = false;
       return;
     }
 
-    if (status === 'authenticated') {
-      // 1) fallback từ session (role tạm) để UI không "trắng"
-      if (session?.user) {
-        dispatch(setAuthState({
-          token: (session as any).accessToken ?? null,
-          user: {
-            _id: (session.user as any).id ?? '',          
-            name: session.user.name ?? '',
-            email: session.user.email ?? '',
-            role: 'user',                                
-            avatar: { url: session.user.image ?? '' },
-          },
-          isAuthenticated: true,
-        }));
-      }
-
-      // 2) khi BE đã trả user -> override có role thật
-      if (me?.user) {
-        const u = me.user;
-        dispatch(setAuthState({
-          token: (session as any)?.accessToken ?? null,
-          user: {
-            _id: u.id ?? u._id ?? '',                      
-            name: u.name ?? '',
-            email: u.email ?? '',
-            role: u.role ?? 'user',                     
-            avatar: { url: u?.avatar?.url ?? '' },
-          },
-          isAuthenticated: true,
-        }));
-      }
+    // 1) Đẩy session vào Redux để UI có gì đó ngay (role tạm)
+    if (session?.user) {
+      dispatch(setAuthState({
+        token: (session as any).accessToken ?? null,
+        user: {
+          _id: (session.user as any).id ?? '',
+          name: session.user.name ?? '',
+          email: session.user.email ?? '',
+          role: 'user',
+          avatar: session.user.image ? { url: session.user.image } : undefined,
+        },
+        isAuthenticated: true,
+      }));
     }
-  }, [status, session, me, dispatch]);
+
+    // 2) Chạy bridge 1 lần → BE set cookie → refetch /me
+    if (!didBridge.current) {
+      didBridge.current = true;
+      (async () => {
+        try {
+          await socialAuth({
+            email: session?.user?.email,
+            name: session?.user?.name,
+            avatar: session?.user?.image,
+          }).unwrap();
+        } catch {
+          // ignore, vẫn refetch thử
+        } finally {
+          await refetch(); // ⬅️ Quan trọng: gọi lại ngay sau khi (có thể) đã có cookie
+        }
+      })();
+    }
+
+    // 3) Khi /me có dữ liệu thật (có role), override Redux
+    if (me?.user) {
+      const u = me.user;
+      dispatch(setAuthState({
+        token: (session as any)?.accessToken ?? null,
+        user: {
+          _id: u.id ?? u._id ?? '',
+          name: u.name ?? '',
+          email: u.email ?? '',
+          role: u.role ?? 'user',
+          avatar: u?.avatar?.url ? { url: u.avatar.url } : undefined,
+        },
+        isAuthenticated: true,
+      }));
+    }
+  }, [status, session, me, refetch, socialAuth, dispatch]);
+
   // iOS push/pop: slide theo X rất ngắn + fade. Back thì trượt ngược.
   const pageVariants = useMemo(() => {
     if (reduce) {
