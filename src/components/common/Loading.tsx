@@ -1,12 +1,14 @@
 import React from 'react';
 
 interface LoadingProps {
+  title?: string;
   message?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 const Loading: React.FC<LoadingProps> = ({
+  title,
   message = "Loading...",
   size = 'md',
   className = "min-h-screen"
