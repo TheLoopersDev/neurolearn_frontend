@@ -6,32 +6,19 @@ import { BalanceOverview } from '@/components/instructor/revenue/BalanceOverview
 import { CardSection } from '@/components/instructor/revenue/CardSection';
 import { TransactionHistory } from '@/components/instructor/revenue/TransactionHistory';
 import { useModal } from '@/context/ModalContext';
-import { useEffect, useState } from 'react';
-import { getMyIncome } from '@/lib/services/revenue';
+import { useMemo } from 'react';
+import { useGetTotalIncomeQuery } from '@/lib/redux/features/income/incomeApi';
 
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
-  const [income, setIncome] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchIncome();
-  }, []);
+  const { data, isLoading, isError } = useGetTotalIncomeQuery();
 
-  const fetchIncome = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const incomeValue = await getMyIncome();
-      setIncome(incomeValue);
-    } catch (err) {
-      setError('Không thể lấy dữ liệu thu nhập');
-      console.error('Error fetching income:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const income = useMemo(() => {
+    return data?.income ?? 0;
+  }, [data]);
+
+  const errorMessage = isError ? 'Không thể lấy dữ liệu thu nhập' : null;
 
   const handleAddCard = () => {
     console.log('Add new card');
@@ -57,14 +44,14 @@ const WithdrawDashboard: React.FC = () => {
           {/* Left Section */}
           <section className="flex-1 min-w-[400px]">
             <WithdrawForm
-              totalRevenue={loading ? 'Đang tải...' : error ? error : formatCurrency(income)}
+              totalRevenue={isLoading ? 'Đang tải...' : errorMessage ? errorMessage : formatCurrency(income)}
               maxWithdrawAmount={currentBalance}
             />
 
             <BalanceOverview
-              totalIncome={loading ? 'Đang tải...' : formatCurrency(income)}
-              serviceFee={loading ? 'Đang tải...' : formatCurrency(serviceFee)}
-              currentBalance={loading ? 'Đang tải...' : formatCurrency(currentBalance)}
+              totalIncome={isLoading ? 'Đang tải...' : formatCurrency(income)}
+              serviceFee={isLoading ? 'Đang tải...' : formatCurrency(serviceFee)}
+              currentBalance={isLoading ? 'Đang tải...' : formatCurrency(currentBalance)}
             />
           </section>
 
