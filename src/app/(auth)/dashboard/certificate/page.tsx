@@ -3,7 +3,7 @@
 import CertificateCard from '@/components/dashboard/certificate/CertificateCard';
 import { useAllCertificates } from '@/hooks/useCertificate';
 import Loading from '@/components/common/Loading';
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 
 const ITEMS_PER_PAGE = 6;
 
