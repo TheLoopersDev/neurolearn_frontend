@@ -235,8 +235,8 @@ export function UserDropdown() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 w-auto">
-            <span className="font-medium text-base text-black whitespace-nowrap hidden md:inline">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-[150px]">
+            <span className="font-medium truncate text-base text-black whitespace-nowrap hidden md:inline">
               {user.name}
             </span>
             <svg className="w-[15.5px] h-[8.5px]" viewBox="0 0 16 9" fill="none">
