@@ -104,6 +104,11 @@ export const authApi = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { dispatch }) {
         try {
           dispatch(userLoggerOut());
+
+          // ✅ Đẩy về trang chủ
+          if (typeof window !== 'undefined') {
+            window.location.href = '/';
+          }
         } catch (error) {
           console.log(error);
         }

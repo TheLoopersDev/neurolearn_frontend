@@ -1,5 +1,5 @@
 // redux/slices/quizSlice.ts
-import { Quiz } from '@/components/dashboard/create-quiz/types';
+import { Quiz } from '@/app/(auth)/instructor/quizzes/_components/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface QuizState {

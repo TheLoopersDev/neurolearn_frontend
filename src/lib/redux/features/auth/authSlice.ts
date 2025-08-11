@@ -3,6 +3,12 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User } from '@/types/user';
 
 // Helper functions for localStorage
+
+interface SetAuthStatePayload {
+  token: string | null;
+  user: User | null;
+  isAuthenticated: boolean;
+}
 const loadFromLocalStorage = () => {
   if (typeof window !== 'undefined') {
     try {
@@ -77,6 +83,7 @@ const authSlice = createSlice({
       state.token = action.payload.accessToken;
       state.user = action.payload.user;
       state.isLoggingOut = false;
+      console.log('Dispatching userLoggerIn with:', action.payload);
       saveToLocalStorage(action.payload.accessToken, action.payload.user);
     },
     userLoggerOut: state => {
@@ -89,10 +96,21 @@ const authSlice = createSlice({
       state.token = action.payload.resetToken;
       saveToLocalStorage(action.payload.resetToken, state.user);
     },
+    setAuthState: (state, action: PayloadAction<SetAuthStatePayload>) => {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      saveToLocalStorage(action.payload.token, action.payload.user);
+    },
   },
 });
 
-export const { userRegistration, userLoggerIn, userLoggerOut, userResetToken, setUserInfo } =
-  authSlice.actions;
+export const {
+  userRegistration,
+  userLoggerIn,
+  userLoggerOut,
+  userResetToken,
+  setUserInfo,
+  setAuthState,
+} = authSlice.actions;
 
 export default authSlice.reducer;

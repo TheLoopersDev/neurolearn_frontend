@@ -14,9 +14,11 @@ import {
   AnimatePresence,
   motion,
 } from 'framer-motion';
-import ActionModal from '../dashboard/instructor-course/ActionModal';
-import AddEditSection from '../dashboard/instructor-course/create-course/step2/AddEditSection';
-import AddEditLessonModal from '../dashboard/instructor-course/create-course/step2/AddEditLesson';
+import ActionModal from '../../app/(auth)/instructor/courses/create-course/_components/ActionModal';
+import AddEditSection from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditSection';
+import AddEditLessonModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditLesson';
+import PickQuizToAddModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/PickQuizToAddModal';
+
 
 export default function ModalContainer() {
   const { modalType, hideModal, modalData } = useModal();
@@ -75,7 +77,15 @@ export default function ModalContainer() {
             onClose={hideModal}
           />
         );
-
+      case 'pickQuizToAdd':
+        return (
+          <PickQuizToAddModal
+            key="pickQuizToAdd"
+            courseId={modalData?.courseId} // optional
+            onSubmit={modalData?.onSubmit}
+            onClose={hideModal}
+          />
+        );
       default:
         return null;
     }

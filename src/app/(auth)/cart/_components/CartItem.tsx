@@ -15,15 +15,21 @@ const formatVND = (amount: number): string => {
   return `${amount.toLocaleString('en-US')}VND`;
 };
 
-export function CartItem({ course, onRemove, onQuantityChange, showQuantity, quantity }: CartItemProps) {
-  const totalPrice = (course.price || 0) * quantity;
+export function CartItem({
+  course,
+  onRemove,
+  onQuantityChange,
+  showQuantity,
+  quantity,
+}: CartItemProps) {
+  const totalPrice = (course?.price || 0) * quantity;
 
   const handleIncrease = () => {
-    onQuantityChange(course._id, quantity + 1);
+    onQuantityChange(course?._id, quantity + 1);
   };
 
   const handleDecrease = () => {
-    onQuantityChange(course._id, quantity - 1);
+    onQuantityChange(course?._id, quantity - 1);
   };
 
   return (
@@ -31,12 +37,12 @@ export function CartItem({ course, onRemove, onQuantityChange, showQuantity, qua
       {/* --- Product Details --- */}
       <div className="col-span-1 flex items-center gap-4 md:col-span-3">
         <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded">
-          <Image src={course.thumbnail.url} alt={course.name} fill className="object-cover" />
+          <Image src={course?.thumbnail?.url} alt={course?.name} fill className="object-cover" />
         </div>
         <div>
-          <h3 className="font-bold text-gray-900">{course.name}</h3>
+          <h3 className="font-bold text-gray-900">{course?.name}</h3>
           <button
-            onClick={() => onRemove(course._id)}
+            onClick={() => onRemove(course?._id)}
             className="mt-1 text-sm font-medium hover:cursor-pointer text-red-500 hover:text-red-700"
           >
             Remove
@@ -55,9 +61,7 @@ export function CartItem({ course, onRemove, onQuantityChange, showQuantity, qua
           >
             <Minus className="h-4 w-4 text-gray-700" />
           </button>
-          <span className="w-8 text-center text-base font-medium text-gray-900">
-            {quantity}
-          </span>
+          <span className="w-8 text-center text-base font-medium text-gray-900">{quantity}</span>
           <button
             onClick={handleIncrease}
             className="rounded-full p-1.5 transition-colors hover:bg-gray-200"
@@ -67,7 +71,6 @@ export function CartItem({ course, onRemove, onQuantityChange, showQuantity, qua
           </button>
         </div>
       )}
-
 
       {/* --- Total (Updated Format) --- */}
       <div className="text-right font-semibold text-gray-900">
