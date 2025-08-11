@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { PlusCircle, Search, SlidersHorizontal } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
 import CreateQuizModal from './CreateQuizModal';
+import SearchQuiz from './SearchQuiz';
+import Loading from '@/components/common/Loading';
 import {
   Pagination,
   PaginationContent,
@@ -21,7 +23,7 @@ import {
   useCreateQuizMutation,
 } from '@/lib/redux/features/quiz/quizApi';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 6;
 
 const QuizListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,7 +169,7 @@ const QuizListPage: React.FC = () => {
 
   const renderQuizContent = () => {
     if (isLoading || isFetching) {
-      return <p className="text-center py-12">Loading quizzes...</p>;
+      return <Loading message="Loading quizzes..." size="md" className="min-h-[calc(100vh-200px)]" />;
     }
 
     if (quizzesForCurrentPage.length > 0) {
@@ -202,39 +204,17 @@ const QuizListPage: React.FC = () => {
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
-          <div className="relative w-full sm:flex-1 lg:min-w-[300px] xl:min-w-[400px]">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search quizzes..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // reset về trang 1 khi tìm
-              }}
-              className="block text-black w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-white rounded-full shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder-gray-400 h-[42px]"
-            />
-          </div>
-
-          <button className="flex items-center text-sm text-gray-700 bg-white border border-gray-300 px-4 py-2.5 rounded-full hover:bg-gray-50 shadow-sm h-[42px]">
-            <SlidersHorizontal size={16} className="mr-2 text-gray-500" />
-            <span>All courses</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 ml-1.5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-
+        <SearchQuiz
+          searchTerm={searchTerm}
+          onSearchChange={(value) => {
+            setSearchTerm(value);
+            setCurrentPage(1);
+          }}
+          onFilterClick={() => {
+            // Add filter logic here
+            console.log('Filter clicked');
+          }}
+        />
         <button
           onClick={handleOpenCreateModal}
           className="flex items-center bg-blue-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-blue-700 h-[42px]"
@@ -292,7 +272,6 @@ const QuizListPage: React.FC = () => {
           </PaginationContent>
         </Pagination>
       )}
-
       <CreateQuizModal
         isOpen={isCreateModalOpen}
         onClose={handleCloseCreateModal}

@@ -1,25 +1,29 @@
-"use client";
-
-import { motion } from 'framer-motion';
+import React from 'react';
 
 interface LoadingProps {
   title?: string;
+  message?: string;
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-const Loading = ({ title, className = "" }: LoadingProps) => {
+const Loading: React.FC<LoadingProps> = ({
+  message = "Loading...",
+  size = 'md',
+  className = "min-h-screen"
+}) => {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-12 w-12',
+    lg: 'h-16 w-16'
+  };
+
   return (
-    <div className={`py-10 ${className}`}>
-      <div className="container mx-auto px-4">
-        {title && <h2 className="text-4xl font-medium mb-6">{title}</h2>}
-        <div className="flex items-center justify-center">
-          <motion.div
-            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
-      </div>
+    <div className={`flex flex-col justify-center items-center ${className}`}>
+      <div className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`}></div>
+      {message && (
+        <p className="text-sm text-gray-600 mt-4">{message}</p>
+      )}
     </div>
   );
 };
