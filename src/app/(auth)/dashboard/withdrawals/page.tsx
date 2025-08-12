@@ -5,8 +5,6 @@ import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/components/common/Loading";
 
-const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
-
 interface WithdrawData {
   _id: string;
   user: {
@@ -30,7 +28,6 @@ interface WithdrawResponse {
 
 const WithdrawalsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<WithdrawData | null>(null);
@@ -63,12 +60,10 @@ const WithdrawalsPage = () => {
         setWithdraws(data.withdraws);
       } else {
         setWithdraws([]);
-        // setError('No data'); // This line was removed as per the edit hint
       }
     } catch (error) {
       console.error('Error fetching withdraws:', error);
       setWithdraws([]);
-      // setError('Error loading withdraws'); // This line was removed as per the edit hint
     } finally {
       setIsLoading(false);
     }
@@ -151,8 +146,7 @@ const WithdrawalsPage = () => {
   const filteredWithdraws = withdraws.filter(withdraw => {
     const matchesSearch = withdraw.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       withdraw.user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedCategory === 'All courses' || withdraw.status.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const headers = [
@@ -179,9 +173,9 @@ const WithdrawalsPage = () => {
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          categories={categories}
+          selectedCategory=""
+          setSelectedCategory={() => { }}
+          categories={[]}
           activeTab="withdrawals"
           onTabChange={() => { }}
           tabOptions={[
