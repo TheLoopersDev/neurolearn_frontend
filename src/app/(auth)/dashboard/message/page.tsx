@@ -6,6 +6,7 @@ import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
 import { ChatList, ChatRoom } from '@/components/chat';
 import { backfillDisplayNames } from '@/lib/firestore/chat';
+import Loading from '@/components/common/Loading';
 
 // Check if Firebase is available
 const isFirebaseAvailable = () => {
