@@ -20,11 +20,12 @@ interface Order {
 
 interface ReceiptTableProps {
     userType: 'user' | 'business';
+    searchTerm?: string;
 }
 
 const ITEMS_PER_PAGE = 6;
 
-export default function ReceiptTable({ userType }: ReceiptTableProps) {
+export default function ReceiptTable({ userType, searchTerm = '' }: ReceiptTableProps) {
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -53,9 +54,27 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
         fetchOrders();
     }, [userType]);
 
-    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+    // Filter by search term
+    const normalizedQuery = searchTerm.trim().toLowerCase();
+    const stringIncludes = (value: unknown) => String(value ?? '').toLowerCase().includes(normalizedQuery);
+    const filteredOrders = normalizedQuery
+        ? orders.filter((order) => {
+            const inCode = stringIncludes(order.orderCode);
+            const inPayment = stringIncludes(order.payment_info);
+            const inDate = stringIncludes(new Date(order.createdAt).toLocaleDateString('en-GB'));
+            const inCourses = order.courseIds?.some((course) => stringIncludes(course.name));
+            return inCode || inPayment || inDate || inCourses;
+        })
+        : orders;
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [normalizedQuery]);
+
+    const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const currentOrders = filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     const handleReceiptClick = (orderId: string) => {
         if (userType === 'business') {
@@ -83,6 +102,13 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
                     </tr>
                 </thead>
                 <tbody>
+                    {currentOrders.length === 0 && (
+                        <tr>
+                            <td className="py-6 text-center text-sm text-gray-500" colSpan={6}>
+                                No receipts found.
+                            </td>
+                        </tr>
+                    )}
                     {currentOrders.map((order, idx) => {
                         const totalPrice = order.courseIds.reduce((acc, course) => acc + course.price, 0);
                         const formattedDate = new Date(order.createdAt).toLocaleDateString('en-GB');
@@ -132,7 +158,7 @@ export default function ReceiptTable({ userType }: ReceiptTableProps) {
             </table>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {filteredOrders.length > 0 && totalPages > 1 && (
                 <div className="flex justify-center mt-6 gap-3">
                     <button
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
