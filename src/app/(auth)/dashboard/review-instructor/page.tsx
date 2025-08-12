@@ -38,10 +38,14 @@ const ReviewInstructorPage = () => {
   const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState<InstructorData | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [isInstructorLoading, setIsInstructorLoading] = useState(false);
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
+
+
 
   // API call for instructor verification requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
@@ -150,9 +154,9 @@ const ReviewInstructorPage = () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification/${requestId}/action`, {
         method: 'PUT',
+        credentials: 'include', // Use HttpOnly cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify({ action }),
       });
@@ -284,8 +288,8 @@ const ReviewInstructorPage = () => {
                           <button
                             className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
                             onClick={() => {
-                              // setSelectedRequest(request); // This line was removed as per the new_code, as the state variable was removed.
-                              // setIsModalOpen(true); // This line was removed as per the new_code, as the state variable was removed.
+                              setSelectedRequest(request);
+                              setIsRequestModalOpen(true);
                             }}
                           >
                             <Eye className="w-4 h-4" />
@@ -477,6 +481,156 @@ const ReviewInstructorPage = () => {
               </div>
             )}
           </>
+        )}
+        {/* Request Details Modal */}
+        {isRequestModalOpen && selectedRequest && (
+          <Dialog open={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 py-8 backdrop-blur-sm bg-black/20">
+              <Dialog.Panel className="bg-white rounded-3xl shadow-xl max-w-4xl w-full p-0 relative">
+                {/* Header */}
+                <div className="flex justify-between items-center p-6 border-b">
+                  <h3 className="text-2xl font-bold text-gray-900">Instructor Request Details</h3>
+                  <button
+                    onClick={() => setIsRequestModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Content */}
+                <div className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* LEFT COLUMN */}
+                    <div className="w-full lg:w-[70%] space-y-6">
+                      {/* User Info */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 font-medium text-2xl">
+                              {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-lg">{selectedRequest.userId?.name || selectedRequest.data?.fullName}</div>
+                            <div className="text-gray-500">{selectedRequest.userId?.email || selectedRequest.data?.email}</div>
+                            <div className="text-sm text-gray-400">User ID: {selectedRequest.userId?._id}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Request Details */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-500">Full Name:</span>
+                            <div className="font-medium">{selectedRequest.data?.fullName || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Email:</span>
+                            <div className="font-medium">{selectedRequest.data?.email || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Phone Number:</span>
+                            <div className="font-medium">{selectedRequest.data?.phoneNumber || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Date of Birth:</span>
+                            <div className="font-medium">{selectedRequest.data?.dob || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Address:</span>
+                            <div className="font-medium">{selectedRequest.data?.address || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Category:</span>
+                            <div className="font-medium">{selectedRequest.data?.category || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Experience:</span>
+                            <div className="font-medium">{selectedRequest.data?.experience || 'N/A'} years</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Company:</span>
+                            <div className="font-medium">{selectedRequest.data?.company || 'N/A'}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Description */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Description</h4>
+                        <div className="text-gray-700">
+                          {selectedRequest.data?.description || 'No description provided.'}
+                        </div>
+                      </div>
+                      {/* Documents */}
+                      {selectedRequest.data?.documents && selectedRequest.data.documents.length > 0 && (
+                        <div className="bg-gray-50 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Documents</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            {selectedRequest.data.documents.map((doc: string, index: number) => (
+                              <div key={index} className="bg-white rounded-lg p-4 border">
+                                <img src={doc} alt={`Document ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                                <div className="mt-2 text-sm text-gray-600">Document {index + 1}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {/* RIGHT SIDEBAR */}
+                    <div className="w-full lg:w-[30%] space-y-6">
+                      {/* Request Status */}
+                      <div className="bg-blue-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-blue-900 mb-4">Request Status</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <span className="text-sm text-blue-600">Status:</span>
+                            <div className="font-medium text-blue-900 capitalize">{selectedRequest.status || 'pending'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-blue-600">Request Date:</span>
+                            <div className="font-medium text-blue-900">
+                              {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleDateString() : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-6 border-t mt-6">
+                    <button
+                      onClick={() => setIsRequestModalOpen(false)}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'reject');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'approve');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
         )}
         {isProfileModalOpen && selectedInstructor && (
           <Dialog open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">

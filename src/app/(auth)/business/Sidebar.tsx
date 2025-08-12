@@ -32,7 +32,6 @@ const Sidebar = () => {
     { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
     { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
     { icon: discount, label: 'Discount', path: '/business/discount' },
-    { icon: setting, label: 'Setting', path: '/business/setting' },
   ];
 
   return (
