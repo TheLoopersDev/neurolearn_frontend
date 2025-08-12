@@ -22,7 +22,7 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
     : `Questions (${questions.length})`;
 
   return (
-    <aside className="w-72 h-full bg-white  flex flex-col flex-shrink-0 rounded-2xl mx-auto ">
+    <aside className="w-72 bg-white flex flex-col flex-shrink-0 rounded-2xl mx-auto">
       <div className="p-4 flex items-center justify-between ">
         <h2 className="text-lg font-semibold text-gray-800">{headerText}</h2>
         <button
@@ -42,7 +42,7 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
           </svg>
         </button>
       </div>
-      <nav className="flex-grow overflow-y-auto p-2 space-y-1">
+      <nav className="flex-grow p-2 space-y-1">
         {questions.map(q => (
           <div key={q.id} className="group relative">
             <button

@@ -10,6 +10,7 @@ import VideoSection from '@/components/home/VideoSection';
 import FilterTagsContainer from '@/components/common/ui/FilterTagsContainer';
 import LearningGoals from '@/components/home/LearningGoals';
 import BecomeInstructorBusiness from '@/components/home/BecomeInstructorBusiness';
+import CourseGridTopViewing from '@/components/home/CourseGridTopViewing';
 
 export default function Home() {
   return (
@@ -27,7 +28,7 @@ export default function Home() {
       <WhyStudySection />
 
       {/* Learners are viewing */}
-      <CourseGrid title="Learners are viewing" />
+      <CourseGridTopViewing title="Learners are viewing" />
 
       {/* Learning Focused */}
       <LearningGoals />
