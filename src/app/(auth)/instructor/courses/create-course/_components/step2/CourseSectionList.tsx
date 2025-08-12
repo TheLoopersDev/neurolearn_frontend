@@ -28,7 +28,6 @@ export default function CourseSectionList({ courseId }: Props) {
     // 🔁 Lấy tất cả section của user, rồi lọc theo courseId ở client
     const { data: allSectionData, refetch: refetchAllSections, isFetching } =
         useGetSectionsByUserIdQuery(undefined, { skip: false });
-
     const [createSection] = useCreateSectionMutation();
     const [updateSection] = useUpdateSectionMutation();
     const [deleteSection] = useDeleteSectionMutation();

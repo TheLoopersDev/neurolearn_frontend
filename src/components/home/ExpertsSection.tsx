@@ -9,7 +9,7 @@ import { useGetAllExpertsQuery } from '@/lib/redux/features/expert/expertApi';
 
 const ExpertsSection = () => {
   const { data: experts, isLoading, error } = useGetAllExpertsQuery();
-  
+  console.log("experts", experts)
   const displayExperts = experts ? experts.slice(0, 3) : [];
 
   if (isLoading) {
@@ -63,7 +63,7 @@ const ExpertsSection = () => {
                 description={expert.introduce ?? ''}
                 imageUrl={expert.avatar?.url ?? '/assets/images/default-avatar.png'}
                 socialLinks={expert.socialLinks}
-                profileUrl={`/experts/${expert._id}`}
+                profileUrl={`/instructors/${expert._id}`}
               />
             </motion.div>
           ))}
