@@ -19,7 +19,9 @@ import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
 import SectionContentList from "./SectionContentList";
+import { courseApi, useGetCourseByIdQuery } from "@/lib/redux/features/course/courseApi";
 
+import { useAppDispatch } from "@/lib/redux/hooks";
 interface Props {
     courseId: string;
 }
@@ -34,9 +36,11 @@ export default function CourseSectionList({ courseId }: Props) {
     const [reorderSections] = useReorderSectionsMutation();
     const [createLesson] = useCreateLessonMutation();
     const [addQuizToSection] = useAddQuizToSectionMutation();       // ✅
+    const { refetch: refetchCourse } = useGetCourseByIdQuery(courseId);
 
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
     const { showModal } = useModal();
+    const dispatch = useAppDispatch();
 
     // Helper: chỉ refetch endpoint user-sections
     const refetchSections = refetchAllSections;
@@ -49,7 +53,9 @@ export default function CourseSectionList({ courseId }: Props) {
             onSubmit: async (data: any) => {
                 try {
                     await createSection({ courseId, data }).unwrap();
-                    await refetchSections();
+                    await refetchAllSections().unwrap();
+                    dispatch(courseApi.util.invalidateTags([{ type: 'Course', id: courseId }]));
+                    await refetchCourse();
                     toast({ title: "Success", description: "Section created successfully", variant: "success" });
                 } catch {
                     toast({ title: "Error", description: "Failed to create section", variant: "destructive" });
@@ -71,7 +77,14 @@ export default function CourseSectionList({ courseId }: Props) {
             onSubmit: async (data: any) => {
                 try {
                     await updateSection({ id: section._id, data }).unwrap();
-                    await refetchSections();
+                    await refetchAllSections().unwrap();
+                    dispatch(
+                        courseApi.util.invalidateTags([
+                            { type: 'Course', id: courseId },
+                            { type: 'Section', id: 'LIST' }
+                        ])
+                    );
+                    await refetchCourse();
                     toast({ title: "Success", description: "Section updated successfully", variant: "success" });
                 } catch {
                     toast({ title: "Error", description: "Failed to update section", variant: "destructive" });
@@ -82,9 +95,18 @@ export default function CourseSectionList({ courseId }: Props) {
 
     // 🟢 Add Lesson
     const handleAddLesson = async (sectionId: string) => {
+
         try {
             await createLesson({ courseId, sectionId, data: { title: "New Lesson", isFree: true } }).unwrap();
-            await refetchSections();
+            await refetchAllSections().unwrap();
+            dispatch(
+                courseApi.util.invalidateTags([
+                    { type: 'Course', id: courseId },
+                    { type: 'Section', id: sectionId },
+                    { type: 'Lesson', id: 'LIST' }
+                ])
+            );
+            await refetchCourse();
             toast({ title: "Success", description: "Lesson added successfully", variant: "success" });
         } catch {
             toast({ title: "Error", description: "Failed to add lesson", variant: "destructive" });
@@ -95,7 +117,14 @@ export default function CourseSectionList({ courseId }: Props) {
     const handleDeleteSection = async (id: string) => {
         try {
             await deleteSection(id).unwrap();
-            await refetchSections();
+            await refetchAllSections().unwrap();
+            dispatch(
+                courseApi.util.invalidateTags([
+                    { type: 'Course', id: courseId },
+                    { type: 'Lesson', id: 'LIST' }
+                ])
+            );
+            await refetchCourse();
             toast({ title: "Success", description: "Section deleted successfully", variant: "success" });
         } catch {
             toast({ title: "Error", description: "Failed to delete section", variant: "destructive" });
@@ -126,7 +155,6 @@ export default function CourseSectionList({ courseId }: Props) {
 
             await reorderSections({ sectionOrders: orderUpdates }).unwrap();
             await refetchSections();
-
             toast({ title: "Success", description: "Sections reordered successfully", variant: "success" });
         } catch {
             toast({ title: "Error", description: "Failed to reorder sections", variant: "destructive" });

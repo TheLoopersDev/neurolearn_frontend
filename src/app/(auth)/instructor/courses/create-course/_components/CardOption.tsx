@@ -98,7 +98,7 @@ const CardOption: React.FC<CardOptionProps> = ({
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        className="absolute right-0 z-100 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 py-2"
+                        className="absolute right-0 z-[9999] mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 py-2"
                         variants={dropdownVariants}
                         initial="hidden"
                         animate="visible"

@@ -63,7 +63,7 @@ export const courseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Course'],
+  tagTypes: ['Lesson', 'Section', 'Course'],
   endpoints: builder => ({
     getCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '/courses',

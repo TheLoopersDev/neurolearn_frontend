@@ -1,19 +1,30 @@
 // app/(auth)/instructor/courses/create-course/_components/step2/PickQuizToAddModal.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/ui/Button2";
 import { useGetAllQuizzesQuery } from "@/lib/redux/features/quiz/quizApi";
 import { toast } from "@/hooks/use-toast";
 import { Search, ListChecks, RefreshCw, CheckCircle2, FolderOpen } from "lucide-react";
 import QuizCard from "@/app/(auth)/instructor/quizzes/_components/QuizCard";
-// Nếu dự án đã dùng framer-motion, hiệu ứng rất nhẹ nhàng:
-import { m, AnimatePresence } from "framer-motion";
 
 type Props = {
     courseId?: string;
     onSubmit: (payload: { quizId: string; position?: number }) => Promise<void> | void;
     onClose: () => void;
+};
+
+type Quiz = {
+    _id: string;
+    name?: string;
+    examTitle?: string;
+    totalQuestions?: number;
+    category?: string;
+    duration?: string;
+    progress?: number;
+    createdAt?: string;
+    // questions?: any[]  // optional for the modal; QuizCard is relaxed below
+    [k: string]: any;
 };
 
 const DIFFICULTIES = ["all", "easy", "medium", "hard"] as const;
@@ -25,23 +36,39 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
     const [position, setPosition] = useState<string>("");
 
     const { data, isLoading, isError, refetch, isFetching } = useGetAllQuizzesQuery(
-        {
-            difficulty: difficulty === "all" ? undefined : difficulty,
-        },
+        { difficulty: difficulty === "all" ? undefined : difficulty },
         { refetchOnMountOrArgChange: true }
     );
 
-    const quizzes = useMemo(() => {
-        const list = (data as any)?.quizzes || (data as any)?.data || [];
-        if (!q.trim()) return list;
-        const kw = q.trim().toLowerCase();
-        return list.filter((it: any) => (it?.name || "").toLowerCase().includes(kw));
-    }, [data, q]);
+    const [allQuizzes, setAllQuizzes] = useState<Quiz[]>([]);
+    useEffect(() => {
+        const fromApi: Quiz[] = (data as any)?.quizzes ?? (data as any)?.data ?? [];
+        // normalize: unique by _id and stable sort
+        const map = new Map<string, Quiz>();
+        for (const item of fromApi) {
+            if (!item?._id) continue;
+            if (!map.has(item._id)) map.set(item._id, item);
+        }
+        setAllQuizzes(Array.from(map.values()).sort((a, b) => a._id.localeCompare(b._id)));
+    }, [data]);
+
+    // If selected quiz no longer exists in the canonical list, unselect
+    useEffect(() => {
+        if (selected && !allQuizzes.some((x) => x._id === selected)) setSelected("");
+    }, [allQuizzes, selected]);
+
+    const visibleQuizzes = useMemo(() => {
+        const term = q.trim().toLowerCase();
+        if (!term) return allQuizzes;
+        return allQuizzes.filter((it) =>
+            (it?.name || it?.examTitle || "").toLowerCase().includes(term)
+        );
+    }, [allQuizzes, q]);
 
     const toggleSelected = (id: string) => {
-        setSelected(prev => (prev === id ? "" : id));
+        setSelected((prev) => (prev === id ? "" : id));
     };
-    
+
     const handleConfirm = async () => {
         if (!selected) {
             toast({
@@ -57,8 +84,7 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
         try {
             const res: any = await onSubmit({ quizId: selected, position: finalPos });
             const ok = res?.success ?? true;
-            const name =
-                res?.quiz?.name || (quizzes || []).find((q: any) => q._id === selected)?.name;
+            const name = res?.quiz?.name || allQuizzes.find((x) => x._id === selected)?.name;
 
             if (ok) {
                 toast({
@@ -142,15 +168,15 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                         />
                         <input
                             className="
-    w-full rounded-2xl pl-9 pr-3 py-2.5 text-sm
-    bg-white border border-slate-200
-    shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-    placeholder:text-slate-400
-    focus:outline-none focus-visible:outline-none
-    focus:ring-2 focus:ring-primary/20 focus:border-primary/40
-    transition
-    dark:bg-slate-900 dark:border-slate-700
-  "
+                w-full rounded-2xl pl-9 pr-3 py-2.5 text-sm
+                bg-white border border-slate-200
+                shadow-[0_1px_2px_rgba(0,0,0,0.04)]
+                placeholder:text-slate-400
+                focus:outline-none focus-visible:outline-none
+                focus:ring-2 focus:ring-primary/20 focus:border-primary/40
+                transition
+                dark:bg-slate-900 dark:border-slate-700
+              "
                             placeholder="Search quiz by name..."
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
@@ -159,14 +185,14 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
 
                     <select
                         className="
-    rounded-2xl px-3 py-2.5 text-sm w-full md:w-48
-    bg-white border border-slate-200
-    shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-    focus:outline-none focus-visible:outline-none
-    focus:ring-2 focus:ring-primary/20 focus:border-primary/40
-    transition
-    dark:bg-slate-900 dark:border-slate-700
-  "
+              rounded-2xl px-3 py-2.5 text-sm w-full md:w-48
+              bg-white border border-slate-200
+              shadow-[0_1px_2px_rgba(0,0,0,0.04)]
+              focus:outline-none focus-visible:outline-none
+              focus:ring-2 focus:ring-primary/20 focus:border-primary/40
+              transition
+              dark:bg-slate-900 dark:border-slate-700
+            "
                         value={difficulty}
                         onChange={(e) => setDifficulty(e.target.value as any)}
                     >
@@ -183,14 +209,14 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                             type="number"
                             min={0}
                             className="
-    w-24 rounded-2xl px-3 py-2.5 text-sm
-    bg-white border border-slate-200
-    shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-    focus:outline-none focus-visible:outline-none
-    focus:ring-2 focus:ring-primary/20 focus:border-primary/40
-    transition
-    dark:bg-slate-900 dark:border-slate-700
-  "
+                w-24 rounded-2xl px-3 py-2.5 text-sm
+                bg-white border border-slate-200
+                shadow-[0_1px_2px_rgba(0,0,0,0.04)]
+                focus:outline-none focus-visible:outline-none
+                focus:ring-2 focus:ring-primary/20 focus:border-primary/40
+                transition
+                dark:bg-slate-900 dark:border-slate-700
+              "
                             placeholder="end"
                             value={position}
                             onChange={(e) => setPosition(e.target.value)}
@@ -199,7 +225,7 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                 </div>
             </div>
 
-            {/* List */}
+            {/* List (no framer; deterministic rendering) */}
             <div className="relative z-0 px-6 flex-1 min-h-0 overflow-y-auto pb-24">
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -224,7 +250,7 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                     <div className="p-4 text-sm text-red-600 border rounded-2xl bg-red-50/80 border-red-200 shadow-sm">
                         Failed to load quizzes. Please try again.
                     </div>
-                ) : (quizzes || []).length === 0 ? (
+                    ) : visibleQuizzes.length === 0 ? (
                     <div
                         className="
               p-10 text-center text-sm text-slate-500 rounded-3xl
@@ -239,48 +265,33 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <AnimatePresence initial={false}>
-                            {quizzes.map((qz: any) => {
-                                const checked = selected === qz._id;
-                                return (
-                                    <m.div
-                                        key={qz._id}
-                                        initial={{ opacity: 0, y: 4 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -4 }}
-                                        transition={{ duration: 0.18, ease: 'easeOut' }}
-                                        onClick={() => toggleSelected(qz._id)}
-                                        role="radio"
-                                        aria-checked={checked}
-                                        className="group cursor-pointer rounded-3xl transition-all bg-transparent border-0 shadow-none"
-                                    >
-                                        {/* check badge góc phải khi selected */}
-                                        <div className="relative">
+                                    {visibleQuizzes.map((qz) => {
+                                        const checked = selected === qz._id;
+                                        return (
                                             <div
-                                                className={[
-                                                    'absolute right-5 top-5 z-10 rounded-full bg-white/90 backdrop-blur-md',
-                                                    'border border-slate-200 shadow-sm p-1.5',
-                                                    checked ? 'text-emerald-600' : 'text-slate-300', // CHANGED
-                                                ].join(' ')}
+                                                key={qz._id}
+                                                onClick={() => toggleSelected(qz._id)}
+                                                role="radio"
+                                                aria-checked={checked}
+                                                className="group cursor-pointer rounded-3xl transition-all bg-transparent border-0 shadow-none relative"
                                             >
-                                                <CheckCircle2 size={18} />
+                                                {/* Selected badge */}
+                                                <div className="absolute right-5 top-5 z-10 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 shadow-sm p-1.5">
+                                                    <CheckCircle2 size={18} className={checked ? "text-emerald-600" : "text-slate-300"} />
+                                                </div>
+
+                                                <QuizCard
+                                                    quiz={qz as any}   // quiz type is relaxed in file #2 below
+                                                    disableLink
+                                                    hideOptions
+                                                    isSelected={checked}
+                                                    liftOnHover={false}
+                                                    onClick={() => toggleSelected(qz._id)}
+                                                    className="focus:outline-none focus-visible:outline-none"
+                                                />
                                             </div>
-                                        </div>
-
-                                        <QuizCard
-                                            quiz={qz}
-                                            disableLink
-                                            hideOptions
-                                            isSelected={checked}
-                                            liftOnHover={false}               
-                                            onClick={() => toggleSelected(qz._id)}
-                                            className="focus:outline-none focus-visible:outline-none"
-                                        />
-                                    </m.div>
-
-                                );
-                            })}
-                        </AnimatePresence>
+                                        );
+                                    })}
                     </div>
                 )}
             </div>
