@@ -89,7 +89,7 @@ export const apiSlice = createApi({
         method: 'GET',
       }),
     }),
-    getPendingRequests: builder.query<any[], { type: string; status?: string }>({
+    getPendingRequests: builder.query<{ success: boolean; data: any[] }, { type: string; status?: string }>({
       query: ({ type, status }) => {
         let url = `/request/get-request-pending?type=${type}`;
         if (status && status !== 'all') {

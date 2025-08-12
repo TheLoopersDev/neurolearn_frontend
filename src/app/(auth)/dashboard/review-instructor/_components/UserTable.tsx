@@ -25,10 +25,10 @@ const UserTable = () => {
           <div className="text-center py-8 col-span-12">Loading...</div>
         ) : isError ? (
           <div className="text-center py-8 col-span-12 text-red-500">Error loading requests.</div>
-        ) : !data || data.length === 0 ? (
+          ) : !data?.success || !data?.data || data.data.length === 0 ? (
           <div className="text-center py-8 col-span-12 text-gray-500">No requests found.</div>
         ) : (
-          data.map((user: any, idx: number) => (
+                data.data.map((user: any, idx: number) => (
             <ReviewTableRow key={user._id || user.id} index={idx}>
               {/* User */}
               <div className="col-span-3 flex items-center gap-3">
