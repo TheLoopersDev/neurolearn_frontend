@@ -88,22 +88,41 @@ export default function BusinessForm() {
             if (logo) formData.append('logo', logo);
             docImages.forEach((file) => formData.append('docImages', file));
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/create-request-business`, {
+            const rawBase = (process.env.NEXT_PUBLIC_SERVER_URI || '').replace(/\/$/, '');
+            const baseWithApi = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+            const res = await fetch(`${baseWithApi}/request/create-request-business`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',
             });
-            if (res.ok) {
+            const data = await res.json().catch(() => null);
+            if (res.ok && data?.success) {
                 toast({
                     title: 'Success',
                     description: 'Business registration successful!',
                     variant: 'success',
                 });
+                // Reset form after successful submission
+                setLogo(null);
+                setDocImages([]);
+                setAgree(false);
+                setErrors({});
+                // Clear all form fields
+                if (companyNameRef.current) companyNameRef.current.value = '';
+                if (taxCodeRef.current) taxCodeRef.current.value = '';
+                if (companyEmailRef.current) companyEmailRef.current.value = '';
+                if (companyAddressRef.current) companyAddressRef.current.value = '';
+                if (businessSectorRef.current) businessSectorRef.current.value = '';
+                if (companyDescRef.current) companyDescRef.current.value = '';
+                if (repNameRef.current) repNameRef.current.value = '';
+                if (repPhoneRef.current) repPhoneRef.current.value = '';
+                if (repEmailRef.current) repEmailRef.current.value = '';
+                if (repAddressRef.current) repAddressRef.current.value = '';
             } else {
-                const data = await res.json();
+                const message = data?.message || `Registration failed! (${res.status})`;
                 toast({
                     title: 'Error',
-                    description: data.message || 'Registration failed!',
+                    description: message,
                     variant: 'destructive',
                 });
             }
