@@ -7,13 +7,14 @@ import { FormSelect } from "../step1/FormSelect";
 import { Save, Plus, X } from "lucide-react";
 
 interface AddEditSectionProps {
-    onClose: () => void; // Đóng modal
+    onClose: () => void;
     courseId: string;
     onSubmit: (data: {
         title: string;
         description: string;
         isPublished: boolean;
-    }) => void;
+        courseId?: string; // tiện nếu parent cần kèm courseId
+    }) => void | Promise<any>;
     mode?: "add" | "edit";
     initialData?: {
         title: string;
@@ -27,38 +28,45 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
     onSubmit,
     mode = "add",
     initialData,
+    courseId,
 }) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [isPublished, setIsPublished] = useState("false");
+    // 👇 dùng boolean thay vì string
+    const [isPublished, setIsPublished] = useState<boolean>(false);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (initialData) {
             setTitle(initialData.title || "");
             setDescription(initialData.description || "");
-            setIsPublished(initialData.isPublished ? "true" : "false");
+            setIsPublished(!!initialData.isPublished);
         } else {
             setTitle("");
             setDescription("");
-            setIsPublished("false");
+            setIsPublished(false);
         }
     }, [initialData]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({
-            title,
-            description,
-            isPublished: isPublished === "true",
-        });
-        onClose();
+        try {
+            setSubmitting(true);
+            // nếu parent là async, chờ xong rồi mới đóng để tránh “đóng nhưng chưa publish”
+            await onSubmit({
+                title,
+                description,
+                isPublished,
+                courseId, // gửi kèm nếu BE cần
+            });
+            onClose();
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            onClick={onClose}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
             <div
                 className="relative bg-white rounded-xl shadow-lg w-full max-w-lg p-6"
                 onClick={(e) => e.stopPropagation()}
@@ -91,10 +99,11 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
                         onChange={(e) => setDescription(e.target.value)}
                     />
 
+                    {/* map boolean <-> string chỉ khi hiển thị */}
                     <FormSelect
                         label="Published Status"
-                        value={isPublished}
-                        onChange={(e) => setIsPublished(e.target.value)}
+                        value={isPublished ? "true" : "false"}
+                        onChange={(e) => setIsPublished(e.target.value === "true")}
                         options={[
                             { label: "Draft", value: "false" },
                             { label: "Published", value: "true" },
@@ -102,24 +111,19 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
                     />
 
                     <div className="flex justify-end gap-3 pt-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            type="button"
-                            onClick={onClose}
-                        >
+                        <Button variant="ghost" size="sm" type="button" onClick={onClose} disabled={submitting}>
                             Cancel
                         </Button>
-                        <Button variant="primary" size="sm" type="submit">
+                        <Button variant="primary" size="sm" type="submit" disabled={submitting}>
                             {mode === "edit" ? (
                                 <>
                                     <Save className="mr-2" size={18} />
-                                    Save Changes
+                                    {submitting ? "Saving..." : "Save Changes"}
                                 </>
                             ) : (
                                 <>
                                     <Plus className="mr-2" size={18} />
-                                    Add Section
+                                        {submitting ? "Adding..." : "Add Section"}
                                 </>
                             )}
                         </Button>
