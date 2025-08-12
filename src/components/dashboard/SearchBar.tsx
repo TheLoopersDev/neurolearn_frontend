@@ -16,11 +16,7 @@ export default function SearchBar({
   onSearchChange,
   searchPlaceholder = 'Search...',
   searchTerm = '',
-  filterOptions = [],               // <-- mặc định rỗng
 }: SearchBarProps) {
-  const [open, setOpen] = useState(false);
-  const btnRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchChange?.(e.target.value);
