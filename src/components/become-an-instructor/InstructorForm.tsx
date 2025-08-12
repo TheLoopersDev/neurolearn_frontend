@@ -92,13 +92,15 @@ export default function InstructorForm() {
                 formData.append('docImages', file);
             });
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification`, {
+            const rawBase = (process.env.NEXT_PUBLIC_SERVER_URI || '').replace(/\/$/, '');
+            const baseWithApi = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+            const res = await fetch(`${baseWithApi}/request/instructor-verification`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
             });
-            const data = await res.json();
-            if (data.success) {
+            const data = await res.json().catch(() => null);
+            if (res.ok && data?.success) {
                 toast({
                     title: 'Success',
                     description: 'Your request has been sent!',
@@ -121,7 +123,7 @@ export default function InstructorForm() {
             } else {
                 toast({
                     title: 'Error',
-                    description: data.message || 'Request sent failed!',
+                    description: (data?.message || `Request sent failed! (${res.status})`),
                     variant: 'destructive'
                 });
             }
