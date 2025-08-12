@@ -96,14 +96,14 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                     className="w-full h-[160px] object-cover rounded-2xl"
                     priority
                 />
-                <div className="flex justify-between items-center w-full max-w-[323px] mt-2">
+                <div className="flex justify-between items-center w-full max-w-[323px] mt-2 z-30">
                     <div className="flex gap-2 items-center">
                         <Image src={tag} alt="Tag icon" width={16} height={16} />
                         <span className="text-[#3858F8] text-sm font-medium">{category}</span>
                     </div>
 
                     {/* Wrapped CardOption with high z-index container */}
-                    <div className="relative z-[1000]">
+                    <div className="relative z-[9999]">
                         <CardOption
                             courseId={courseId}
                             onDelete={() =>
