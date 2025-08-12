@@ -73,7 +73,7 @@ const Sidebar = () => {
   const menuItems: MenuItem[] = menuByRole[userRole] || menuByRole['user'];
 
   return (
-    <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
+    <div className="w-full max-h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
       <nav className="flex flex-col gap-4 w-full">
         {menuItems.map((item: MenuItem) => {
           const isActive = pathname === item.path;
@@ -81,7 +81,7 @@ const Sidebar = () => {
             <Link
               key={item.label}
               href={item.path}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-xl font-medium transition-all h-15 ${
+              className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-all ${
                 isActive
                   ? 'bg-gray-100 text-[#3858F8]'
                   : 'text-black hover:text-[#3858F8] hover:bg-gray-50'
