@@ -22,7 +22,7 @@ export default function CourseCard({ course }: any) {
           <div className="relative w-40 h-20 flex-shrink-0">
             <Image
               src={course?.course?.thumbnail?.url}
-              alt={course?.name}
+              alt={course?.course?.name || 'Course thumbnail'}
               fill
               style={{ objectFit: 'cover' }}
               className="rounded-xl group-hover:scale-105 transition-transform duration-300"
