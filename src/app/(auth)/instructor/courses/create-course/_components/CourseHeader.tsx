@@ -5,12 +5,14 @@ import React from "react";
 import CardOption from "@/app/(auth)/instructor/courses/create-course/_components/CardOption";
 import tag from "@/public/assets/dashboard/course/tag.svg";
 import {
+    courseApi,
     useDeleteCourseMutation,
     usePublishCourseMutation,
     useUnpublishCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
 import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
+import { useDispatch } from "react-redux";
 
 interface CourseHeaderProps {
     thumbnailImage: string;
@@ -29,10 +31,12 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
     const [publishCourse] = usePublishCourseMutation();
     const [unpublishCourse] = useUnpublishCourseMutation();
     const { showModal } = useModal();
+    const dispatch = useDispatch();
 
     const handleDelete = async () => {
         try {
             await deleteCourse(courseId).unwrap();
+            dispatch(courseApi.util.invalidateTags([{ type: 'Course' }]));
             toast({
                 title: "Deleted",
                 description: "Course deleted successfully!",
