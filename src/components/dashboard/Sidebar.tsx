@@ -59,7 +59,6 @@ const Sidebar = () => {
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     admin: [
-      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
