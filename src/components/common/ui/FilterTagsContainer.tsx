@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { FilterTags } from "./FilterTags";
 import { useGetAllCategoriesWithSubcategoriesQuery } from "@/lib/redux/features/course/category/categoryApi";
 
@@ -23,6 +24,7 @@ export const FilterTagsContainer: React.FC<FilterTagsContainerProps> = ({
   defaultSelectedTag = "Web Development",
   onTagChange
 }) => {
+  const router = useRouter();
   const { data, isLoading } = useGetAllCategoriesWithSubcategoriesQuery();
 
   // Prefer props.tags if provided; otherwise use API; fallback to defaults
@@ -56,6 +58,9 @@ export const FilterTagsContainer: React.FC<FilterTagsContainerProps> = ({
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag);
     onTagChange?.(tag);
+
+    // Navigate to courses page with category filter
+    router.push(`/courses?page=1&category=${encodeURIComponent(tag)}`);
   };
 
   return (
