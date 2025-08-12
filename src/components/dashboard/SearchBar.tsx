@@ -27,7 +27,7 @@ export default function SearchBar({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
+    <div className="flex h-10 w-100 flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
       {/* Input (same UI as SearchCourse) */}
       <div className="relative w-full sm:flex-1 lg:min-w-[300px] xl:min-w-[400px]">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
