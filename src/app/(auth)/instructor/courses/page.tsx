@@ -23,8 +23,8 @@ export default function CoursesPage() {
     };
 
     return (
-        <div className="min-h-screen">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full mb-4">
+        <div className="w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
                 <SearchCourse
                     searchTerm={searchTerm}
                     onSearchChange={handleSearchChange}
