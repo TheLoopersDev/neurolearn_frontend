@@ -36,7 +36,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const [draftSaved, setDraftSaved] = useState(false);
 
     const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId as string, { skip: !courseId });
-    const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
+    const { data: sectionData, refetch: refetchAllSections, } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
@@ -158,15 +158,16 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
 
         setIsPublishing(true);
         try {
+            await refetchAllSections().unwrap();
             const sections = sectionData?.data || [];
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
-                toast({ title: "Error", description: "Course needs at least 1 section & lesson.", variant: "destructive" });
+                toast({ title: 'Error', description: 'Course needs at least 1 section & lesson.', variant: 'destructive' });
                 return;
             }
             await updateCourse({ id: courseId, course: { ...getPayload(), isDraft: false } }).unwrap();
             const res = await createCourseApprovalRequest({ courseId, message: "Requesting course approval" }).unwrap();
             toast({ title: "Success", description: res?.message || "Submitted!", variant: "success" });
-            router.push("/dashboard/courses");
+            router.push("/instructor/courses");
         } catch (err: any) {
             toast({ title: "Error", description: err?.data?.message || "Failed to publish.", variant: "destructive" });
         } finally {
