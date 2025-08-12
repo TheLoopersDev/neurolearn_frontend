@@ -81,6 +81,10 @@ export const courseApi = createApi({
       query: () => '/courses/top-courses',
       providesTags: ['Course'],
     }),
+    getTopViewing: builder.query<ApiResponse<{ courses: Course[] }>, void>({
+      query: () => '/courses/top-courses-viewing',
+      providesTags: ['Course'],
+    }),
     getReviewCourseById: builder.query<ApiResponse<Course>, string>({
       query: id => `/courses/review/${id}`,
       providesTags: (result, error, id) => [{ type: 'Course', id }],
@@ -273,6 +277,7 @@ export const {
   useGetCourseByDetailQuery,
   useGetReviewCourseByIdQuery,
   useGetTopCoursesQuery,
+  useGetTopViewingQuery,
   useGetUserCoursesQuery,
   useSaveCurriculumMutation,
   useCreateCourseMutation,
