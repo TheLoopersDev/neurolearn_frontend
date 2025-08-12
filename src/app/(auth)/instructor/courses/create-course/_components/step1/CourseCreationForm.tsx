@@ -29,14 +29,14 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const { toast } = useToast();
     const [step, setStep] = useState<1 | 2>(1);
     const [courseId, setCourseId] = useState<string | null>(propCourseId || null);
-    const [, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isContinuing, setIsContinuing] = useState(false);
     const [draftSaved, setDraftSaved] = useState(false);
 
     const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId as string, { skip: !courseId });
-    const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
+    const { data: sectionData, refetch: refetchAllSections, } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
@@ -93,10 +93,13 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
         if (!getId(data.category)) errs.category = "Category is required";
         if (!getId(data.level)) errs.level = "Skill level is required";
         if (!data.description?.trim()) errs.description = "Description is required";
-        if (!data.benefits?.length) errs.benefits = "At least 1 benefit is required";
-        if (!data.prerequisites?.length) errs.prerequisites = "At least 1 prerequisite is required";
+        // if (!data.benefits?.length) errs.benefits = "At least 1 benefit is required";
+        // if (!data.prerequisites?.length) errs.prerequisites = "At least 1 prerequisite is required";
         if (data.price == null || data.price < 0) errs.price = "Price is required and must be >= 0";
         if (!data.duration || data.duration <= 0) errs.duration = "Duration must be greater than 0";
+        if (data.tags && data.tags.length > 3) {
+            errs.tags = "Maximum 3 topics allowed";
+        }
 
         const thumbnailUrl =
             typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
@@ -155,15 +158,16 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
 
         setIsPublishing(true);
         try {
+            await refetchAllSections().unwrap();
             const sections = sectionData?.data || [];
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
-                toast({ title: "Error", description: "Course needs at least 1 section & lesson.", variant: "destructive" });
+                toast({ title: 'Error', description: 'Course needs at least 1 section & lesson.', variant: 'destructive' });
                 return;
             }
             await updateCourse({ id: courseId, course: { ...getPayload(), isDraft: false } }).unwrap();
             const res = await createCourseApprovalRequest({ courseId, message: "Requesting course approval" }).unwrap();
             toast({ title: "Success", description: res?.message || "Submitted!", variant: "success" });
-            router.push("/dashboard/courses");
+            router.push("/instructor/courses");
         } catch (err: any) {
             toast({ title: "Error", description: err?.data?.message || "Failed to publish.", variant: "destructive" });
         } finally {
@@ -215,6 +219,8 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                                     formData={formData}
                                     setFormData={setFormData}
                                     courseId={courseId}
+                                    errors={errors}
+                                    setErrors={setErrors}
                                     onDraftSaved={(id) => {
                                         setFormData((prev) => ({ ...prev, _id: id }));
                                         setCourseId(id);

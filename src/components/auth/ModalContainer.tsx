@@ -20,6 +20,7 @@ import ActionModal from '../../app/(auth)/instructor/courses/create-course/_comp
 import AddEditSection from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditSection';
 import AddEditLessonModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditLesson';
 import PickQuizToAddModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/PickQuizToAddModal';
+import CreateQuizModal from '@/app/(auth)/instructor/quizzes/_components/CreateQuizModal';
 
 
 export default function ModalContainer() {
@@ -110,6 +111,18 @@ export default function ModalContainer() {
             onClose={hideModal}
             currentUserId={modalData?.currentUserId}
             onChatCreated={modalData?.onChatCreated}
+          />
+        );
+      case 'createQuiz':
+        return (
+          <CreateQuizModal
+            key="createQuiz"
+            isOpen
+            onClose={hideModal}
+            onSubmit={(details) => {
+              modalData?.onSubmit?.(details);
+              hideModal();
+            }}
           />
         );
       default:
