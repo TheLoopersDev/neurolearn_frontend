@@ -29,10 +29,7 @@ export function CartSummary({ courses }: CartSummaryProps) {
   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
 
-  const subtotal = courses.reduce(
-    (sum, course) => sum + (course.price || 0) * course.quantity,
-    0
-  );
+  const subtotal = courses.reduce((sum, course) => sum + (course.price || 0) * course.quantity, 0);
   const totalCost = subtotal - discountAmount;
 
   const handleApplyDiscount = async () => {
@@ -44,24 +41,24 @@ export function CartSummary({ courses }: CartSummaryProps) {
     try {
       setApplying(true);
 
-      const courseIds = courses.map((c) => c._id);
+      const courseIds = courses.map(c => c._id);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URI}/discount/validate`,
         {
           code: discountCode.trim(),
           courseIds,
-          totalAmount: subtotal,
+          orderAmount: subtotal,
         },
         { withCredentials: true }
       );
 
-      if (res.data?.success && res.data.discountAmount > 0) {
-        setDiscountAmount(res.data.discountAmount || 0);
+      if (res.data?.success && res.data?.data?.discountAmount > 0) {
+        setDiscountAmount(res.data.data.discountAmount || 0);
         setAppliedDiscount(discountCode.trim());
         toast({
           variant: 'success',
           title: 'Discount applied!',
-          description: `You saved ${formatVND(res.data.discountAmount)}`,
+          description: `You saved ${formatVND(res.data.data.discountAmount)}`,
         });
       } else {
         setDiscountAmount(0);
@@ -85,10 +82,10 @@ export function CartSummary({ courses }: CartSummaryProps) {
     try {
       setLoading(true);
 
-      const courseIds = courses.map((course) => course._id);
+      const courseIds = courses.map(course => course._id);
       const licenseQuantities: Record<string, number> = {};
 
-      courses.forEach((course) => {
+      courses.forEach(course => {
         licenseQuantities[course._id] = course.quantity;
       });
 
@@ -159,9 +156,7 @@ export function CartSummary({ courses }: CartSummaryProps) {
             id="promo-code"
             placeholder="Enter your code"
             value={discountCode}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setDiscountCode(e.target.value)
-            }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setDiscountCode(e.target.value)}
             className="w-full rounded-md text-gray-700 border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
           />
           <Button

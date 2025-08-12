@@ -315,50 +315,53 @@ const BusinessMessagePage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex flex-col rounded-2xl overflow-hidden bg-[#F7F8FA]">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 bg-white border-b border-gray-200 z-10">
+      <div className="p-4 bg-white border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-900">Business Messages</h1>
         <p className="text-gray-600">Manage communications with your team and customers</p>
       </div>
 
-      {/* Chat List */}
-      <BusinessChatList
-        chats={chatRooms.map(mapChatRoomToChat)}
-        activeChatId={currentActiveChatId}
-        onSelectChat={handleSelectChat}
-        currentUserId={currentUserId}
-      />
-
-      {/* Chat Room */}
-      {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
-        <ChatRoom
-          key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
-          chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
+      {/* Main Content */}
+      <div className="flex-1 flex gap-5 p-5">
+        {/* Chat List */}
+        <BusinessChatList
+          chats={chatRooms.map(mapChatRoomToChat)}
+          activeChatId={currentActiveChatId}
+          onSelectChat={handleSelectChat}
           currentUserId={currentUserId}
-          messages={messages}
-          sendMessage={handleSendMessage}
-          sendReaction={handleSendReaction}
-          updateGroupName={updateGroupName}
-          addMembersToGroup={addMembersToGroup}
-          removeMemberFromGroup={removeMemberFromGroup}
-          loading={loading}
-          error={error}
         />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-          <div className="text-center">
-            <span className="text-gray-400">
-              {usersLoading ? 'Loading users...' : 'Loading chat...'}
-            </span>
-            {retryCount > 0 && (
-              <p className="text-xs text-gray-300 mt-2">
-                Retrying... ({retryCount}/3)
-              </p>
-            )}
+
+        {/* Chat Room */}
+        {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
+          <ChatRoom
+            key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
+            chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
+            currentUserId={currentUserId}
+            messages={messages}
+            sendMessage={handleSendMessage}
+            sendReaction={handleSendReaction}
+            updateGroupName={updateGroupName}
+            addMembersToGroup={addMembersToGroup}
+            removeMemberFromGroup={removeMemberFromGroup}
+            loading={loading}
+            error={error}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
+            <div className="text-center">
+              <span className="text-gray-400">
+                {usersLoading ? 'Loading users...' : 'Loading chat...'}
+              </span>
+              {retryCount > 0 && (
+                <p className="text-xs text-gray-300 mt-2">
+                  Retrying... ({retryCount}/3)
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
