@@ -161,7 +161,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
             />
 
             {/* Messages */}
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
                 <MessageList
                     messages={mappedMessages}
                     currentUserId={currentUserId}
@@ -171,13 +171,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
                 />
             </div>
 
-            {/* Input */}
-            <MessageInput
-                onSendMessage={handleSendMessage}
-                replyTo={replyTo}
-                onCancelReply={handleCancelReply}
-                disabled={loading}
-            />
+            {/* Input - Fixed positioning */}
+            <div className="flex-shrink-0">
+                <MessageInput
+                    onSendMessage={handleSendMessage}
+                    replyTo={replyTo}
+                    onCancelReply={handleCancelReply}
+                    disabled={loading}
+                />
+            </div>
 
             {/* Error Display */}
             {error && (
