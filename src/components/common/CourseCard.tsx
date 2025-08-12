@@ -17,7 +17,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
   return (
     <Link href={`/courses/${course._id}`} className="relative block w-[311px]">
       {/* Top Right Icons */}
-      <div className="absolute top-0 right-0 z-30 flex space-x-1 ">
+      <div className="absolute top-0 right-0 z-30 flex space-x-1">
         {/* <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
           <Image src="/assets/home/Heart.svg" alt="Heart" width={20} height={20} />
         </div> */}
