@@ -90,7 +90,7 @@ export function CourseInformationForm({
         if (next.length >= 1 && next.length <= 3) pushError("tags", undefined);
     };
 
-    // Textarea helper
+    // --- replace the old TextArea with this simplest version -------------------
     const TextArea = ({
         label,
         value,
@@ -101,32 +101,54 @@ export function CourseInformationForm({
     }: {
         label: string;
         value?: string;
-        onChange: (v: string) => void;
+            onChange: (v: string) => void; // vẫn báo lên parent, nhưng TÙY lúc
         required?: boolean;
         error?: string;
         placeholder?: string;
-    }) => (
-        <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-900">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            <textarea
-                placeholder={placeholder}
-                className={`p-3 text-sm text-gray-900 rounded-lg border resize-none min-h-[120px] outline-none
-          ${error ? "border-red-500 ring-2 ring-red-500" : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
-                value={value || ""}
-                onChange={(e) => onChange(e.target.value)}
-            />
-            {error && <p className="text-sm text-red-500">{error}</p>}
-        </div>
-    );
+        }) => {
+        // Uncontrolled: không buộc value theo parent mỗi keystroke
+        const ref = React.useRef<HTMLTextAreaElement>(null);
+
+        return (
+            <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-gray-900">
+                    {label} {required && <span className="text-red-500">*</span>}
+                </label>
+
+                <textarea
+                    ref={ref}
+                    defaultValue={value || ""}               // <-- KHÔNG dùng `value`
+                    placeholder={placeholder}
+                    className={`p-3 text-sm text-gray-900 rounded-lg border min-h-[120px] outline-none resize-y
+        ${error ? "border-red-500 ring-2 ring-red-500" : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
+                    // ghi về parent khi người dùng thật sự “xong” thao tác
+                    onBlur={() => onChange(ref.current?.value ?? "")}
+                    onInput={() => {
+                        // nếu bạn VẪN muốn parent biết trong lúc gõ, dùng onInput nhẹ nhàng:
+                        // onChange((e.target as HTMLTextAreaElement).value);
+                    }}
+                    // tránh Enter kích hoạt submit form → “out”
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                            // cho phép Ctrl/Cmd+Enter nếu bạn muốn
+                            onChange(ref.current?.value ?? "");
+                        }
+                    }}
+                />
+
+                {error && <p className="text-sm text-red-500">{error}</p>}
+            </div>
+        );
+    };
+
 
     return (
         <section className="p-6 bg-white rounded-xl w-full">
             <div className="flex flex-col gap-6 w-full">
                 <h1 className="text-2xl font-bold text-gray-800">Course Information</h1>
 
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+                    onSubmit={(e) => e.preventDefault()} >
                     {/* Column 1 */}
                     <div className="space-y-4">
                         <FormInput
@@ -290,8 +312,7 @@ export function CourseInformationForm({
                             placeholder="Course description"
                             value={formData.description || ""}
                             onChange={(v) => {
-                                setField("description", v);
-                                if (v.trim()) pushError("description", undefined);
+                                setFormData((prev) => ({ ...prev, description: v })); // chỉ commit khi blur (mặc định)
                             }}
                             error={errors.description}
                         />
@@ -300,8 +321,9 @@ export function CourseInformationForm({
                             label="Overview"
                             placeholder="Course overview (optional)"
                             value={formData.overview || ""}
-                            onChange={(v) => setField("overview", v)}
+                            onChange={(v) => setFormData((prev) => ({ ...prev, overview: v }))}
                         />
+
                     </div>
 
                     {/* Prerequisites */}
