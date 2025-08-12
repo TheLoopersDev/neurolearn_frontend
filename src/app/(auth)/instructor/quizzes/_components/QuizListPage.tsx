@@ -151,7 +151,6 @@ const QuizListPage: React.FC = () => {
             setSearchTerm(value);
             setCurrentPage(1);
           }}
-          onFilterClick={() => console.log('Filter clicked')}
         />
         <button
           onClick={handleOpenCreateModal}

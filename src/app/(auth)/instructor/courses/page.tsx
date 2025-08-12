@@ -18,17 +18,12 @@ export default function CoursesPage() {
         setSearchTerm(value);
     }, []);
 
-    const handleFilterClick = () => {
-        console.log('Filter clicked');
-    };
-
     return (
         <div className="w-full">
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
                 <SearchCourse
                     searchTerm={searchTerm}
                     onSearchChange={handleSearchChange}
-                    onFilterClick={handleFilterClick}
                 />
                 <div className="flex w-full sm:w-auto justify-center sm:justify-end mt-4 sm:mt-0">
                     <Button onClick={handleOpenCreateCourse} label="New Course" />
