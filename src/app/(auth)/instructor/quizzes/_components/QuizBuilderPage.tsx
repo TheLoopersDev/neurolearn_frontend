@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import QuestionListSidebar from './QuestionListSidebar';
 import InstructorQuestionEditor from './InstructorQuestionEditor';
 import QuizBuilderHeader from './QuizBuilderHeader';
-import { QuestionData, QuestionSummary, Quiz } from './types'; // Đảm bảo đường dẫn đúng
+import { QuestionData, QuestionSummary } from './types';
 import {
   useGetQuizByIdQuery,
   useUpdateQuizMutation,
@@ -14,44 +14,6 @@ import {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
 } from '@/lib/redux/features/quiz/quizApi';
-
-// --- Mockup hàm lưu trữ và tải quiz ---
-const QUIZZES_STORAGE_KEY = 'quizzes_v3_main'; // Đổi key để tránh xung đột với list page nếu cần
-
-const fetchQuizzesFromStorage = (): Quiz[] => {
-  if (typeof window !== 'undefined') {
-    const storedQuizzes = localStorage.getItem(QUIZZES_STORAGE_KEY);
-    return storedQuizzes ? JSON.parse(storedQuizzes) : [];
-  }
-  return [];
-};
-
-const saveQuizToStorage = (quizData: Quiz) => {
-  if (typeof window !== 'undefined') {
-    const quizzes = fetchQuizzesFromStorage();
-    const existingQuizIndex = quizzes.findIndex(q => q._id === quizData._id);
-    if (existingQuizIndex > -1) {
-      quizzes[existingQuizIndex] = quizData;
-    } else {
-      quizzes.push(quizData);
-    }
-    localStorage.setItem(QUIZZES_STORAGE_KEY, JSON.stringify(quizzes));
-  }
-};
-
-console.log(saveQuizToStorage);
-
-const fetchQuizByIdFromStorage = (quizId: string): Quiz | undefined => {
-  if (typeof window !== 'undefined') {
-    const quizzes = fetchQuizzesFromStorage();
-    return quizzes.find(q => q._id === quizId);
-  }
-  return undefined;
-};
-
-console.log(fetchQuizByIdFromStorage);
-
-// -------------------------------------
 
 function getIconForQuestionType(type: QuestionData['questionType']): React.ReactNode {
   if (type === 'multiple-choice' || type === 'single-choice') {
@@ -89,18 +51,23 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const quizIdToLoad =
     params?.quizId || (typeof pathParams?.quizId === 'string' ? pathParams.quizId : undefined);
 
-  const [quizName, setQuizName] = useState('Name Quiz');
+  // ====== STATE (ép đúng type theo interface Quiz) ======
+  const [quizName, setQuizName] = useState<string>('');
+  const [quizDuration, setQuizDuration] = useState<string>('30');   // duration?: string
+  const [quizCategory, setQuizCategory] = useState<string>('');     // category?: string
+  const [passingScore, setPassingScore] = useState<number>(70);     // passingScore?: number
+
   const [questionsList, setQuestionsList] = useState<QuestionData[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentQuizIdInternal, setCurrentQuizIdInternal] = useState<string | null>(null);
-  const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined); // State để lưu ngày tạo của quiz đang sửa
+  const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined);
   const [hasInitialized, setHasInitialized] = useState(false);
+
   const {
     data: fetchedQuiz,
     isLoading,
     isError,
-    // } = useGetQuizByIdQuery(quizIdToLoad!, {
   } = useGetQuizByIdQuery(quizIdToLoad as string, {
     skip: !quizIdToLoad,
   });
@@ -124,11 +91,15 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     };
   }, []);
 
+  // ====== LOAD DATA ======
   useEffect(() => {
     if (fetchedQuiz && fetchedQuiz.quiz) {
       const serverQuiz = fetchedQuiz.quiz;
 
       setQuizName(serverQuiz.name || '');
+      setQuizDuration(String(serverQuiz.duration ?? '30'));         
+      setQuizCategory(serverQuiz.category ?? '');
+      setPassingScore(Number(serverQuiz.passingScore ?? 70));       
 
       const transformedQuestions: QuestionData[] = (serverQuiz.questions || []).map((q, index) => ({
         id: `q_${index + 1}`,
@@ -154,21 +125,18 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         setQuestionsList([defaultQuestion]);
         setSelectedQuestionId(defaultQuestion.id);
 
-        // ✅ Lưu vào DB nếu quiz đã có ID
         if (serverQuiz._id) {
           addQuestion({
             id: serverQuiz._id,
             question: defaultQuestion,
           })
             .unwrap()
-            .then(res => {
-              console.log('✅ Default question saved:', res);
-            })
             .catch(err => {
               console.error('❌ Failed to save default question:', err);
             });
         }
       }
+
       setCurrentQuizIdInternal(serverQuiz._id ?? null);
       setCurrentQuizCreatedAt(serverQuiz.createdAt || undefined);
       setHasInitialized(true);
@@ -184,7 +152,6 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      // Sử dụng breakpoint lg (1024px)
       setIsSidebarOpen(false);
     }
   }, []);
@@ -192,6 +159,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
   const handleSelectQuestion = (id: string) => setSelectedQuestionId(id);
 
+  // ====== ADD QUESTION ======
   const handleAddQuestion = useCallback(async () => {
     const newQuestionNumber =
       questionsList.length > 0 ? Math.max(...questionsList.map(q => q.questionNumber)) + 1 : 1;
@@ -226,19 +194,18 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         }).unwrap();
 
         if (res?.question) {
-          // Giữ id là localId để match với selectedQuestionId
           const merged = { ...res.question, id: localId };
-
           setQuestionsList(prev => [...prev, merged]);
-          setSelectedQuestionId(localId); // Gán chính xác ID này để editor nhận
+          setSelectedQuestionId(localId);
+        } else {
+          // fallback local add
+          setQuestionsList(prev => [...prev, newQuestion]);
+          setSelectedQuestionId(localId);
         }
       } catch (err) {
-        // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
         console.error('Failed to add question:', err);
-
         toast({
           title: 'Error',
-          // Giữ thông báo thân thiện với người dùng
           description: 'Failed to add question',
           variant: 'destructive',
         });
@@ -248,12 +215,12 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       setSelectedQuestionId(localId);
     }
 
-    // Mở sidebar nếu đang ẩn
     if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
     }
   }, [currentQuizIdInternal, isSidebarOpen, questionsList, addQuestion, toast]);
 
+  // ====== UPDATE QUESTION ======
   const handleQuestionDataUpdateFromEditor = useCallback(
     async (updatedData: QuestionData) => {
       setQuestionsList(prev => prev.map(q => (q.id === updatedData.id ? updatedData : q)));
@@ -268,12 +235,9 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
             question: updatedData,
           }).unwrap();
         } catch (err) {
-          // ✅ Thêm dòng này để ghi lại lỗi chi tiết cho lập trình viên
           console.error('Failed to update question:', err);
-
           toast({
             title: 'Error',
-            // Giữ thông báo thân thiện với người dùng
             description: 'Failed to update question',
             variant: 'destructive',
           });
@@ -283,6 +247,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     [currentQuizIdInternal, hasInitialized, updateQuestion, toast]
   );
 
+  // ====== DELETE QUESTION ======
   const handleDeleteQuestion = async (questionId: string) => {
     if (!currentQuizIdInternal || !questionId) return;
 
@@ -297,20 +262,17 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
 
       if (res.success) {
         const remaining = questionsList.filter(q => q.id !== questionId);
-
-        // Cập nhật UI
         setQuestionsList(remaining);
         setSelectedQuestionId(remaining.length > 0 ? remaining[0].id : null);
 
-        // CALL UPDATE QUIZ WITH LATEST LIST
         await updateQuiz({
           id: currentQuizIdInternal,
           quiz: {
-            name: quizName,
-            questions: remaining, // 💡 dùng `remaining` trực tiếp
-            duration: '30 Min',
-            category: 'General',
-            imageUrl: '/assets/images/default_quiz_thumbnail.png',
+            name: quizName.trim(),
+            questions: remaining,
+            duration: String(quizDuration),          // string
+            category: quizCategory.trim() || undefined,
+            passingScore: Number(passingScore),      // number
           },
         }).unwrap();
 
@@ -329,6 +291,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     }
   };
 
+  // ====== SAVE QUIZ ======
   const handleSaveQuiz = async () => {
     if (!quizName.trim()) {
       toast({
@@ -351,11 +314,11 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     const payload = {
       id: currentQuizIdInternal!,
       quiz: {
-        name: quizName,
+        name: quizName.trim(),
         questions: questionsList,
-        duration: '30 Min',
-        category: 'General',
-        imageUrl: '/assets/images/default_quiz_thumbnail.png',
+        duration: String(quizDuration),          // string theo interface
+        passingScore: Number(passingScore),      // number theo interface
+        category: quizCategory.trim() || undefined,
       },
     };
 
@@ -366,7 +329,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         description: `Quiz "${quizName}" updated successfully.`,
         variant: 'success',
       });
-      router.push('/dashboard/create-quiz');
+      router.push('/instructor/quizzes');
     } catch (error) {
       toast({
         title: 'Error',
@@ -376,6 +339,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     }
   };
 
+  // ====== MEMO ======
   const questionSummaries: QuestionSummary[] = useMemo(
     () =>
       questionsList.map(q => ({
@@ -395,45 +359,103 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full">
-        {' '}
-        {/* Đảm bảo spinner/loading chiếm toàn bộ không gian */}
-        <p className="text-lg text-gray-600">Loading quiz data...</p>
-        {/* Bạn có thể thêm một spinner component ở đây */}
+      <div className="flex items-center justify-center h-screen w-full bg-gray-50">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-8 bg-blue-500 rounded-full mb-4"></div>
+          <p className="text-lg text-gray-600">Loading quiz data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col ">
+    <div className="min-h-screen flex flex-col rounded-xl">
       <QuizBuilderHeader
         title={quizName}
         onSaveQuiz={handleSaveQuiz}
         isEditing={!!currentQuizIdInternal}
       />
-      <div className="p-4">
-        <label htmlFor="quizNameInput" className="block text-sm font-medium text-gray-700 mb-1">
-          Quiz Name
-        </label>
-        <input
-          type="text"
-          id="quizNameInput"
-          value={quizName}
-          onChange={e => setQuizName(e.target.value)}
-          placeholder="Enter quiz name"
-          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-        />
+
+      {/* Quiz Settings Section */}
+      <div className="p-6 space-y-6 max-w-screen w-full">
+        <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+          <label htmlFor="quizNameInput" className="block text-sm font-medium text-gray-700 mb-1">
+            Quiz Name
+          </label>
+          <input
+            type="text"
+            id="quizNameInput"
+            value={quizName}
+            onChange={e => setQuizName(e.target.value)}
+            placeholder="Enter quiz name"
+            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Duration */}
+            <div>
+              <label htmlFor="quizDuration" className="block text-sm font-medium text-gray-700 mb-2">
+                Duration (minutes)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="quizDuration"
+                  value={Number.isNaN(Number(quizDuration)) ? '' : quizDuration}
+                  onChange={e => setQuizDuration(e.target.value)}
+                  min={1}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+                <div className="absolute right-3 top-3 text-gray-400">min</div>
+              </div>
+            </div>
+
+            {/* Passing Score */}
+            <div>
+              <label htmlFor="passingScore" className="block text-sm font-medium text-gray-700 mb-2">
+                Passing Score (%)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="passingScore"
+                  value={Number.isFinite(passingScore) ? passingScore : 0}
+                  onChange={e => setPassingScore(e.currentTarget.valueAsNumber || 0)}
+                  min={0}
+                  max={100}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+                <div className="absolute right-3 top-3 text-gray-400">%</div>
+              </div>
+            </div>
+
+            {/* Category */}
+            <div>
+              <label htmlFor="quizCategory" className="block text-sm font-medium text-gray-700 mb-2">
+                Category
+              </label>
+              <input
+                id="quizCategory"
+                value={quizCategory}
+                onChange={e => setQuizCategory(e.target.value)}
+                placeholder="e.g. JavaScript, React, SQL…"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              />
+            </div>
+          </div>
+        </div>
         {currentQuizCreatedAt && (
           <div className="mt-2 text-xs text-gray-500">
             Created at: {new Date(currentQuizCreatedAt).toLocaleString()}
           </div>
         )}
       </div>
-      <div className="flex flex-grow overflow-hidden pt-2 sm:pt-4 px-4 sm:px-6 gap-4 sm:gap-6">
+
+      {/* Questions Section */}
+      <div className="flex flex-grow pt-4 px-6 gap-6">
         {!isSidebarOpen && (
           <button
             onClick={toggleSidebar}
-            className="lg:hidden fixed top-[calc(8rem+0.75rem)] left-3 z-40 p-2 bg-white rounded-full shadow-lg text-blue-600 hover:bg-blue-50"
+            className="lg:hidden fixed top-32 left-4 z-40 p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-50 transition-colors"
             aria-label="Open sidebar"
           >
             <svg
@@ -443,38 +465,51 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         )}
+
         <QuestionListSidebar
           questions={questionSummaries}
           selectedQuestionId={selectedQuestionId}
           activeQuestionNumber={activeQuestionData?.questionNumber}
           onSelectQuestion={handleSelectQuestion}
           onAddQuestion={handleAddQuestion}
-          // isOpen and onToggle were passed from previous version, ensure they still exist
         />
-        <main className={`flex-grow overflow-y-auto transition-all duration-300 ease-in-out`}>
-          <div className="h-full">
+
+        <main className="flex-grow overflow-y-auto transition-all duration-300 ease-in-out bg-white rounded-xl shadow-sm">
+          <div className="h-full p-6">
             {activeQuestionData ? (
               <InstructorQuestionEditor
-                key={selectedQuestionId}
+                key={selectedQuestionId || 'editor'}
                 questionToLoad={activeQuestionData}
                 onQuestionDataChange={handleQuestionDataUpdateFromEditor}
                 onDeleteQuestion={handleDeleteQuestion}
               />
             ) : (
-              <div className="flex items-center justify-center h-full min-h-[calc(100vh-250px)]">
-                <p className="text-xl text-gray-500">
+                <div className="flex flex-col items-center justify-center h-full min-h-[calc(100vh-250px)] text-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 text-gray-300 mb-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-500 mb-1">
+                    {questionsList && questionsList.length > 0 ? 'Select a question to edit' : 'No questions yet'}
+                  </h3>
+                  <p className="text-sm text-gray-400">
                   {questionsList && questionsList.length > 0
-                    ? 'Select or add a question.'
-                    : "No questions yet. Click '+' in the sidebar to add one!"}
+                      ? 'Or click the "+" button to add a new one'
+                      : 'Click the "+" button to add your first question'}
                 </p>
               </div>
             )}
