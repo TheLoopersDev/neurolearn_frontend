@@ -229,6 +229,7 @@ export interface Course {
     rating: number;
     students: number;
     courses: number;
+    role?: string;
   };
 }
 
