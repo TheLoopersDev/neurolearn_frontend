@@ -115,7 +115,7 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
   const currentCourses = mergedCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
-    <section className="w-full">
+    <section className="w-full min-h-screen">
       <div className="flex flex-col justify-between min-h-[900px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full flex-1">
           {currentCourses.map((course: any) => (

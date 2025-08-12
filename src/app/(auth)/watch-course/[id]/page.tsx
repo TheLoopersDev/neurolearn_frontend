@@ -35,16 +35,16 @@ function CoursePage() {
   }, [courseId]);
 
   // If course has demo video, show it; otherwise keep player empty for CTA card.
-  useEffect(() => {
-    if (course?.demoUrl?.url) {
-      setCurrentVideoUrl(course.demoUrl.url);
-      setCurrentLessonId(null);
-      setNextLesson(null);
-    } else {
-      setCurrentVideoUrl(null);
-      setCurrentLessonId(null);
-    }
-  }, [course]);
+  // useEffect(() => {
+  //   if (course?.demoUrl?.url) {
+  //     setCurrentVideoUrl(course.demoUrl.url);
+  //     setCurrentLessonId(null);
+  //     setNextLesson(null);
+  //   } else {
+  //     setCurrentVideoUrl(null);
+  //     setCurrentLessonId(null);
+  //   }
+  // }, [course]);
 
   // Find the first playable lesson
   const firstLesson = useMemo(() => {
@@ -252,14 +252,13 @@ function CoursePage() {
                 <div className="w-full aspect-video rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center p-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-3 animate-pulse">
-                      <div className="w-14 h-14 rounded-full bg-gray-200" />
                     </div>
 
                     <p className="text-gray-600 mb-3">
                       {nextLesson
                         ? 'Great job! Ready for the next lesson?'
                         : course?.name
-                          ? 'This course has no demo video.'
+                          ? ''
                           : 'Loading course...'}
                     </p>
 
