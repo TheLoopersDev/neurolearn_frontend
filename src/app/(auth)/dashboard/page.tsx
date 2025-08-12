@@ -19,8 +19,15 @@ export default function UserDashboard() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Redirect admin to course requests page
   useEffect(() => {
-    if (!user?._id) return;
+    if (user?.role === 'admin') {
+      router.push('/dashboard/review-courses');
+    }
+  }, [user?.role, router]);
+
+  useEffect(() => {
+    if (!user?._id || user?.role === 'admin') return;
 
     const fetchDashboardData = async () => {
       try {
@@ -115,6 +122,11 @@ export default function UserDashboard() {
   };
   if (isLoading) {
     return <Loading message="Loading dashboard..." className="min-h-screen" />;
+  }
+
+  // Don't render dashboard content for admin
+  if (user?.role === 'admin') {
+    return <Loading message="Redirecting..." className="min-h-screen" />;
   }
 
   return (
