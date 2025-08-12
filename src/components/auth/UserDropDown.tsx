@@ -117,11 +117,11 @@ function getDropdownList(user: User) {
 
   if (user.role === 'admin') {
     return [
-      {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: <Image src={dashboard} alt="" width={20} height={20} />,
-      },
+      // {
+      //   title: 'Dashboard',
+      //   href: '/dashboard',
+      //   icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      // },
       {
         title: 'Course Requests',
         href: '/dashboard/review-courses',
