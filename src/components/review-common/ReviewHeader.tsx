@@ -19,16 +19,11 @@ interface ReviewHeaderProps {
 const ReviewHeader: React.FC<ReviewHeaderProps> = ({
   searchTerm,
   setSearchTerm,
-  selectedCategory,
-  setSelectedCategory,
-  categories,
+
   activeTab,
   onTabChange,
   tabOptions,
-  selectedStatus,
-  setSelectedStatus,
-  statusOptions,
-  showStatusFilter = false,
+
 }) => {
   return (
     <div className="flex items-center justify-between mb-8 text-black">
