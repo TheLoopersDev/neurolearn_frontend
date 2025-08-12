@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { Search } from 'lucide-react';
 
 interface SearchBarProps {
