@@ -20,12 +20,30 @@ export default function InstructorForm() {
     const [docImages, setDocImages] = useState<File[]>([]);
     const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
     const { toast } = useToast();
 
     // Validate các trường bắt buộc
     const validate = () => {
-        if (!fullName || !email || !phoneNumber || !dob || !address || !category || !description) {
+        const newErrors: { [key: string]: boolean } = {};
+
+        // Kiểm tra từng field
+        if (!fullName) newErrors.fullName = true;
+        if (!email) newErrors.email = true;
+        if (!phoneNumber) newErrors.phoneNumber = true;
+        if (!dob) newErrors.dob = true;
+        if (!address) newErrors.address = true;
+        if (!category) newErrors.category = true;
+        if (!description) newErrors.description = true;
+        if (!experience) newErrors.experience = true;
+        if (!role) newErrors.role = true;
+        if (!company) newErrors.company = true;
+        if (docImages.length === 0) newErrors.docImages = true;
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
             toast({
                 title: 'Missing information',
                 description: 'Please fill in the information completely.',
@@ -44,40 +62,46 @@ export default function InstructorForm() {
         return true;
     };
 
+    // Hàm để xóa lỗi khi user bắt đầu nhập
+    const clearError = (fieldName: string) => {
+        if (errors[fieldName]) {
+            setErrors(prev => ({ ...prev, [fieldName]: false }));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
         setLoading(true);
 
-        // If you want to upload real files, need to upload to server first, get url then send url in documents
-        // Ở đây chỉ gửi tên file demo
-        const body = {
-            fullName,
-            email,
-            phoneNumber,
-            dob,
-            address,
-            category,
-            description,
-            experience,
-            role,
-            company,
-            documents: docImages.map(f => f.name)
-        };
         try {
+            const formData = new FormData();
+            formData.append('fullName', fullName);
+            formData.append('email', email);
+            formData.append('phoneNumber', phoneNumber);
+            formData.append('dob', dob);
+            formData.append('address', address);
+            formData.append('category', category);
+            formData.append('description', description);
+            formData.append('experience', experience);
+            formData.append('role', role);
+            formData.append('company', company);
+
+            // Append files
+            docImages.forEach((file) => {
+                formData.append('docImages', file);
+            });
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body),
+                body: formData,
                 credentials: 'include'
             });
             const data = await res.json();
             if (data.success) {
                 toast({
-                            title: 'Success',
-        description: 'Your request has been sent!',
+                    title: 'Success',
+                    description: 'Your request has been sent!',
                     variant: 'success'
                 });
                 // Reset form
@@ -93,6 +117,7 @@ export default function InstructorForm() {
                 setCompany('');
                 setDocImages([]);
                 setAgree(false);
+                setErrors({});
             } else {
                 toast({
                     title: 'Error',
@@ -131,9 +156,12 @@ export default function InstructorForm() {
                                             id="fullName"
                                             type="text"
                                             placeholder="Enter your name"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.fullName ? 'border-2 border-red-500' : ''}`}
                                             value={fullName}
-                                            onChange={e => setFullName(e.target.value)}
+                                            onChange={e => {
+                                                setFullName(e.target.value);
+                                                clearError('fullName');
+                                            }}
                                         />
                                     </div>
                                     <div className="flex flex-col space-y-1">
@@ -142,9 +170,12 @@ export default function InstructorForm() {
                                             id="phoneNumber"
                                             type="text"
                                             placeholder="Enter your phone number"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.phoneNumber ? 'border-2 border-red-500' : ''}`}
                                             value={phoneNumber}
-                                            onChange={e => setPhoneNumber(e.target.value)}
+                                            onChange={e => {
+                                                setPhoneNumber(e.target.value);
+                                                clearError('phoneNumber');
+                                            }}
                                         />
                                     </div>
                                     <div className="flex flex-col space-y-1">
@@ -153,9 +184,12 @@ export default function InstructorForm() {
                                             id="email"
                                             type="email"
                                             placeholder="Enter your email"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.email ? 'border-2 border-red-500' : ''}`}
                                             value={email}
-                                            onChange={e => setEmail(e.target.value)}
+                                            onChange={e => {
+                                                setEmail(e.target.value);
+                                                clearError('email');
+                                            }}
                                         />
                                     </div>
                                     <div className="flex flex-col space-y-1">
@@ -163,9 +197,12 @@ export default function InstructorForm() {
                                         <input
                                             id="dob"
                                             type="date"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.dob ? 'border-2 border-red-500' : ''}`}
                                             value={dob}
-                                            onChange={e => setDob(e.target.value)}
+                                            onChange={e => {
+                                                setDob(e.target.value);
+                                                clearError('dob');
+                                            }}
                                         />
                                     </div>
                                     <div className="col-span-2 flex flex-col space-y-1">
@@ -174,9 +211,12 @@ export default function InstructorForm() {
                                             id="address"
                                             type="text"
                                             placeholder="Enter your address"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.address ? 'border-2 border-red-500' : ''}`}
                                             value={address}
-                                            onChange={e => setAddress(e.target.value)}
+                                            onChange={e => {
+                                                setAddress(e.target.value);
+                                                clearError('address');
+                                            }}
                                         />
                                     </div>
                                     <div className="col-span-2 flex flex-col space-y-1">
@@ -184,9 +224,12 @@ export default function InstructorForm() {
                                         <div className="relative">
                                             <select
                                                 id="category"
-                                                className="w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10"
+                                                className={`w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10 ${errors.category ? 'border-2 border-red-500' : ''}`}
                                                 value={category}
-                                                onChange={e => setCategory(e.target.value)}
+                                                onChange={e => {
+                                                    setCategory(e.target.value);
+                                                    clearError('category');
+                                                }}
                                             >
                                                 <option value="" disabled hidden>Select</option>
                                                 <option value="education">Education</option>
@@ -206,9 +249,12 @@ export default function InstructorForm() {
                                             id="desc"
                                             rows={4}
                                             placeholder="About you"
-                                            className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                            className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.description ? 'border-2 border-red-500' : ''}`}
                                             value={description}
-                                            onChange={e => setDescription(e.target.value)}
+                                            onChange={e => {
+                                                setDescription(e.target.value);
+                                                clearError('description');
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -228,9 +274,12 @@ export default function InstructorForm() {
                                         id="experience"
                                         type="text"
                                         placeholder="E.g. 5"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.experience ? 'border-2 border-red-500' : ''}`}
                                         value={experience}
-                                        onChange={e => setExperience(e.target.value)}
+                                        onChange={e => {
+                                            setExperience(e.target.value);
+                                            clearError('experience');
+                                        }}
                                     />
                                 </div>
                                 <div className="col-span-2 flex flex-col space-y-1">
@@ -238,9 +287,12 @@ export default function InstructorForm() {
                                     <div className="relative">
                                         <select
                                             id="role"
-                                            className="w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10"
+                                            className={`w-full appearance-none px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 pr-10 ${errors.role ? 'border-2 border-red-500' : ''}`}
                                             value={role}
-                                            onChange={e => setRole(e.target.value)}
+                                            onChange={e => {
+                                                setRole(e.target.value);
+                                                clearError('role');
+                                            }}
                                         >
                                             <option value="" disabled hidden>e.g. Instructor, Teaching Assistant, Curriculum Developer</option>
                                             <option value="instructor">Instructor</option>
@@ -258,9 +310,12 @@ export default function InstructorForm() {
                                         id="company"
                                         rows={4}
                                         placeholder="e.g. FPT, Coursera, FUNiX"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.company ? 'border-2 border-red-500' : ''}`}
                                         value={company}
-                                        onChange={e => setCompany(e.target.value)}
+                                        onChange={e => {
+                                            setCompany(e.target.value);
+                                            clearError('company');
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -269,7 +324,7 @@ export default function InstructorForm() {
                     {/* Upload Certificates */}
                     <div className="rounded-2xl shadow bg-white space-y-4 p-5 mt-5">
                         <h3 className="text-lg font-bold">Upload Certificate Images</h3>
-                        <div className="mt-2 border border-dashed rounded-lg p-6 text-center text-gray-400">
+                        <div className={`mt-2 border border-dashed rounded-lg p-6 text-center text-gray-400 ${errors.docImages ? 'border-red-500' : ''}`}>
                             <input
                                 type="file"
                                 accept="image/*"
@@ -279,6 +334,9 @@ export default function InstructorForm() {
                                 onChange={(e) => {
                                     const newFiles = Array.from(e.target.files || []);
                                     setDocImages((prev) => [...prev, ...newFiles]);
+                                    if (newFiles.length > 0) {
+                                        clearError('docImages');
+                                    }
                                 }}
                             />
                             <label htmlFor="docUpload" className="cursor-pointer block">

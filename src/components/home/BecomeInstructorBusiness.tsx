@@ -1,33 +1,15 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { FaCircleCheck } from 'react-icons/fa6';
 import homeImg1 from '@/public/assets/images/default-avatar.png';
 import homeImg3 from '@/public/assets/images/item-20.png';
 import { layoutStyles } from '@/styles/styles';
 import Image from 'next/image';
 import Link from 'next/link';
-import Button from '../common/ui/Button';
+import Button from '@/components/common/ui/Button';
 
 function BecomeInstructorBusiness() {
-    const [open, setOpen] = useState(false);
-    const buttonRef = useRef<HTMLDivElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node) &&
-                !buttonRef.current?.contains(event.target as Node)
-            ) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     return (
         <section className={`${layoutStyles.container} mb-20 md:mb-[140px] px-4 sm:px-6`}>
             <div className='bg-blue-200 text-black rounded-xl'>
@@ -57,36 +39,20 @@ function BecomeInstructorBusiness() {
                                 </li>
                             </ul>
                         </div>
-                        {/* Button & Dropdown */}
-                        <div className="md:my-auto z-10 relative" ref={buttonRef}>
-                            <Button
-                                className="text-sm md:text-base w-full sm:w-auto"
-                                onClick={() => setOpen(prev => !prev)}
-                            >
-                                Start Teaching Today
-                            </Button>
-                            {open && (
-                                <div
-                                    ref={dropdownRef}
-                                    className="absolute left-0 mt-2 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden min-w-[200px]"
-                                    style={{ width: buttonRef.current?.offsetWidth }}
-                                >
-                                    <Link
-                                        href="/become-an-instructor"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        onClick={() => setOpen(false)}
-                                    >
+                        {/* Buttons Section */}
+                        <div className="md:my-auto z-10">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                <Link href="/become-an-instructor">
+                                    <Button className="text-sm md:text-base w-full sm:w-auto">
                                         Become an Instructor
-                                    </Link>
-                                    <Link
-                                        href="/become-a-business"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        onClick={() => setOpen(false)}
-                                    >
+                                    </Button>
+                                </Link>
+                                <Link href="/become-a-business">
+                                    <Button className="text-sm md:text-base w-full sm:w-auto">
                                         Become a Business
-                                    </Link>
-                                </div>
-                            )}
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
                         {/* Images Section */}
                         <div className="relative md:absolute md:right-6 lg:right-12 bottom-0 max-h-[300px] md:max-h-[400px] w-full md:max-w-[354px] mt-6 md:mt-0">

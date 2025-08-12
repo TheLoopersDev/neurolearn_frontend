@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { Chat } from '@/types/chat';
 import { getChatDisplayName } from '@/utils/chatUtils';
-import CreateChatModal from './CreateChatModal';
+import { useModal } from '@/context/ModalContext';
 import ChatListItem from './ChatListItem';
 
 interface ChatListProps {
@@ -21,9 +21,9 @@ const ChatList: React.FC<ChatListProps> = ({
     onCreateChat,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [showCreateModal, setShowCreateModal] = useState(false);
     const { user } = useSelector((state: RootState) => state.auth);
     const { unreadCounts, onlineUsers } = useSelector((state: RootState) => state.chat);
+    const { showModal } = useModal();
 
     // Parse current user
     const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
@@ -36,18 +36,10 @@ const ChatList: React.FC<ChatListProps> = ({
     });
 
     const handleCreateChat = () => {
-        setShowCreateModal(true);
-    };
-
-    const handleCloseCreateModal = () => {
-        setShowCreateModal(false);
-        // Trigger a refresh of the chat list
-        onCreateChat();
-    };
-
-    const handleChatCreated = () => {
-        // Trigger a refresh of the chat list
-        onCreateChat();
+        showModal('createChat', {
+            currentUserId,
+            onChatCreated: onCreateChat
+        });
     };
 
     const handleSelectChat = (chatId: string) => {
@@ -122,15 +114,7 @@ const ChatList: React.FC<ChatListProps> = ({
                 )}
             </div>
 
-            {/* Create Chat Modal */}
-            {showCreateModal && (
-                <CreateChatModal
-                    open={showCreateModal}
-                    onClose={handleCloseCreateModal}
-                    currentUserId={currentUserId}
-                    onChatCreated={handleChatCreated}
-                />
-            )}
+
         </div>
     );
 };

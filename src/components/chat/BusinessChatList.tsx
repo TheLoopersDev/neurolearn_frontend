@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Chat } from '@/types/chat';
 import { Plus, Search } from 'lucide-react';
-import CreateChatModal from './CreateChatModal';
+import { useModal } from '@/context/ModalContext';
 
 interface BusinessChatListProps {
     chats: Chat[];
@@ -18,12 +18,12 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'group' | 'individual'>('all');
-    const [showCreateModal, setShowCreateModal] = useState(false);
+    const { showModal } = useModal();
 
     // Filter chats based on search and type
     const filteredChats = chats.filter(chat => {
         const matchesSearch = chat.isGroup 
-            ? `Group ${chat.members.length} members`.toLowerCase().includes(searchQuery.toLowerCase())
+            ? (chat.groupName || `Group (${chat.members.length} members)`).toLowerCase().includes(searchQuery.toLowerCase())
             : chat.members[0]?.name?.toLowerCase().includes(searchQuery.toLowerCase());
         
         const matchesType = filterType === 'all' 
@@ -36,12 +36,16 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
     });
 
     const handleCreateChat = () => {
-        setShowCreateModal(true);
-    };
-
-    const handleChatCreated = () => {
-        setShowCreateModal(false);
+        showModal('createChat', {
+            currentUserId,
+            onChatCreated: () => {
         // Refresh chat list or handle new chat
+                // Force parent component to refresh
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            }
+        });
     };
 
     return (
@@ -130,8 +134,19 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
                         {filteredChats.map((chat) => {
                             const isActive = chat._id === activeChatId;
                             const displayName = chat.isGroup 
-                                ? `Business Group (${chat.members.length} members)`
+                                ? chat.groupName || `Group (${chat.members.length} members)`
                                 : chat.members[0]?.name || 'Unknown User';
+
+                            // Debug: Log chat data for groups
+                            if (chat.isGroup) {
+                                console.log('Group chat data:', {
+                                    id: chat._id,
+                                    groupName: chat.groupName,
+                                    displayName,
+                                    members: chat.members.length
+                                });
+                            }
+
                             const avatar = chat.isGroup 
                                 ? '/assets/images/avatar-default.png'
                                 : chat.members[0]?.avatar?.url || '/assets/images/avatar-default.png';
@@ -186,13 +201,7 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
                 )}
             </div>
 
-            {/* Create Chat Modal */}
-            <CreateChatModal
-                open={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                currentUserId={currentUserId}
-                onChatCreated={handleChatCreated}
-            />
+
         </div>
     );
 };
