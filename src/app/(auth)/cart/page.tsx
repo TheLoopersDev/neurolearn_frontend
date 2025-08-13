@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CartItemList } from './_components/CartItemsList';
 import { CartSummary } from './_components/CartSummary';
+import Loading from '@/components/common/Loading';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
@@ -77,7 +78,7 @@ export default function CartPage() {
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  if (loading) return <p className="p-4 text-gray-500">Loading cart...</p>;
+  if (loading) return <Loading message="Loading cart..." />;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
