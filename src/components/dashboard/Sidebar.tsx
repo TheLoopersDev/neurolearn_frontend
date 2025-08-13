@@ -52,7 +52,7 @@ const Sidebar = () => {
       { icon: courses, label: 'Courses', path: '/instructor/courses' },
       { icon: createQuiz, label: 'Quizzes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
-      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      // { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },

@@ -34,6 +34,20 @@ export function CourseInformationForm({
     const topicArray = Array.isArray(formData.tags) ? formData.tags : [];
     const benefitsArray = Array.isArray(formData.benefits) ? formData.benefits : [];
     const prereqArray = Array.isArray(formData.prerequisites) ? formData.prerequisites : [];
+    // thêm vào đầu component (sau các useState/useQuery)
+    React.useEffect(() => {
+        setFormData(prev => {
+            const cat = prev.category as any;
+            const lvl = prev.level as any;
+            return {
+                ...prev,
+                category: typeof cat === 'string' ? cat : (cat?._id ?? ''), // ép về id
+                level: typeof lvl === 'string' ? lvl : (lvl?._id ?? ''),
+            };
+        });
+        // chạy 1 lần khi mở form (hoặc đổi courseId)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const setField = <K extends keyof Course>(key: K, value: Course[K]) =>
         setFormData((prev) => ({ ...prev, [key]: value }));
@@ -174,7 +188,6 @@ export function CourseInformationForm({
                             <FormSelect
                                 label="Category"
                                 placeholder="Select"
-                                required
                                 options={
                                     categoryData?.categories?.map((cat) => ({
                                         label: cat.title,
@@ -183,37 +196,35 @@ export function CourseInformationForm({
                                 }
                                 value={
                                     typeof formData.category === "object" && formData.category !== null
-                                        ? (formData.category as any)._id
+                                        ? formData.category._id
                                         : (formData.category as string) || ""
                                 }
-                                onChange={(e) => {
-                                    setField("category", e.target.value);
-                                    if (e.target.value) pushError("category", undefined);
-                                }}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({ ...prev, category: e.target.value }))
+                                }
                                 error={errors.category}
                             />
 
                             <FormSelect
                                 label="Skill level"
                                 placeholder="Select"
-                                required
                                 options={
                                     levelData?.levels?.map((lv) => ({
-                                        label: lv.name,
-                                        value: lv._id,
+                                        label: lv.name,   // Hiển thị tên
+                                        value: lv._id,    // Giá trị là _id
                                     })) || []
                                 }
                                 value={
                                     typeof formData.level === "object" && formData.level !== null
-                                        ? (formData.level as any)._id
+                                        ? formData.level._id
                                         : (formData.level as string) || ""
                                 }
-                                onChange={(e) => {
-                                    setField("level", e.target.value);
-                                    if (e.target.value) pushError("level", undefined);
-                                }}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({ ...prev, level: e.target.value }))
+                                }
                                 error={errors.level}
                             />
+
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
