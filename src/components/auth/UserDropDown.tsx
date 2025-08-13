@@ -187,11 +187,11 @@ function getDropdownList(user: User) {
         href: '/dashboard/earning',
         icon: <Image src={earning} alt="" width={20} height={20} />,
       },
-      {
-        title: 'Withdrawals',
-        href: '/dashboard/withdrawals',
-        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
-      },
+      // {
+      //   title: 'Withdrawals',
+      //   href: '/dashboard/withdrawals',
+      //   icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      // },
       {
         title: 'Purchase History',
         href: '/dashboard/purchase-history',
