@@ -10,62 +10,68 @@ const defaultTags = [
   "Leadership",
   "Web Development",
   "Communication",
-  "Business Analytics & Intelligence"
+  "Business Analytics & Intelligence",
 ];
 
-interface FilterTagsContainerProps {
+type Props = {
   tags?: string[];
   defaultSelectedTag?: string;
   onTagChange?: (selectedTag: string) => void;
-}
+};
 
-export const FilterTagsContainer: React.FC<FilterTagsContainerProps> = ({
+export const FilterTagsContainer: React.FC<Props> = ({
   tags,
   defaultSelectedTag = "Web Development",
-  onTagChange
+  onTagChange,
 }) => {
   const router = useRouter();
   const { data, isLoading } = useGetAllCategoriesWithSubcategoriesQuery();
 
-  // Prefer props.tags if provided; otherwise use API; fallback to defaults
-  const apiTags = React.useMemo(() => {
-    const list = (data as any)?.categories ?? [];
-    return Array.isArray(list)
-      ? list.map((c: any) => String(c?.title ?? "")).filter((t: string) => t.length > 0)
-      : [];
-  }, [data]);
+  // 1) Tính snapshot cho lần render đầu (khớp SSR)
+  const [renderTags, setRenderTags] = React.useState<string[]>(
+    () => (Array.isArray(tags) && tags.length ? tags : defaultTags)
+  );
 
-  const effectiveTags = React.useMemo(() => {
-    if (Array.isArray(tags) && tags.length > 0) return tags;
-    if (!isLoading && apiTags.length > 0) return apiTags;
-    return defaultTags;
-  }, [tags, apiTags, isLoading]);
+  const [selectedTag, setSelectedTag] = React.useState<string>(() => {
+    const initial = (Array.isArray(tags) && tags.length ? tags : defaultTags);
+    return initial.includes(defaultSelectedTag)
+      ? defaultSelectedTag
+      : initial[0] ?? "";
+  });
 
-  const initialSelected = React.useMemo(() => {
-    if (defaultSelectedTag && effectiveTags.includes(defaultSelectedTag)) return defaultSelectedTag;
-    return effectiveTags[0] ?? defaultTags[0];
-  }, [defaultSelectedTag, effectiveTags]);
-
-  const [selectedTag, setSelectedTag] = React.useState<string>(initialSelected);
-
-  // Keep selected tag valid when tag list changes
+  // 2) Sau khi mount, nếu không có props.tags thì mới nhận data từ API
   React.useEffect(() => {
-    if (!effectiveTags.includes(selectedTag)) {
-      setSelectedTag(effectiveTags[0] ?? "");
-    }
-  }, [effectiveTags, selectedTag]);
+    if (tags && tags.length) return; // props ưu tiên
+    if (isLoading) return;
 
+    const apiList = (data as any)?.categories ?? [];
+    const apiTags: string[] = Array.isArray(apiList)
+      ? apiList
+        .map((c: any) => String(c?.title ?? "").trim())
+        .filter((t) => t.length > 0)
+      : [];
+
+    if (apiTags.length) {
+      setRenderTags(apiTags);
+      setSelectedTag((prev) => {
+        if (apiTags.includes(prev)) return prev;
+        return apiTags.includes(defaultSelectedTag)
+          ? defaultSelectedTag
+          : apiTags[0] ?? "";
+      });
+    }
+  }, [tags, data, isLoading, defaultSelectedTag]);
+
+  // 3) Handler
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag);
     onTagChange?.(tag);
-
-    // Navigate to courses page with category filter
     router.push(`/courses?page=1&category=${encodeURIComponent(tag)}`);
   };
 
   return (
     <FilterTags
-      tags={effectiveTags}
+      tags={renderTags}
       selectedTag={selectedTag}
       onTagSelect={handleTagSelect}
     />
