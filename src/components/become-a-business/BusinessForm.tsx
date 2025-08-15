@@ -9,6 +9,8 @@ export default function BusinessForm() {
     const [docImages, setDocImages] = useState<File[]>([]);
     const [agree, setAgree] = useState(false)
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
+
     // refs cho input
     const companyNameRef = useRef<HTMLInputElement>(null);
     const taxCodeRef = useRef<HTMLInputElement>(null);
@@ -25,19 +27,24 @@ export default function BusinessForm() {
 
     // Validate các trường bắt buộc
     const validate = () => {
-        if (!companyNameRef.current?.value ||
-            !taxCodeRef.current?.value ||
-            !companyEmailRef.current?.value ||
-            !companyAddressRef.current?.value ||
-            !businessSectorRef.current?.value ||
-            !companyDescRef.current?.value ||
-            !repNameRef.current?.value ||
-            !repPhoneRef.current?.value ||
-            !repEmailRef.current?.value ||
-            !repAddressRef.current?.value ||
-            !logo ||
-            docImages.length === 0
-        ) {
+        const newErrors: { [key: string]: boolean } = {};
+
+        if (!companyNameRef.current?.value) newErrors.companyName = true;
+        if (!taxCodeRef.current?.value) newErrors.taxCode = true;
+        if (!companyEmailRef.current?.value) newErrors.companyEmail = true;
+        if (!companyAddressRef.current?.value) newErrors.companyAddress = true;
+        if (!businessSectorRef.current?.value) newErrors.businessSector = true;
+        if (!companyDescRef.current?.value) newErrors.companyDesc = true;
+        if (!repNameRef.current?.value) newErrors.repName = true;
+        if (!repPhoneRef.current?.value) newErrors.repPhone = true;
+        if (!repEmailRef.current?.value) newErrors.repEmail = true;
+        if (!repAddressRef.current?.value) newErrors.repAddress = true;
+        if (!logo) newErrors.logo = true;
+        if (docImages.length === 0) newErrors.docImages = true;
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
             toast({
                 title: 'Missing information',
                 description: 'Please fill in all required fields and upload logo, documents.',
@@ -54,6 +61,12 @@ export default function BusinessForm() {
             return false;
         }
         return true;
+    };
+
+    const clearError = (fieldName: string) => {
+        if (errors[fieldName]) {
+            setErrors(prev => ({ ...prev, [fieldName]: false }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -75,22 +88,41 @@ export default function BusinessForm() {
             if (logo) formData.append('logo', logo);
             docImages.forEach((file) => formData.append('docImages', file));
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/create-request-business`, {
+            const rawBase = (process.env.NEXT_PUBLIC_SERVER_URI || '').replace(/\/$/, '');
+            const baseWithApi = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+            const res = await fetch(`${baseWithApi}/request/create-request-business`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',
             });
-            if (res.ok) {
+            const data = await res.json().catch(() => null);
+            if (res.ok && data?.success) {
                 toast({
                     title: 'Success',
                     description: 'Business registration successful!',
                     variant: 'success',
                 });
+                // Reset form after successful submission
+                setLogo(null);
+                setDocImages([]);
+                setAgree(false);
+                setErrors({});
+                // Clear all form fields
+                if (companyNameRef.current) companyNameRef.current.value = '';
+                if (taxCodeRef.current) taxCodeRef.current.value = '';
+                if (companyEmailRef.current) companyEmailRef.current.value = '';
+                if (companyAddressRef.current) companyAddressRef.current.value = '';
+                if (businessSectorRef.current) businessSectorRef.current.value = '';
+                if (companyDescRef.current) companyDescRef.current.value = '';
+                if (repNameRef.current) repNameRef.current.value = '';
+                if (repPhoneRef.current) repPhoneRef.current.value = '';
+                if (repEmailRef.current) repEmailRef.current.value = '';
+                if (repAddressRef.current) repAddressRef.current.value = '';
             } else {
-                const data = await res.json();
+                const message = data?.message || `Registration failed! (${res.status})`;
                 toast({
                     title: 'Error',
-                    description: data.message || 'Registration failed!',
+                    description: message,
                     variant: 'destructive',
                 });
             }
@@ -127,8 +159,9 @@ export default function BusinessForm() {
                                         id="companyName"
                                         type="text"
                                         placeholder="Official company name"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.companyName ? 'border-2 border-red-500' : ''}`}
                                         ref={companyNameRef}
+                                        onChange={() => clearError('companyName')}
                                     />
                                 </div>
                                 {/* Tax*/}
@@ -138,8 +171,9 @@ export default function BusinessForm() {
                                         id="taxCode"
                                         type="text"
                                         placeholder="Company tax ID"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.taxCode ? 'border-2 border-red-500' : ''}`}
                                         ref={taxCodeRef}
+                                        onChange={() => clearError('taxCode')}
                                     />
                                 </div>
                                 {/* Email Address*/}
@@ -149,8 +183,9 @@ export default function BusinessForm() {
                                         id="companyEmail"
                                         type="email"
                                         placeholder="Business email"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.companyEmail ? 'border-2 border-red-500' : ''}`}
                                         ref={companyEmailRef}
+                                        onChange={() => clearError('companyEmail')}
                                     />
                                 </div>
                                 {/* Address */}
@@ -160,8 +195,9 @@ export default function BusinessForm() {
                                         id="companyAddress"
                                         type="text"
                                         placeholder="Business address"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.companyAddress ? 'border-2 border-red-500' : ''}`}
                                         ref={companyAddressRef}
+                                        onChange={() => clearError('companyAddress')}
                                     />
                                 </div>
                                 {/* Business Sector */}
@@ -171,8 +207,9 @@ export default function BusinessForm() {
                                         id="businessSector"
                                         type="text"
                                         placeholder="(E.g., Education, Information Technology, Marketing, Design, Finance, etc.)"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.businessSector ? 'border-2 border-red-500' : ''}`}
                                         ref={businessSectorRef}
+                                        onChange={() => clearError('businessSector')}
                                     />
                                 </div>
                                 {/* Description */}
@@ -182,8 +219,9 @@ export default function BusinessForm() {
                                         id="companyDesc"
                                         rows={4}
                                         placeholder="About you"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.companyDesc ? 'border-2 border-red-500' : ''}`}
                                         ref={companyDescRef}
+                                        onChange={() => clearError('companyDesc')}
                                     />
                                 </div>
                             </div>
@@ -200,7 +238,7 @@ export default function BusinessForm() {
                         {/* Form bên phải */}
                         <div className="md:col-span-4 flex justify-center">
                             {!logo ? (
-                                <div className="w-[200px] h-[200px] border border-dashed rounded-lg flex items-center justify-center text-center text-gray-400 relative">
+                                <div className={`w-[200px] h-[200px] border border-dashed rounded-lg flex items-center justify-center text-center text-gray-400 relative ${errors.logo ? 'border-red-500' : ''}`}>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -208,7 +246,10 @@ export default function BusinessForm() {
                                         id="logoUpload"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
-                                            if (file) setLogo(file);
+                                            if (file) {
+                                                setLogo(file);
+                                                clearError('logo');
+                                            }
                                         }}
                                     />
                                     <label htmlFor="logoUpload" className="cursor-pointer block">
@@ -253,8 +294,9 @@ export default function BusinessForm() {
                                         id="repName"
                                         type="text"
                                         placeholder="Enter your name"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.repName ? 'border-2 border-red-500' : ''}`}
                                         ref={repNameRef}
+                                        onChange={() => clearError('repName')}
                                     />
                                 </div>
                                 {/* Phone Number*/}
@@ -264,8 +306,9 @@ export default function BusinessForm() {
                                         id="repPhone"
                                         type="text"
                                         placeholder="Enter your phone number"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.repPhone ? 'border-2 border-red-500' : ''}`}
                                         ref={repPhoneRef}
+                                        onChange={() => clearError('repPhone')}
                                     />
                                 </div>
                                 {/* Email Address*/}
@@ -275,8 +318,9 @@ export default function BusinessForm() {
                                         id="repEmail"
                                         type="email"
                                         placeholder="Enter your email"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 ${errors.repEmail ? 'border-2 border-red-500' : ''}`}
                                         ref={repEmailRef}
+                                        onChange={() => clearError('repEmail')}
                                     />
                                 </div>
                                 {/* Address */}
@@ -286,8 +330,9 @@ export default function BusinessForm() {
                                         id="repAddress"
                                         type="text"
                                         placeholder="Enter your address"
-                                        className="w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700"
+                                        className={`w-full px-4 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-0 text-gray-700 ${errors.repAddress ? 'border-2 border-red-500' : ''}`}
                                         ref={repAddressRef}
+                                        onChange={() => clearError('repAddress')}
                                     />
                                 </div>
                             </div>
@@ -297,7 +342,7 @@ export default function BusinessForm() {
                 {/* Upload file */}
                 <div className="rounded-2xl shadow bg-white space-y-4 p-5 mt-5">
                     <h3 className="text-lg font-bold">Upload Certificate Images</h3>
-                    <div className="mt-2 border border-dashed rounded-lg p-6 text-center text-gray-400">
+                    <div className={`mt-2 border border-dashed rounded-lg p-6 text-center text-gray-400 ${errors.docImages ? 'border-red-500' : ''}`}>
                         <input
                             type="file"
                             accept="image/*"
@@ -307,6 +352,9 @@ export default function BusinessForm() {
                             onChange={(e) => {
                                 const newFiles = Array.from(e.target.files || []);
                                 setDocImages((prev) => [...prev, ...newFiles]);
+                                if (newFiles.length > 0) {
+                                    clearError('docImages');
+                                }
                             }}
                         />
                         <label htmlFor="docUpload" className="cursor-pointer block">

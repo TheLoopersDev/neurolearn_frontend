@@ -1,11 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Eye, Trash2, Search, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@headlessui/react';
 import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
+import SearchInstructorRequest from './_components/SearchInstructorRequest';
+import Loading from '@/components/common/Loading';
 
-const categories = ['All instructors', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+const categories = ['All categories', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 interface InstructorData {
@@ -36,10 +38,14 @@ const ReviewInstructorPage = () => {
   const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState<InstructorData | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [isInstructorLoading, setIsInstructorLoading] = useState(false);
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
+
+
 
   // API call for instructor verification requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
@@ -68,9 +74,10 @@ const ReviewInstructorPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const requestsPerPage = 10;
-  const startIndex = (currentPage - 1) * requestsPerPage;
-  const currentRequests = filteredRequests.slice(startIndex, startIndex + requestsPerPage);
+  const requestsPerPage = 6;
+  const requestTotalPages = Math.ceil(filteredRequests.length / requestsPerPage);
+  const requestStartIndex = (currentPage - 1) * requestsPerPage;
+  const currentRequests = filteredRequests.slice(requestStartIndex, requestStartIndex + requestsPerPage);
 
   // Fetch instructors when tab is 'instructors'
   useEffect(() => {
@@ -101,25 +108,55 @@ const ReviewInstructorPage = () => {
     }
   }, [activeTab]);
 
+  // Filter instructors based on search term and category
+  const filteredInstructors = instructors.filter((instructor) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return true; // Show all instructors when no search term
+    }
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    const instructorName = (instructor.name || '').toLowerCase();
+    const instructorEmail = (instructor.email || '').toLowerCase();
+    const instructorProfession = (instructor.profession || '').toLowerCase();
+    const instructorRole = (instructor.role || '').toLowerCase();
+
+    const matchesSearch = instructorName.includes(searchLower) ||
+      instructorEmail.includes(searchLower) ||
+      instructorProfession.includes(searchLower) ||
+      instructorRole.includes(searchLower);
+
+    // Category filter - for instructors we can match by profession/role
+    const matchesCategory = selectedCategory === 'All instructors' ||
+      instructorProfession.includes(selectedCategory.toLowerCase()) ||
+      instructorRole.includes(selectedCategory.toLowerCase());
+
+    return matchesSearch && matchesCategory;
+  });
+
   // Pagination for instructors
-  const instructorsPerPage = 9;
-  const instructorTotalPages = Math.ceil(instructors.length / instructorsPerPage);
+  const instructorsPerPage = 6;
+  const instructorTotalPages = Math.ceil(filteredInstructors.length / instructorsPerPage);
   const instructorStartIndex = (currentPage - 1) * instructorsPerPage;
-  const currentInstructors = instructors.slice(instructorStartIndex, instructorStartIndex + instructorsPerPage);
+  const currentInstructors = filteredInstructors.slice(instructorStartIndex, instructorStartIndex + instructorsPerPage);
 
   const handleTabChange = (tab: 'requests' | 'instructors') => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
 
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedStatus]);
+
   // Handle instructor verification action
   const handleInstructorAction = async (requestId: string, action: 'approve' | 'reject') => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification/${requestId}/action`, {
         method: 'PUT',
+        credentials: 'include', // Use HttpOnly cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify({ action }),
       });
@@ -154,49 +191,21 @@ const ReviewInstructorPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header with Search and Filters */}
-        <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-3xl shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-80"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <select
-                className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-              <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
-            </div>
-            {activeTab === 'requests' && (
-              <div className="relative">
-                <select
-                  className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                  value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
-                >
-                  {statusOptions.map(status => (
-                    <option key={status} value={status}>
-                      {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
-              </div>
-            )}
-          </div>
+        <div className="flex items-center justify-between mb-8 text-black">
+          <SearchInstructorRequest
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categories={categories}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            statusOptions={statusOptions}
+            activeTab={activeTab}
+            searchPlaceholder="Search instructors requests"
+          />
           <div className="flex gap-3">
             <button
               className={`px-6 py-3 rounded-full font-medium shadow-lg transition-all hover:shadow-xl ${activeTab === 'requests'
@@ -218,10 +227,8 @@ const ReviewInstructorPage = () => {
             </button>
           </div>
         </div>
-
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The Instructor</h1>
-
         {/* Tab content */}
         {activeTab === 'requests' ? (
           <>
@@ -235,13 +242,14 @@ const ReviewInstructorPage = () => {
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
                 <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
               </div>
-
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
-                  <div className="text-center py-8">Loading...</div>
-                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestArray || requestArray.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No data</div>
+                  <Loading message="Loading requests..." size="sm" className="py-8" />
+                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
+                  </div>
                 ) : (
                       currentRequests.map((request: any, index: number) => {
                     const user = request.userId;
@@ -280,8 +288,8 @@ const ReviewInstructorPage = () => {
                           <button
                             className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
                             onClick={() => {
-                              // setSelectedRequest(request); // This line was removed as per the new_code, as the state variable was removed.
-                              // setIsModalOpen(true); // This line was removed as per the new_code, as the state variable was removed.
+                              setSelectedRequest(request);
+                              setIsRequestModalOpen(true);
                             }}
                           >
                             <Eye className="w-4 h-4" />
@@ -299,18 +307,48 @@ const ReviewInstructorPage = () => {
                 )}
               </div>
             </div>
+            {/* Pagination for requests */}
+            {requestTotalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                {Array.from({ length: requestTotalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page ? 'text-blue-600 bg-blue-50 border border-blue-300' : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(requestTotalPages, p + 1))}
+                  disabled={currentPage === requestTotalPages}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             {/* Modal for instructor details */}
             <Dialog open={false} onClose={() => { }} className="fixed z-40 inset-0 overflow-y-auto">
               <div className="flex items-center justify-center min-h-screen px-4 py-8 backdrop-blur-sm bg-black/20">
                 <Dialog.Panel className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-0 relative">
                   {/* selectedRequest && ( // This line was removed as per the new_code, as the state variable was removed. */}
-                    <>
-                      {/* Header: Avatar, Name, Subtitle */}
-                      <div className="flex flex-col items-center pt-8 pb-4 px-8">
+                  <>
+                    {/* Header: Avatar, Name, Subtitle */}
+                    <div className="flex flex-col items-center pt-8 pb-4 px-8">
                       {/* selectedRequest.userId?.avatar ? ( // This line was removed as per the new_code, as the state variable was removed. */}
-                          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 border-4 border-white shadow">
+                      <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 border-4 border-white shadow">
                         {/* selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'} // This line was removed as per the new_code, as the state variable was removed. */}
-                          </div>
+                      </div>
                       {/* ) : ( // This line was removed as per the new_code, as the state variable was removed. */}
                       {/* <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 border-4 border-white shadow"> */}
                       {/* {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'} */}
@@ -318,59 +356,59 @@ const ReviewInstructorPage = () => {
                       {/* )} */}
                       <div className="mt-4 text-2xl font-bold text-gray-900">{/* selectedRequest.userId?.name || selectedRequest.data?.fullName || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</div>
                       <div className="text-gray-500 text-base mt-1">{/* selectedRequest.userId?.profession || selectedRequest.data?.role || selectedRequest.data?.category || 'Instructor'} // This line was removed as per the new_code, as the state variable was removed. */}</div>
-                      </div>
-                      {/* 2 columns info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 pb-4">
-                        <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
+                    </div>
+                    {/* 2 columns info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 pb-4">
+                      <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
                         <div><span className="text-xs text-gray-500">Phone:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.phone || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         <div><span className="text-xs text-gray-500">Email Address:</span> <span className="font-medium text-gray-900">{/* selectedRequest.userId?.email || selectedRequest.data?.email || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         <div><span className="text-xs text-gray-500">Date Born:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.dob || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         <div><span className="text-xs text-gray-500">Address:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.address || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
-                        </div>
-                        <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
+                      </div>
+                      <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2">
                         <div><span className="text-xs text-gray-500">Experience:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.experience || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         <div><span className="text-xs text-gray-500">Roles:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.role || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
                         <div><span className="text-xs text-gray-500">Companies:</span> <span className="font-medium text-gray-900">{/* selectedRequest.data?.companies || selectedRequest.data?.company || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}</span></div>
-                        </div>
                       </div>
-                      {/* About Me */}
-                      <div className="px-8 pb-4">
-                        <div className="font-semibold text-lg mb-1">About Me</div>
-                        <div className="bg-gray-50 rounded-2xl p-4 text-gray-700 text-sm min-h-[60px]">
+                    </div>
+                    {/* About Me */}
+                    <div className="px-8 pb-4">
+                      <div className="font-semibold text-lg mb-1">About Me</div>
+                      <div className="bg-gray-50 rounded-2xl p-4 text-gray-700 text-sm min-h-[60px]">
                         {/* selectedRequest.data?.description || selectedRequest.userId?.introduce || 'N/A'} // This line was removed as per the new_code, as the state variable was removed. */}
-                        </div>
                       </div>
-                      {/* Action buttons */}
-                      <div className="flex justify-end gap-3 px-8 py-6 bg-white rounded-b-3xl">
-                        <button
-                          className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition"
-                          onClick={async () => {
-                            // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
-                            await handleInstructorAction(/* selectedRequest._id */ '', 'reject'); // This line was removed as per the new_code, as the state variable was removed.
-                            // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
-                          }}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-                          onClick={async () => {
-                            // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
-                            await handleInstructorAction(/* selectedRequest._id */ '', 'approve'); // This line was removed as per the new_code, as the state variable was removed.
-                            // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
-                          }}
-                        >
-                          Approve
-                        </button>
-                      </div>
+                    </div>
+                    {/* Action buttons */}
+                    <div className="flex justify-end gap-3 px-8 py-6 bg-white rounded-b-3xl">
                       <button
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
-                      onClick={() => { }} // This line was removed as per the new_code, as the state variable was removed.
-                        aria-label="Close"
+                        className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition"
+                        onClick={async () => {
+                          // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
+                          await handleInstructorAction(/* selectedRequest._id */ '', 'reject'); // This line was removed as per the new_code, as the state variable was removed.
+                          // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
+                        }}
                       >
-                        ×
+                        Reject
                       </button>
-                    </>
+                      <button
+                        className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                        onClick={async () => {
+                          // if (!selectedRequest) return; // This line was removed as per the new_code, as the state variable was removed.
+                          await handleInstructorAction(/* selectedRequest._id */ '', 'approve'); // This line was removed as per the new_code, as the state variable was removed.
+                          // setIsModalOpen(false); // This line was removed as per the new_code, as the state variable was removed.
+                        }}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                    <button
+                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
+                      onClick={() => { }} // This line was removed as per the new_code, as the state variable was removed.
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                  </>
                   {/* )} */}
                 </Dialog.Panel>
               </div>
@@ -379,11 +417,13 @@ const ReviewInstructorPage = () => {
         ) : (
           <>
             {isInstructorLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <Loading message="Loading instructors..." size="sm" className="py-8" />
             ) : instructorError ? (
               <div className="text-center py-8 text-gray-500">{instructorError}</div>
             ) : currentInstructors.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No data</div>
+                    <div className="text-center py-8 text-gray-500">
+                      {searchTerm ? `No instructors found matching "${searchTerm}"` : 'No data'}
+                    </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {currentInstructors.map((ins) => (
@@ -441,6 +481,156 @@ const ReviewInstructorPage = () => {
               </div>
             )}
           </>
+        )}
+        {/* Request Details Modal */}
+        {isRequestModalOpen && selectedRequest && (
+          <Dialog open={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 py-8 backdrop-blur-sm bg-black/20">
+              <Dialog.Panel className="bg-white rounded-3xl shadow-xl max-w-4xl w-full p-0 relative">
+                {/* Header */}
+                <div className="flex justify-between items-center p-6 border-b">
+                  <h3 className="text-2xl font-bold text-gray-900">Instructor Request Details</h3>
+                  <button
+                    onClick={() => setIsRequestModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Content */}
+                <div className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* LEFT COLUMN */}
+                    <div className="w-full lg:w-[70%] space-y-6">
+                      {/* User Info */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 font-medium text-2xl">
+                              {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-lg">{selectedRequest.userId?.name || selectedRequest.data?.fullName}</div>
+                            <div className="text-gray-500">{selectedRequest.userId?.email || selectedRequest.data?.email}</div>
+                            <div className="text-sm text-gray-400">User ID: {selectedRequest.userId?._id}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Request Details */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-500">Full Name:</span>
+                            <div className="font-medium">{selectedRequest.data?.fullName || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Email:</span>
+                            <div className="font-medium">{selectedRequest.data?.email || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Phone Number:</span>
+                            <div className="font-medium">{selectedRequest.data?.phoneNumber || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Date of Birth:</span>
+                            <div className="font-medium">{selectedRequest.data?.dob || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Address:</span>
+                            <div className="font-medium">{selectedRequest.data?.address || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Category:</span>
+                            <div className="font-medium">{selectedRequest.data?.category || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Experience:</span>
+                            <div className="font-medium">{selectedRequest.data?.experience || 'N/A'} years</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Company:</span>
+                            <div className="font-medium">{selectedRequest.data?.company || 'N/A'}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Description */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Description</h4>
+                        <div className="text-gray-700">
+                          {selectedRequest.data?.description || 'No description provided.'}
+                        </div>
+                      </div>
+                      {/* Documents */}
+                      {selectedRequest.data?.documents && selectedRequest.data.documents.length > 0 && (
+                        <div className="bg-gray-50 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Documents</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            {selectedRequest.data.documents.map((doc: string, index: number) => (
+                              <div key={index} className="bg-white rounded-lg p-4 border">
+                                <img src={doc} alt={`Document ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                                <div className="mt-2 text-sm text-gray-600">Document {index + 1}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {/* RIGHT SIDEBAR */}
+                    <div className="w-full lg:w-[30%] space-y-6">
+                      {/* Request Status */}
+                      <div className="bg-blue-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-blue-900 mb-4">Request Status</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <span className="text-sm text-blue-600">Status:</span>
+                            <div className="font-medium text-blue-900 capitalize">{selectedRequest.status || 'pending'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-blue-600">Request Date:</span>
+                            <div className="font-medium text-blue-900">
+                              {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleDateString() : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-6 border-t mt-6">
+                    <button
+                      onClick={() => setIsRequestModalOpen(false)}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'reject');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'approve');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
         )}
         {isProfileModalOpen && selectedInstructor && (
           <Dialog open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">

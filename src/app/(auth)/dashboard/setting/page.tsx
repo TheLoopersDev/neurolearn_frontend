@@ -16,6 +16,7 @@ import {
   useUpdatePasswordMutation,
 } from '@/lib/redux/features/api/apiSlice'; // Ensure this path is correct
 import { ProfileFormData } from './_components/ProfileEditorForm'; // Import ProfileFormData type
+import Loading from '@/components/common/Loading';
 
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -187,18 +188,7 @@ const SettingPage: React.FC = () => {
         />
 
         {isLoading || !user ? (
-          <div className="w-full lg:flex-1 bg-white p-6 sm:p-8 rounded-2xl shadow-sm animate-pulse">
-            {/* Skeleton Loader for ProfileEditorForm */}
-            <div className="h-6 w-1/2 bg-gray-200 rounded mb-4"></div>
-            <div className="h-10 bg-gray-200 rounded mb-4"></div>
-            <div className="h-6 w-1/3 bg-gray-200 rounded mb-4"></div>
-            <div className="h-10 bg-gray-200 rounded mb-4"></div>
-            <div className="h-6 w-2/3 bg-gray-200 rounded mb-4"></div>
-            <div className="flex gap-4">
-              <div className="h-10 w-full bg-gray-200 rounded"></div>
-              <div className="h-10 w-full bg-gray-200 rounded"></div>
-            </div>
-          </div>
+          <Loading message="Loading profile..." size="lg" className="w-full lg:flex-1" />
         ) : (
           <ProfileEditorForm
             initialData={{

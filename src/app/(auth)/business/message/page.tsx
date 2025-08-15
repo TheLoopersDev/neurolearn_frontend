@@ -6,6 +6,7 @@ import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
 import { ChatRoom } from '@/components/chat';
 import BusinessChatList from '@/components/chat/BusinessChatList';
+import { backfillDisplayNames } from '@/lib/firestore/chat';
 
 // Check if Firebase is available
 const isFirebaseAvailable = () => {
@@ -70,7 +71,18 @@ const BusinessMessagePage: React.FC = () => {
       })
       .then(data => {
         console.log('Related users data:', data);
-        setAllUsers(data.users || []);
+        const users = data.users || [];
+        setAllUsers(users);
+
+        // Backfill displayNameFor for existing rooms
+        if (users.length > 0 && currentUserId) {
+          const userNames: Record<string, string> = {};
+          users.forEach((user: any) => {
+            userNames[user._id] = user.name;
+          });
+
+          backfillDisplayNames(currentUserId, userNames).catch(console.error);
+        }
       })
       .catch(error => {
         console.error('Error fetching related users:', error);
@@ -128,9 +140,37 @@ const BusinessMessagePage: React.FC = () => {
   // Helper: Map ChatRoom to Chat (for UI compatibility)
   const mapChatRoomToChat = function (room: any): any {
     if (room.isGroup) {
+      // Debug: Log group chat room data
+      console.log('Mapping group chat room:', {
+        id: room.id,
+        groupName: room.groupName,
+        participants: room.participants,
+        participantUsers: room.participantUsers,
+        isGroup: room.isGroup
+      });
+
+      // Sử dụng participantUsers từ Firestore nếu có, fallback về API nếu không có
+      let members;
+      if (room.participantUsers && room.participantUsers.length > 0) {
+        // Sử dụng thông tin user từ Firestore
+        members = room.participantUsers.map((user: any) => ({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar
+        }));
+      } else {
+        // Fallback: sử dụng API như cũ
+        members = room.participants.map((id: string) => {
+          const userRaw = getUserInfo(id);
+          const preferredName = room.displayNameFor?.[id] || userRaw.name;
+          return { ...userRaw, name: preferredName };
+        });
+      }
+
       return {
         _id: room.id,
-        members: room.participants.map((id: string) => getUserInfo(id)),
+        members,
         isGroup: true,
         groupName: room.groupName || 'Business Group',
         messages: [],
@@ -139,9 +179,28 @@ const BusinessMessagePage: React.FC = () => {
         avatar: '/assets/images/avatar-default.png',
       };
     } else {
-      // 1-1 chat: get the other user
-      const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-      const otherUser = getUserInfo(otherId);
+      // 1-1 chat: sử dụng participantUsers từ Firestore nếu có
+      let otherUser;
+      if (room.participantUsers && room.participantUsers.length > 0) {
+        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
+        const userFromFirestore = room.participantUsers.find((u: any) => String(u._id) === String(otherId));
+        if (userFromFirestore) {
+          otherUser = {
+            _id: userFromFirestore._id,
+            name: userFromFirestore.name,
+            email: userFromFirestore.email,
+            avatar: userFromFirestore.avatar
+          };
+        }
+      }
+
+      // Fallback về API nếu không có participantUsers
+      if (!otherUser) {
+        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
+        const otherUserRaw = getUserInfo(otherId);
+        const preferredName = room.displayNameFor?.[currentUserId] || otherUserRaw.name;
+        otherUser = { ...otherUserRaw, name: preferredName };
+      }
 
       return {
         _id: room.id,
@@ -256,50 +315,53 @@ const BusinessMessagePage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex flex-col rounded-2xl overflow-hidden bg-[#F7F8FA]">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 bg-white border-b border-gray-200 z-10">
+      <div className="p-4 bg-white border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-900">Business Messages</h1>
         <p className="text-gray-600">Manage communications with your team and customers</p>
       </div>
 
-      {/* Chat List */}
-      <BusinessChatList
-        chats={chatRooms.map(mapChatRoomToChat)}
-        activeChatId={currentActiveChatId}
-        onSelectChat={handleSelectChat}
-        currentUserId={currentUserId}
-      />
-
-      {/* Chat Room */}
-      {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
-        <ChatRoom
-          key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
-          chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
+      {/* Main Content */}
+      <div className="flex-1 flex gap-5 p-5">
+        {/* Chat List */}
+        <BusinessChatList
+          chats={chatRooms.map(mapChatRoomToChat)}
+          activeChatId={currentActiveChatId}
+          onSelectChat={handleSelectChat}
           currentUserId={currentUserId}
-          messages={messages}
-          sendMessage={handleSendMessage}
-          sendReaction={handleSendReaction}
-          updateGroupName={updateGroupName}
-          addMembersToGroup={addMembersToGroup}
-          removeMemberFromGroup={removeMemberFromGroup}
-          loading={loading}
-          error={error}
         />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-          <div className="text-center">
-            <span className="text-gray-400">
-              {usersLoading ? 'Loading users...' : 'Loading chat...'}
-            </span>
-            {retryCount > 0 && (
-              <p className="text-xs text-gray-300 mt-2">
-                Retrying... ({retryCount}/3)
-              </p>
-            )}
+
+        {/* Chat Room */}
+        {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
+          <ChatRoom
+            key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
+            chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
+            currentUserId={currentUserId}
+            messages={messages}
+            sendMessage={handleSendMessage}
+            sendReaction={handleSendReaction}
+            updateGroupName={updateGroupName}
+            addMembersToGroup={addMembersToGroup}
+            removeMemberFromGroup={removeMemberFromGroup}
+            loading={loading}
+            error={error}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
+            <div className="text-center">
+              <span className="text-gray-400">
+                {usersLoading ? 'Loading users...' : 'Loading chat...'}
+              </span>
+              {retryCount > 0 && (
+                <p className="text-xs text-gray-300 mt-2">
+                  Retrying... ({retryCount}/3)
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

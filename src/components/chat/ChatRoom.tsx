@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { useModal } from '@/context/ModalContext';
 import { Chat } from '@/types/chat';
 import { getChatDisplayName, getChatAvatar } from '@/utils/chatUtils';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import GroupChatModal from './GroupChatModal';
+// Group settings modal is now handled via global ModalContainer
 
 interface ChatRoomProps {
     chat: Chat | null;
@@ -32,7 +33,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
     error,
 }) => {
     const [replyTo, setReplyTo] = useState<any>(null);
-    const [showGroupModal, setShowGroupModal] = useState(false);
+    const { showModal } = useModal();
 
     // Lấy messages trực tiếp từ props
     const mappedMessages = messages.map((msg: any) => ({
@@ -99,7 +100,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
     };
 
     const handleGroupSettingsClick = () => {
-        setShowGroupModal(true);
+        if (!chat) return;
+        showModal('groupSettings', {
+            chatName: getChatDisplayName(chat, currentUserId),
+            currentMembers: members,
+            onUpdateGroupName: handleUpdateGroupName,
+            onAddMembers: handleAddMembers,
+            onRemoveMember: handleRemoveMember,
+            currentUserId,
+        });
     };
 
     const handleUpdateGroupName = async (newName: string) => {
@@ -152,7 +161,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
             />
 
             {/* Messages */}
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
                 <MessageList
                     messages={mappedMessages}
                     currentUserId={currentUserId}
@@ -162,13 +171,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
                 />
             </div>
 
-            {/* Input */}
-            <MessageInput
-                onSendMessage={handleSendMessage}
-                replyTo={replyTo}
-                onCancelReply={handleCancelReply}
-                disabled={loading}
-            />
+            {/* Input - Fixed positioning */}
+            <div className="flex-shrink-0">
+                <MessageInput
+                    onSendMessage={handleSendMessage}
+                    replyTo={replyTo}
+                    onCancelReply={handleCancelReply}
+                    disabled={loading}
+                />
+            </div>
 
             {/* Error Display */}
             {error && (
@@ -177,19 +188,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
                 </div>
             )}
 
-            {/* Group Chat Modal */}
-            {chat.isGroup && (
-                <GroupChatModal
-                    isOpen={showGroupModal}
-                    onClose={() => setShowGroupModal(false)}
-                    chatName={displayName}
-                    currentMembers={members}
-                    onUpdateGroupName={handleUpdateGroupName}
-                    onAddMembers={handleAddMembers}
-                    onRemoveMember={handleRemoveMember}
-                    currentUserId={currentUserId}
-                />
-            )}
+            {/* Group chat settings are handled via global ModalContainer */}
         </div>
     );
 };

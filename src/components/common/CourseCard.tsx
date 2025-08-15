@@ -17,10 +17,10 @@ const CourseCard = ({ course }: CourseCardProps) => {
   return (
     <Link href={`/courses/${course._id}`} className="relative block w-[311px]">
       {/* Top Right Icons */}
-      <div className="absolute top-0 right-0 z-30 flex space-x-1 ">
-        <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
+      <div className="absolute top-0 right-0 z-30 flex space-x-1">
+        {/* <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
           <Image src="/assets/home/Heart.svg" alt="Heart" width={20} height={20} />
-        </div>
+        </div> */}
       </div>
       <div
         className="relative z-10 h-[316px] rounded-[20px] bg-white shadow-10xl transition-all duration-300 overflow-hidden p-3 
@@ -45,7 +45,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           <div className="leading-tight text-sm">
             <p className="text-gray-900 font-semibold">{course?.publisher?.name}</p>
-            <p className="text-xs text-gray-700">{course?.publisher?.profession || 'Instructor'}</p>
+            <p className="text-xs text-gray-700">{course?.publisher?.role || 'Instructor'}</p>
           </div>
         </div>
 

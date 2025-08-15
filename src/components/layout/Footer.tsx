@@ -7,7 +7,7 @@ import LogoSVG from '@/public/assets/icons/logo.svg';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#F7F8FA] px-6 lg:px-16 py-16 text-sm text-gray-600 relative">
+    <footer className="bg-[#F7F8FA] px-6 lg:px-16 py-16 text-sm text-gray-600 relative z-0">
       <div className="max-w-[1320px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Left column - Logo + Headline */}
         <div className="col-span-1 space-y-4">

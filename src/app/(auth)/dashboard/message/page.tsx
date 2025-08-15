@@ -5,6 +5,8 @@ import { RootState } from '@/lib/redux/store';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
 import { ChatList, ChatRoom } from '@/components/chat';
+import { backfillDisplayNames } from '@/lib/firestore/chat';
+import Loading from '@/components/common/Loading';
 
 // Check if Firebase is available
 const isFirebaseAvailable = () => {
@@ -72,7 +74,18 @@ const MessagePage: React.FC = () => {
       })
       .then(data => {
         console.log('Related users data:', data);
-        setAllUsers(data.users || []);
+        const users = data.users || [];
+        setAllUsers(users);
+
+        // Backfill displayNameFor for existing rooms
+        if (users.length > 0 && currentUserId) {
+          const userNames: Record<string, string> = {};
+          users.forEach((user: any) => {
+            userNames[user._id] = user.name;
+          });
+
+          backfillDisplayNames(currentUserId, userNames).catch(console.error);
+        }
       })
       .catch(error => {
         console.error('Error fetching related users:', error);
@@ -130,9 +143,28 @@ const MessagePage: React.FC = () => {
   // Helper: Map ChatRoom to Chat (for UI compatibility)
   const mapChatRoomToChat = function (room: any): any {
     if (room.isGroup) {
+      // Sử dụng participantUsers từ Firestore nếu có, fallback về API nếu không có
+      let members;
+      if (room.participantUsers && room.participantUsers.length > 0) {
+        // Sử dụng thông tin user từ Firestore
+        members = room.participantUsers.map((user: any) => ({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar
+        }));
+      } else {
+        // Fallback: sử dụng API như cũ
+        members = room.participants.map((id: string) => {
+          const userRaw = getUserInfo(id);
+          const preferredName = room.displayNameFor?.[id] || userRaw.name;
+          return { ...userRaw, name: preferredName };
+        });
+      }
+
       return {
         _id: room.id,
-        members: room.participants.map((id: string) => getUserInfo(id)),
+        members,
         isGroup: true,
         groupName: room.groupName || 'Group',
         messages: [],
@@ -141,9 +173,28 @@ const MessagePage: React.FC = () => {
         avatar: '/assets/images/avatar-default.png',
       };
     } else {
-      // 1-1 chat: get the other user
-      const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-      const otherUser = getUserInfo(otherId);
+      // 1-1 chat: sử dụng participantUsers từ Firestore nếu có
+      let otherUser;
+      if (room.participantUsers && room.participantUsers.length > 0) {
+        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
+        const userFromFirestore = room.participantUsers.find((u: any) => String(u._id) === String(otherId));
+        if (userFromFirestore) {
+          otherUser = {
+            _id: userFromFirestore._id,
+            name: userFromFirestore.name,
+            email: userFromFirestore.email,
+            avatar: userFromFirestore.avatar
+          };
+        }
+      }
+
+      // Fallback về API nếu không có participantUsers
+      if (!otherUser) {
+        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
+        const otherUserRaw = getUserInfo(otherId);
+        const preferredName = room.displayNameFor?.[currentUserId] || otherUserRaw.name;
+        otherUser = { ...otherUserRaw, name: preferredName };
+      }
 
       return {
         _id: room.id,
@@ -258,7 +309,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden bg-[#F7F8FA] gap-5 p-5">
+    <div className="h-[calc(100vh-var(--header-height,80px))] flex rounded-2xl overflow-hidden gap-5">
       {/* Chat List */}
       <ChatList
         chats={chatRooms.map(mapChatRoomToChat)}
@@ -284,16 +335,16 @@ const MessagePage: React.FC = () => {
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-            <div className="text-center">
-              <span className="text-gray-400">
-                {usersLoading ? 'Loading users...' : 'Loading chat...'}
-              </span>
-              {retryCount > 0 && (
-                <p className="text-xs text-gray-300 mt-2">
-                  Retrying... ({retryCount}/3)
-                </p>
-              )}
-            </div>
+            <Loading
+              message={usersLoading ? 'Loading users...' : 'Loading chat...'}
+              size="sm"
+              className="min-h-[200px]"
+            />
+            {retryCount > 0 && (
+              <p className="text-xs text-gray-300 mt-2">
+                Retrying... ({retryCount}/3)
+              </p>
+            )}
         </div>
       )}
     </div>

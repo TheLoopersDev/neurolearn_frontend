@@ -12,13 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import DiscountCard from '@/components/discount/DiscountCard';
 import DiscountForm from '@/components/discount/DiscountForm';
 import { Discount, CreateDiscountRequest } from '@/types/discount';
-
-const categories = ['All discounts', 'Percentage', 'Fixed Amount', 'Public', 'Private'];
+import Loading from '@/components/common/Loading';
 
 const DiscountManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All discounts');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
@@ -40,16 +37,11 @@ const DiscountManagementPage = () => {
 
   useEffect(() => {
     refetch();
-  }, [selectedCategory, selectedStatus, refetch]);
+  }, [refetch]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
-
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
-    setCurrentPage(1);
-  };
 
   const handleViewDetails = (discount: Discount) => {
     setSelectedDiscount(discount);
@@ -124,11 +116,11 @@ const DiscountManagementPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header with Search and Filters */}
-        <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-4 w-full">
-            <div className="relative w-80">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4 w-full text-black">
+            <div className="relative w-100 h-8">
               <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -139,29 +131,6 @@ const DiscountManagementPage = () => {
                 onChange={e => setSearchTerm(e.target.value)}
                 className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-full"
               />
-            </div>
-            <div className="relative">
-              <select
-                className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-            <div className="relative">
-              <select
-                className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-                value={selectedStatus}
-                onChange={e => handleStatusChange(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="expired">Expired</option>
-              </select>
             </div>
             <button
               onClick={handleCreateNew}
@@ -178,11 +147,7 @@ const DiscountManagementPage = () => {
         {/* Content Area */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
           {isDiscountLoading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
-              <p className="mt-4 text-gray-600 font-medium">Loading discounts...</p>
-              <p className="text-sm text-gray-500">Please wait while we fetch your data</p>
-            </div>
+            <Loading message="Loading discounts..." size="lg" className="min-h-[calc(100vh-300px)]" />
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">

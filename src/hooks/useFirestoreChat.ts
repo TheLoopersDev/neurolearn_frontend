@@ -45,6 +45,28 @@ export const useFirestoreChat = () => {
     return user._id;
   };
 
+  // Helper để lấy thông tin user hiện tại
+  const getCurrentUserInfo = () => {
+    if (!user) return null;
+    if (typeof user === 'string') {
+      try {
+        const parsed = JSON.parse(user);
+        return {
+          name: parsed.name || 'Unknown User',
+          email: parsed.email || '',
+          avatar: parsed.avatar || null
+        };
+      } catch {
+        return null;
+      }
+    }
+    return {
+      name: user.name || 'Unknown User',
+      email: user.email || '',
+      avatar: user.avatar || null
+    };
+  };
+
   // Subscribe to chat rooms
   useEffect(() => {
     const userId = getUserId();
@@ -123,14 +145,21 @@ export const useFirestoreChat = () => {
         setLoading(true);
         setError(null);
 
+        // Lấy thông tin user hiện tại
+        const senderInfo = getCurrentUserInfo();
+        if (!senderInfo) {
+          setError('User information not available');
+          return;
+        }
+
         // Nếu có activeChatRoomId, sử dụng nó (cho group chat)
         if (activeChatRoomId) {
           // Send message trực tiếp vào chat room hiện tại
-          await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo);
+          await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
         } else {
           // Get or create chat room (cho 1-1 chat)
           const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
-          await sendMessage(chatRoomId, userId, receiverId, content, type, replyTo);
+          await sendMessage(chatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
           
           // Set active chat room if not already set
           setActiveChatRoomId(chatRoomId);
