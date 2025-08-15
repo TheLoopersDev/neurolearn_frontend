@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Eye, Trash2, MoreHorizontal,
   ChevronLeft, ChevronRight,
@@ -17,6 +18,118 @@ import { StatusBadge } from '@/components/review-common';
 import { useToast } from '@/hooks/use-toast';
 import SearchCourseRequest from './_components/SearchCourseRequest';
 import Loading from '@/components/common/Loading';
+
+// Modal Component using createPortal
+const CoursePreviewModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  selectedRequest: any;
+  onApprove: (id: string) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}> = ({ isOpen, onClose, selectedRequest, onApprove, onReject }) => {
+  if (!isOpen || !selectedRequest) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const modalContent = (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-2xl font-bold text-gray-900">Course Preview: {selectedRequest.courseId?.name || 'N/A'}</h3>
+        </div>
+        {/* Course Preview Content using course-detail components */}
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row gap-20">
+            {/* LEFT COLUMN */}
+            <div className="w-full lg:w-[70%] space-y-10">
+              {/* Course Thumbnail */}
+              <div className="w-full">
+                <Image
+                  src={typeof selectedRequest.courseId?.thumbnail === 'string' ? selectedRequest.courseId.thumbnail : (selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg')}
+                  alt={selectedRequest.courseId?.name || 'Course thumbnail'}
+                  width={1200}
+                  height={480}
+                  className="w-full h-64 object-cover rounded-4xl"
+                />
+              </div>
+              {/* Instructor Info */}
+              <InstructorInfo
+                courseName={selectedRequest.courseId?.name || 'N/A'}
+                instructor={selectedRequest.userId}
+              />
+              {/* Description Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
+                <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
+                  <p>{selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
+                  <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
+                    View all &gt;
+                  </a>
+                </div>
+              </div>
+              {/* Course Detail */}
+              <CourseDetail course={selectedRequest.courseId || {}} />
+              {/* Course Content */}
+              <CourseContent sections={selectedRequest.courseId?.sections || []} />
+            </div>
+            {/* RIGHT SIDEBAR */}
+            <div className="w-full lg:w-[30%] space-y-15">
+              <PublisherCard
+                author={selectedRequest.userId}
+                updatedAt={selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined}
+              />
+              <OverView
+                title={selectedRequest.courseId?.name || 'N/A'}
+                overview={selectedRequest.courseId?.description || 'N/A'}
+                topics={selectedRequest.courseId?.tags ? (Array.isArray(selectedRequest.courseId.tags) ? selectedRequest.courseId.tags : (typeof selectedRequest.courseId.tags === 'string' ? selectedRequest.courseId.tags.split(',').map((tag: string) => tag.trim()) : [])) : []}
+              />
+            </div>
+          </div>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-6 border-t mt-10">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onReject(selectedRequest._id || selectedRequest.id);
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+            >
+              Reject
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onApprove(selectedRequest._id || selectedRequest.id);
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
+};
 
 const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -139,7 +252,7 @@ const CourseManagementSystem: React.FC = () => {
 
   useEffect(() => {
     const ids = currentCourses
-      .map(course => course.publisher?._id || (course as any).authorId?._id)
+      .map(course => course.publisher?._id || course.publisher?.name || (course as any).authorId?._id || (course as any).authorId?.name)
       .filter(Boolean);
     const idsToFetch = ids.filter(id => !(id in authorNames));
     if (idsToFetch.length === 0) return;
@@ -274,12 +387,6 @@ const CourseManagementSystem: React.FC = () => {
             <SearchCourseRequest
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              categories={categories}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-              statusOptions={statusOptions}
               activeTab={activeTab}
             />
             <div className="flex gap-3">
@@ -354,12 +461,6 @@ const CourseManagementSystem: React.FC = () => {
           <SearchCourseRequest
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            categories={categories}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
-            statusOptions={statusOptions}
             activeTab={activeTab}
           />
           <div className="flex gap-3">
@@ -392,29 +493,28 @@ const CourseManagementSystem: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Instructor</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Course Title</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Category</div>
+                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Instructor</div>
+                <div className="col-span-4 text-sm font-semibold text-gray-600 uppercase tracking-wide">Course Title</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
                 <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
+                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide text-center">Action</div>
               </div>
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
                 {isRequestLoading ? (
                   <Loading message="Loading requests..." size="sm" className="py-8" />
-                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
+                ) : !requestData?.success || !currentRequests || currentRequests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                      {searchTerm ? `No requests found matching &quot;${searchTerm}&quot;` : 'No data'}
+                      {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
                   </div>
 
                 ) : (
                       currentRequests.map((req: any, index: number) => (
                     <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                       {/* Instructor */}
-                      <div className="col-span-2 flex items-center gap-3">
+                          <div className="col-span-3 flex items-center gap-3">
                         <Image
-                          src={req.userId?.avatar?.url || 'https://via.placeholder.com/56'}
+                              src={req.userId?.avatar?.url || req.userId?.avatar || 'https://via.placeholder.com/56'}
                           alt="avatar"
                           width={48}
                           height={48}
@@ -422,32 +522,23 @@ const CourseManagementSystem: React.FC = () => {
                         />
                         <div>
                           <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
-
+                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
                         </div>
                       </div>
                       {/* Course Title */}
-                      <div className="col-span-3 flex items-center ml-4">
+                          <div className="col-span-4 flex items-center">
                         <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
-                      </div>
-                      {/* Category */}
-                      <div className="col-span-2 flex items-center ml-4">
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                          {req.courseId?.tags ?
-                            (typeof req.courseId.tags === 'string' ? req.courseId.tags : req.courseId.tags.join(', ')) :
-                            'N/A'}
-                        </span>
-                      </div>
+                          </div>
                       {/* Request Date */}
                       <div className="col-span-2 flex items-center">
-                        <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
+                            <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
                       </div>
                       {/* Status */}
                       <div className="col-span-1 flex items-center justify-center">
                         <StatusBadge status={req.status || 'pending'} />
                       </div>
                       {/* Action */}
-                      <div className="col-span-1 flex items-center justify-center gap-2">
+                          <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
                           className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
                           onClick={() => {
@@ -485,13 +576,13 @@ const CourseManagementSystem: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentCourses.map((course) => {
                 const authorId = course.publisher?._id || (course as any).authorId?._id;
-                const authorName = authorId ? authorNames[authorId] || '...' : 'N/A';
+                const authorName = course.publisher?.name || (course as any).authorId?.name || (authorId ? authorNames[authorId] || '...' : 'N/A');
                 return (
                   <div key={course._id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-blue-100 p-0 flex flex-col">
                     {/* Banner Image */}
                     <div className="relative">
                       <Image
-                        src={course.thumbnail?.url || '/assets/business/book.svg'}
+                        src={typeof course.thumbnail === 'string' ? course.thumbnail : (course.thumbnail?.url || '/assets/business/book.svg')}
                         alt="Course Banner"
                         width={1280}
                         height={320}
@@ -512,7 +603,7 @@ const CourseManagementSystem: React.FC = () => {
                         <span className="text-xs text-blue-600 font-medium">
                           {Array.isArray(course.tags)
                             ? course.tags.join(', ')
-                            : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
+                            : (typeof course.tags === 'string' ? course.tags : '')}
                         </span>
                       </div>
                       {/* Title */}
@@ -523,7 +614,7 @@ const CourseManagementSystem: React.FC = () => {
                         <span className="text-xs text-gray-700">
                           {Array.isArray(course.tags)
                             ? course.tags.join(', ')
-                            : (typeof course.tags === 'string' ? (course.tags as string).split(',').map(tag => tag.trim()).join(', ') : '')}
+                            : (typeof course.tags === 'string' ? course.tags : '')}
                         </span>
                       </div>
                       {/* Info Grid */}
@@ -540,14 +631,14 @@ const CourseManagementSystem: React.FC = () => {
                         {/* Creation Date */}
                         <div className="items-end text-right flex flex-col justify-end">
                           <div className="text-xs text-gray-500 mb-0.5">Creation Date</div>
-                          <div className="text-xs text-gray-800 font-semibold">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : 'N/A'}</div>
+                          <div className="text-xs text-gray-800 font-semibold">{course.createdAt ? new Date(course.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
                         </div>
                         {/* Sale */}
                         <div>
                           <div className="text-xs text-gray-500 mb-0.5">Sale</div>
                           <div className="flex flex-col items-start">
-                            <span className="text-xs text-gray-400 line-through">{course.estimatedPrice ? course.estimatedPrice.toLocaleString('vi-VN') + ' VND' : ''}</span>
-                            <span className="text-lg text-blue-600 font-bold leading-tight">{course.price ? course.price.toLocaleString('vi-VN') + ' VND' : ''}</span>
+                            <span className="text-xs text-gray-400 line-through">{course.estimatedPrice ? course.estimatedPrice.toLocaleString('vi-VN') + ' VND' : 'N/A'}</span>
+                            <span className="text-lg text-blue-600 font-bold leading-tight">{course.price ? course.price.toLocaleString('vi-VN') + ' VND' : 'N/A'}</span>
                           </div>
                         </div>
                         {/* Status */}
@@ -568,118 +659,34 @@ const CourseManagementSystem: React.FC = () => {
         <PaginationComponent />
       </div>
 
-      {/* Preview Modal */}
-      {isModalOpen && selectedRequest && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b">
-              <h3 className="text-2xl font-bold text-gray-900">Course Preview</h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-2"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            {/* Course Preview Content using course-detail components */}
-            <div className="p-6">
-              <div className="flex flex-col lg:flex-row gap-20">
-                {/* LEFT COLUMN */}
-                <div className="w-full lg:w-[70%] space-y-10">
-                  {/* Course Thumbnail */}
-                  <div className="w-full">
-                    <Image
-                      src={selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg'}
-                      alt={selectedRequest.courseId?.name || 'Course thumbnail'}
-                      width={1200}
-                      height={480}
-                      className="w-full h-64 object-cover rounded-4xl"
-                    />
-                  </div>
-                  {/* Instructor Info */}
-                  <InstructorInfo
-                    courseName={selectedRequest.courseId?.name}
-                    instructor={selectedRequest.userId}
-                  />
-                  {/* Description Section */}
-                  <div>
-                    <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
-                    <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
-                      <p>{selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
-                      <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
-                        View all &gt;
-                      </a>
-                    </div>
-                  </div>
-                  {/* Course Detail */}
-                  <CourseDetail course={selectedRequest.courseId} />
-                  {/* Course Content */}
-                  <CourseContent sections={selectedRequest.courseId?.sections || []} />
-                </div>
-                {/* RIGHT SIDEBAR */}
-                <div className="w-full lg:w-[30%] space-y-15">
-                  <PublisherCard
-                    author={selectedRequest.userId}
-                    updatedAt={selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined}
-                  />
-                  <OverView
-                    title={selectedRequest.courseId?.name}
-                    overview={selectedRequest.courseId?.description}
-                    topics={selectedRequest.courseId?.tags ? (typeof selectedRequest.courseId.tags === 'string' ? selectedRequest.courseId.tags.split(',').map((tag: string) => tag.trim()) : selectedRequest.courseId.tags) : []}
-                  />
-                </div>
-              </div>
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-4 pt-6 border-t mt-10">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'reject');
-                    } catch (err: any) {
-                      toast({
-                        title: 'Rejection Failed',
-                        description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  disabled={false} // isActionLoading was removed
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-                >
-                  {/* isActionLoading ? 'Rejecting...' : 'Reject' */}
-                  Reject
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      await handleApproveOrReject(selectedRequest._id || selectedRequest.id, 'approve');
-                    } catch (err: any) {
-                      toast({
-                        title: 'Approval Failed',
-                        description: err?.data?.message || err?.error || 'An error occurred while approving the course.',
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  disabled={false} // isActionLoading was removed
-                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
-                >
-                  {/* isActionLoading ? 'Approving...' : 'Approve' */}
-                  Approve
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Preview Modal using createPortal */}
+      <CoursePreviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedRequest={selectedRequest}
+        onApprove={async (id: string) => {
+          try {
+            await handleApproveOrReject(id, 'approve');
+          } catch (err: any) {
+            toast({
+              title: 'Approval Failed',
+              description: err?.data?.message || err?.error || 'An error occurred while approving the course.',
+              variant: 'destructive',
+            });
+          }
+        }}
+        onReject={async (id: string) => {
+          try {
+            await handleApproveOrReject(id, 'reject');
+          } catch (err: any) {
+            toast({
+              title: 'Rejection Failed',
+              description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+              variant: 'destructive',
+            });
+          }
+        }}
+      />
     </div>
   );
 };
