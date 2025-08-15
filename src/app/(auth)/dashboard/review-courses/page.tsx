@@ -131,13 +131,8 @@ const CoursePreviewModal: React.FC<{
   return createPortal(modalContent, document.body);
 };
 
-const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
-const statusOptions = ['all', 'pending', 'approved', 'rejected'];
-
 const CourseManagementSystem: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All courses');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   type TabType = 'request' | 'courses';
   const [activeTab, setActiveTab] = useState<TabType>('request');
@@ -153,14 +148,13 @@ const CourseManagementSystem: React.FC = () => {
   // API call for course approval requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
     type: 'course_approval',
-    status: selectedStatus
   });
   const [handleRequest] = useHandleRequestMutation();
 
   // Refetch when status changes
   useEffect(() => {
     refetch();
-  }, [selectedStatus, refetch]);
+  }, [refetch]);
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
@@ -282,7 +276,7 @@ const CourseManagementSystem: React.FC = () => {
   // Reset to page 1 when search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [searchTerm]);
 
   const handleApproveOrReject = async (requestId: string, action: 'approve' | 'reject') => {
     try {
