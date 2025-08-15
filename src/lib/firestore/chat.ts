@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   where,
   Timestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 
@@ -35,18 +36,34 @@ export interface ChatMessage {
     senderId: string;
   };
   reactions?: MessageReaction[];
+  senderInfo?: {
+    name: string;
+    email: string;
+    avatar?: any;
+  };
 }
 
 export interface ChatRoom {
   id?: string;
   participants: string[];
+  participantUsers?: any[]; // Thông tin user được lưu trực tiếp
   lastMessage?: ChatMessage;
   lastMessageTime?: Timestamp;
+  // Optional per-viewer display names for 1-1 rooms
+  displayNameFor?: Record<string, string>;
+  // Optional group fields
+  isGroup?: boolean;
+  groupName?: string;
   createdAt: Timestamp;
 }
 
 // Tạo hoặc lấy chat room giữa 2 user
-export const getOrCreateChatRoom = async (userId1: string, userId2: string): Promise<string> => {
+export const getOrCreateChatRoom = async (
+  userId1: string,
+  userId2: string,
+  user1Name?: string,
+  user2Name?: string,
+): Promise<string> => {
   const chatRoomsRef = collection(db, 'chatRooms');
   // Tìm chat room đã tồn tại giữa đúng 2 user (không phải group)
   const q = query(
@@ -68,12 +85,31 @@ export const getOrCreateChatRoom = async (userId1: string, userId2: string): Pro
       return docSnap.id;
     }
   }
-  // Tạo chat room mới
-  const newChatRoom: Omit<ChatRoom, 'id'> & { isGroup: boolean } = {
+  
+  // Tạo chat room mới với thông tin user được lưu trực tiếp
+  const newChatRoom: Omit<ChatRoom, 'id'> & { isGroup: boolean; participantUsers: any[] } = {
     participants: [String(userId1).trim(), String(userId2).trim()],
+    participantUsers: [
+      {
+        _id: String(userId1).trim(),
+        name: user1Name || `User ${String(userId1).slice(-4)}`,
+        email: '',
+        avatar: null
+      },
+      {
+        _id: String(userId2).trim(),
+        name: user2Name || `User ${String(userId2).slice(-4)}`,
+        email: '',
+        avatar: null
+      }
+    ],
     createdAt: serverTimestamp() as Timestamp,
     lastMessageTime: serverTimestamp() as Timestamp,
     isGroup: false,
+    displayNameFor: {
+      [String(userId1).trim()]: user2Name || `User ${String(userId2).slice(-4)}`,
+      [String(userId2).trim()]: user1Name || `User ${String(userId1).slice(-4)}`,
+    },
   };
   const docRef = await addDoc(chatRoomsRef, newChatRoom);
   return docRef.id;
@@ -90,11 +126,16 @@ export const sendMessage = async (
     messageId: string;
     content: string;
     senderId: string;
+  },
+  senderInfo?: {
+    name: string;
+    email: string;
+    avatar?: any;
   }
 ): Promise<string> => {
   const messagesRef = collection(db, `chatRooms/${chatRoomId}/messages`);
 
-  const message: Omit<ChatMessage, 'id'> = {
+  const message: Omit<ChatMessage, 'id'> & { senderInfo?: any } = {
     senderId,
     receiverId,
     content,
@@ -103,6 +144,7 @@ export const sendMessage = async (
     read: false,
     replyTo,
     reactions: [],
+    senderInfo: senderInfo || undefined, // Lưu thông tin sender
   };
 
   const docRef = await addDoc(messagesRef, message);
@@ -312,4 +354,33 @@ export const removeMemberFromGroup = async (chatRoomId: string, memberId: string
     participants: updatedParticipants,
     updatedAt: serverTimestamp() as Timestamp
   });
+};
+
+// Backfill displayNameFor for existing rooms
+export const backfillDisplayNames = async (userId: string, userNames: Record<string, string>) => {
+  const chatRoomsRef = collection(db, 'chatRooms');
+  const q = query(
+    chatRoomsRef,
+    where('participants', 'array-contains', userId)
+  );
+  
+  const querySnapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  
+  querySnapshot.docs.forEach(doc => {
+    const roomData = doc.data();
+    if (!roomData.displayNameFor) {
+      const displayNameFor: Record<string, string> = {};
+      
+      roomData.participants.forEach((participantId: string) => {
+        if (participantId !== userId) {
+          displayNameFor[participantId] = userNames[participantId] || `User ${participantId.slice(-4)}`;
+        }
+      });
+      
+      batch.update(doc.ref, { displayNameFor });
+    }
+  });
+  
+  await batch.commit();
 };

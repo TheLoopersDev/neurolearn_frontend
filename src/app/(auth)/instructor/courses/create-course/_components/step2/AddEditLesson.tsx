@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/common/ui/Button2";
 import { FormInput } from "../step1/FormInput";
-import { Save, X, Plus, Trash2 } from "lucide-react";
+// import { Save, X, Plus, Trash2 } from "lucide-react";
+import { Save, X } from "lucide-react";
+
 import { VideoUploader } from "./VideoUploader";
 
 interface AddEditLessonModalProps {
@@ -21,7 +23,7 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
         links: [] as Array<{ title: string; url: string }>,
     });
 
-    const [newLink, setNewLink] = useState({ title: "", url: "" });
+    // const [newLink, setNewLink] = useState({ title: "", url: "" });
     const [replaceVideo, setReplaceVideo] = useState(false);
     useEffect(() => {
         if (lesson) {
@@ -55,22 +57,22 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
         onClose();
     };
 
-    const handleAddLink = () => {
-        if (newLink.title && newLink.url) {
-            setFormData((prev) => ({
-                ...prev,
-                links: [...prev.links, newLink],
-            }));
-            setNewLink({ title: "", url: "" });
-        }
-    };
+    // const handleAddLink = () => {
+    //     if (newLink.title && newLink.url) {
+    //         setFormData((prev) => ({
+    //             ...prev,
+    //             links: [...prev.links, newLink],
+    //         }));
+    //         setNewLink({ title: "", url: "" });
+    //     }
+    // };
 
-    const handleRemoveLink = (index: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            links: prev.links.filter((_, i) => i !== index),
-        }));
-    };
+    // const handleRemoveLink = (index: number) => {
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         links: prev.links.filter((_, i) => i !== index),
+    //     }));
+    // };
 
     return (
         <div
@@ -147,7 +149,7 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
                 </div>
 
                 {/* Links */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <div className="flex gap-2">
                         <FormInput
                             label="Resource Title"
@@ -177,7 +179,7 @@ export default function AddEditLessonModal({ lesson, onSubmit, onClose }: AddEdi
                             </Button>
                         </div>
                     ))}
-                </div>
+                </div> */}
 
                 <div className="flex justify-end gap-3 pt-2 sticky bottom-0 bg-white">
                     <Button variant="ghost" size="sm" type="button" onClick={onClose}>

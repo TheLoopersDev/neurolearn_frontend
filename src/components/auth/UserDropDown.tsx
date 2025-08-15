@@ -93,16 +93,7 @@ function getDropdownList(user: User) {
         href: '/business/discount',
         icon: <Image src={discountIcon} alt="" width={20} height={20} />,
       },
-      {
-        title: 'Business Setting',
-        href: '/business/setting',
-        icon: <Image src={setting} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Account Setting',
-        href: '/dashboard/setting',
-        icon: <Image src={setting} alt="" width={20} height={20} />,
-      },
+
     ];
   }
   const businessItems = isBusinessAdminOrManager
@@ -117,11 +108,6 @@ function getDropdownList(user: User) {
 
   if (user.role === 'admin') {
     return [
-      {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: <Image src={dashboard} alt="" width={20} height={20} />,
-      },
       {
         title: 'Course Requests',
         href: '/dashboard/review-courses',
@@ -187,11 +173,11 @@ function getDropdownList(user: User) {
         href: '/dashboard/earning',
         icon: <Image src={earning} alt="" width={20} height={20} />,
       },
-      {
-        title: 'Withdrawals',
-        href: '/dashboard/withdrawals',
-        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
-      },
+      // {
+      //   title: 'Withdrawals',
+      //   href: '/dashboard/withdrawals',
+      //   icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      // },
       {
         title: 'Purchase History',
         href: '/dashboard/purchase-history',

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import ReviewCourseHeader from './_components/ReviewCourseHeader';
+// import ReviewCourseHeader from './_components/ReviewCourseHeader';
 import CourseInformationSection from './_components/CourseInformationSection';
 import CourseCurriculumSection from './_components/CourseCurriculumSection';
 import { useGetCourseByDetailQuery } from '@/lib/redux/features/course/courseApi';
@@ -86,7 +86,7 @@ const ReviewCoursePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-secondary p-8 font-sans">
             <div className="mx-auto max-w-6xl rounded-lg bg-background shadow-lg">
-                <ReviewCourseHeader />
+                {/* <ReviewCourseHeader /> */}
 
                 <div className="p-8">
                     <CourseInformationSection course={courseInfo} />

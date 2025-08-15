@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function ListQuizzesPage() {
   return (
-    <div className="">
+    <div className="min-h-screen">
       <QuizListPage />
     </div>
   );

@@ -6,6 +6,7 @@ import AddEmployeeModal from './_components/AddEmployeeModal';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { useToast } from '@/hooks/use-toast';
+import Loading from '@/components/common/Loading';
 
 
 const EmployeePage = () => {
@@ -104,7 +105,7 @@ const EmployeePage = () => {
     <>
       <AddEmployeeModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onRefresh={fetchEmployees} />
 
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h1 className="text-2xl font-semibold leading-6 text-gray-900">Employees</h1>
@@ -124,7 +125,7 @@ const EmployeePage = () => {
         </div>
 
         {loading ? (
-          <p className="text-sm text-gray-500 mt-4">Loading employees...</p>
+          <Loading message="Loading employees..." />
         ) : (
             <EmployeeTable
               employees={employees}

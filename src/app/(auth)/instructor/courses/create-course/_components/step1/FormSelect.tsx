@@ -9,32 +9,48 @@ interface Option {
 }
 
 interface FormSelectProps {
-    label: string;
+    label?: string;
     placeholder?: string;
     options: Option[];
     value: string;
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    required?: boolean;
+    error?: string;
+    disabled?: boolean;
+    className?: string;
 }
 
-export function FormSelect({ label, options, value, onChange, ...props }: FormSelectProps) {
-
+export function FormSelect({
+    label,
+    options,
+    value,
+    onChange,
+    placeholder = "Select",
+    required = false,
+    error,
+    disabled = false,
+    className = "",
+    ...props
+}: FormSelectProps) {
     return (
-        <div className="flex flex-col gap-2 w-full">
+        <div className={`flex flex-col gap-2 w-full ${className}`}>
             <label className="text-base font-bold leading-5 text-stone-950">
-                {label}
+                {label} {required && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
                 <select
                     value={value}
                     onChange={onChange}
-                    className="appearance-none w-full h-[56px] px-4 pr-10 rounded-xl bg-[#F7F8FA] text-sm text-stone-900 overflow-hidden mx-1 focus:ring-2 focus:ring-blue-600"
+                    disabled={disabled}
+                    className={`appearance-none w-full h-[56px] px-4 pr-10 rounded-xl text-sm text-stone-900 bg-[#F7F8FA] focus:ring-2 focus:ring-blue-600 outline-none
+            ${error ? "ring-2 ring-red-500 focus:ring-red-500" : ""} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
                     {...props}
                 >
                     <option value="" disabled>
-                        {props.placeholder || "Select"}
+                        {placeholder}
                     </option>
                     {options.map((opt) => (
-                        <option className="" key={opt.value} value={opt.value}>
+                        <option key={opt.value} value={opt.value}>
                             {opt.label}
                         </option>
                     ))}
@@ -44,9 +60,10 @@ export function FormSelect({ label, options, value, onChange, ...props }: FormSe
                     alt="Arrow icon"
                     width={20}
                     height={20}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                 />
             </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
     );
 }

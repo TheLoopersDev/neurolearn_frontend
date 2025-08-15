@@ -5,12 +5,14 @@ import React from "react";
 import CardOption from "@/app/(auth)/instructor/courses/create-course/_components/CardOption";
 import tag from "@/public/assets/dashboard/course/tag.svg";
 import {
+    courseApi,
     useDeleteCourseMutation,
     usePublishCourseMutation,
     useUnpublishCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
 import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
+import { useDispatch } from "react-redux";
 
 interface CourseHeaderProps {
     thumbnailImage: string;
@@ -29,10 +31,12 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
     const [publishCourse] = usePublishCourseMutation();
     const [unpublishCourse] = useUnpublishCourseMutation();
     const { showModal } = useModal();
+    const dispatch = useDispatch();
 
     const handleDelete = async () => {
         try {
             await deleteCourse(courseId).unwrap();
+            dispatch(courseApi.util.invalidateTags([{ type: 'Course' }]));
             toast({
                 title: "Deleted",
                 description: "Course deleted successfully!",
@@ -92,14 +96,14 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                     className="w-full h-[160px] object-cover rounded-2xl"
                     priority
                 />
-                <div className="flex justify-between items-center w-full max-w-[323px] mt-2">
+                <div className="flex justify-between items-center w-full max-w-[323px] mt-2 z-30">
                     <div className="flex gap-2 items-center">
                         <Image src={tag} alt="Tag icon" width={16} height={16} />
                         <span className="text-[#3858F8] text-sm font-medium">{category}</span>
                     </div>
 
                     {/* Wrapped CardOption with high z-index container */}
-                    <div className="relative z-[1000]">
+                    <div className="relative z-[9999]">
                         <CardOption
                             courseId={courseId}
                             onDelete={() =>

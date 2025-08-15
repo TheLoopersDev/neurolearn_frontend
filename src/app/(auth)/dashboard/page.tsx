@@ -10,6 +10,7 @@ import CourseStatus from '@/components/dashboard/CourseStatus';
 import RelatedCourses from '@/components/dashboard/RelatedCourses';
 import StudentStatisticChart from '@/components/dashboard/StudentStatisticChart';
 import UpcomingExam from '@/components/dashboard/UpcomingExam';
+import Loading from '@/components/common/Loading';
 
 export default function UserDashboard() {
   const { user } = useSelector((state: any) => state.auth);
@@ -18,8 +19,15 @@ export default function UserDashboard() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Redirect admin to course requests page
   useEffect(() => {
-    if (!user?._id) return;
+    if (user?.role === 'admin') {
+      router.push('/dashboard/review-courses');
+    }
+  }, [user?.role, router]);
+
+  useEffect(() => {
+    if (!user?._id || user?.role === 'admin') return;
 
     const fetchDashboardData = async () => {
       try {
@@ -112,6 +120,15 @@ export default function UserDashboard() {
     // 2) Hoặc mở trang chứng chỉ (nếu có):
     // router.push(`/dashboard/certificates/${courseId}`);
   };
+  if (isLoading) {
+    return <Loading message="Loading dashboard..." className="min-h-screen" />;
+  }
+
+  // Don't render dashboard content for admin
+  if (user?.role === 'admin') {
+    return <Loading message="Redirecting..." className="min-h-screen" />;
+  }
+
   return (
     <div className="flex h-full">
       <div className="w-full overflow-y-auto">
@@ -143,7 +160,7 @@ export default function UserDashboard() {
             <div className="w-[50%]">
               <div className="bg-white rounded-2xl p-4 w-full h-full flex flex-col">
                 {isLoading ? (
-                  <span>Loading courses...</span>
+                  <Loading message="Loading courses..." size="sm" className="min-h-[200px]" />
                 ) : (
                   <RelatedCourses
                     courses={data?.relatedCourses || []}

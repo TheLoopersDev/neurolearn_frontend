@@ -6,7 +6,7 @@ import ToggleSwitch from './ToggleSwitch';
 import { QuestionData, AnswerOptionData } from '../../../../../types/quiz';
 
 import { debounce } from 'lodash'; // Thêm lodash để sử dụng debounce
-import Image from 'next/image';
+// import Image from 'next/image';
 import QuestionOptionsMenu from './QuestionOptionsMenu';
 
 interface InstructorQuestionEditorProps {
@@ -159,7 +159,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
   // Các hàm handler giờ chỉ cập nhật state nội bộ. useEffect ở trên sẽ xử lý việc gọi onQuestionDataChange.
   const handleSetQuestionText = (text: string) => setQuestionText(text);
   const handleSetIsQuestionRequired = (checked: boolean) => setIsQuestionRequired(checked);
-  const handleSetIsAnswerWithImage = (checked: boolean) => setIsAnswerWithImage(checked);
+  // const handleSetIsAnswerWithImage = (checked: boolean) => setIsAnswerWithImage(checked);
 
   const handleToggleMultipleAnswerInternal = (checked: boolean) => {
     setIsMultipleAnswerLocal(checked);
@@ -201,18 +201,18 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
     }
     setPoints(finalValue);
   };
-  const handleLocalQuestionImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size too large! Maximum 10MB.');
-        event.target.value = '';
-        return;
-      }
-      setQuestionImageFile(file);
-      setQuestionImageUrl(null);
-    }
-  };
+  // const handleLocalQuestionImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (event.target.files && event.target.files[0]) {
+  //     const file = event.target.files[0];
+  //     if (file.size > 10 * 1024 * 1024) {
+  //       alert('File size too large! Maximum 10MB.');
+  //       event.target.value = '';
+  //       return;
+  //     }
+  //     setQuestionImageFile(file);
+  //     setQuestionImageUrl(null);
+  //   }
+  // };
 
   if (!internalId) {
     return (
@@ -297,7 +297,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
           placeholder="Ví dụ: Trong các nguyên tắc thiết kế trực quan..."
           className="flex-grow w-full p-3  border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px] text-sm text-black"
         />
-        <div
+        {/* <div
           className="w-full md:w-48 md:flex-shrink-0 h-25 md:min-h-[100px] flex flex-col items-center justify-center p-3 border-2 border-dashed border-blue-300 rounded-md bg-blue-50 text-center cursor-pointer hover:bg-blue-100 group transition-colors"
           onClick={() => document.getElementById(`questionImageUpload-${internalId}`)?.click()}
         >
@@ -361,7 +361,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
               New: {questionImageFile.name}{' '}
             </p>
           )}
-        </div>
+        </div> */}
       </div>
       <>
         <div className="flex items-center space-x-3 gap-2 mb-5 text-sm border-t border-gray-200 pt-4">
@@ -375,7 +375,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
               onChange={handleToggleMultipleAnswerInternal}
             />
           </div>
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <span className="mr-2 text-gray-600 font-semibold">Answer with image</span>
             <ToggleSwitch
               id={`answerWithImageToggle-${internalId}`}
@@ -383,7 +383,7 @@ const InstructorQuestionEditor: React.FC<InstructorQuestionEditorProps> = ({
               onChange={handleSetIsAnswerWithImage}
               activeColor="bg-green-500"
             />
-          </div>
+          </div> */}
         </div>
         <div className="space-y-1 mb-5">
           {options.map(option => (

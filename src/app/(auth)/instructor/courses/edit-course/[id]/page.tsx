@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useGetCourseByIdQuery } from "@/lib/redux/features/course/courseApi";
 import { Course } from "@/types/course";
 import CourseCreationForm from "../../create-course/_components/step1/CourseCreationForm";
+import Loading from "@/components/common/Loading";
 
 export default function EditCoursePage() {
     const params = useParams();
@@ -40,7 +41,14 @@ export default function EditCoursePage() {
         }
     }, [course]);
 
-    if (loading && id) return <div>Loading...</div>;
+    if (loading && id) {
+        return (
+            <div className="w-full">
+                <Loading message="Loading..." />
+            </div>
+        );
+    }
+
     if (error) return <div className="text-red-500">Error loading course</div>;
 
     return (

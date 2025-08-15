@@ -1,11 +1,174 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination, ReviewModal } from '@/components/review-common';
+import { createPortal } from 'react-dom';
+import { ReviewHeader, ReviewPagination } from '@/components/review-common';
 import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusinessesQuery } from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
 import BusinessCard from '@/components/business/BusinessCard';
 import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
 import { Business } from '@/types/business';
+import Loading from '@/components/common/Loading';
+import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { StatusBadge } from '@/components/review-common';
+
+// Business Request Modal Component using createPortal
+const BusinessRequestModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  selected: any;
+  onApprove: (id: string) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}> = ({ isOpen, onClose, selected, onApprove, onReject }) => {
+  if (!isOpen || !selected) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const modalContent = (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || selected?.userId?.name || 'N/A'}</h3>
+        </div>
+        {/* Business Request Content */}
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* LEFT COLUMN */}
+            <div className="w-full lg:w-[70%] space-y-6">
+              {/* User Info */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                <div className="flex items-center gap-4 mb-4">
+                  <Image
+                    src={selected?.userId?.avatar?.url || selected?.userId?.avatar || "/assets/images/avatar.png"}
+                    alt={selected?.userId?.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="font-semibold text-lg">{selected?.userId?.name || 'N/A'}</div>
+                    <div className="text-gray-500">{selected?.userId?.email || 'N/A'}</div>
+                    <div className="text-sm text-gray-400">User ID: {selected?.userId?._id || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h4>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-500 text-sm">Company Name:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?.name || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Business Role:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.role ? selected.userId.businessInfo.role.charAt(0).toUpperCase() + selected.userId.businessInfo.role.slice(1) : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Business ID:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?._id || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Facebook:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.facebook || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Twitter:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.twitter || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">LinkedIn:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.linkedin || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Instagram:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.instagram || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <div className="w-full lg:w-[30%] space-y-6">
+              {/* Request Details */}
+              <div className="bg-blue-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Type:</span>
+                    <div className="font-semibold text-blue-600">{selected?.type ? selected.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Business Verification'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Date:</span>
+                    <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Status:</span>
+                    <div className="font-semibold">
+                      <StatusBadge status={selected?.status || 'pending'} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-6 border-t mt-8">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onReject(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Reject
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onApprove(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
+};
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -33,7 +196,7 @@ const BusinessRequestsPage = () => {
   // API call for all businesses
   const { data: businessData, isLoading: isBusinessLoading } = useGetAllBusinessesQuery({
     page: businessPage,
-    limit: 12,
+    limit: 6,
     search: searchTerm
   });
 
@@ -79,22 +242,87 @@ const BusinessRequestsPage = () => {
     }
   };
 
-  const headers = [
-    { label: 'User', className: 'col-span-3' },
-    { label: 'Company Name', className: 'col-span-3' },
-    { label: 'Request Date', className: 'col-span-3' },
-      { label: 'Approve', className: 'col-span-2' },
-  { label: 'Reject', className: 'col-span-1' },
-  ];
+  // Pagination component
+  const PaginationComponent = () => {
+    if (totalPages <= 1) return null;
 
+    const getPageNumbers = () => {
+      const pageNumbers = new Set<number>();
+      pageNumbers.add(1);
+      pageNumbers.add(totalPages);
+      if (currentPage > 1) pageNumbers.add(currentPage - 1);
+      pageNumbers.add(currentPage);
+      if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
+
+      const sortedPages = Array.from(pageNumbers)
+        .filter(p => p > 0 && p <= totalPages)
+        .sort((a, b) => a - b);
+      const finalPages: (number | string)[] = [];
+      let lastPage = 0;
+
+      for (const page of sortedPages) {
+        if (lastPage !== 0 && page > lastPage + 1) {
+          finalPages.push('...');
+        }
+        finalPages.push(page);
+        lastPage = page;
+      }
+      return finalPages;
+    };
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-8">
+        <button
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+
+        {getPageNumbers().map((page, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              if (typeof page === 'number') {
+                setCurrentPage(page);
+              }
+            }}
+            disabled={page === '...'}
+            className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
+              ? 'text-blue-600 bg-blue-50 border border-blue-300'
+              : page === '...'
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
+              }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
+
+  // Extract data from API response
+  const requests = requestData?.data || [];
   const itemsPerPage = 10;
-  const totalPages = Math.ceil((requestData?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentRequests = requestData?.slice(startIndex, startIndex + itemsPerPage) || [];
+  const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -119,108 +347,114 @@ const BusinessRequestsPage = () => {
 
         {activeTab === 'request' ? (
           <>
-            {/* actionMessage && <div className="mb-4 text-center text-red-500">{actionMessage}</div> */}
-            <ReviewTable headers={headers}>
-              {isRequestLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !requestData || requestData.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No data</div>
-              ) : (
-                currentRequests.map((request: any, index: number) => (
-                  <ReviewTableRow key={request._id || request.id} index={index}>
-                    {/* User */}
-                    <div className="col-span-3 flex items-center gap-3">
-                      <img src={request.avatar || request.avatarUrl || "/assets/images/avatar.png"} alt={request.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm" />
-                      <div>
-                        <div className="font-semibold text-gray-900">{request.name}</div>
-                        <div className="text-sm text-gray-500">{request.email}</div>
+            {/* Table Container */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
+                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">User</div>
+                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Company Name</div>
+                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
+                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
+                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide text-center">Action</div>
+              </div>
+              {/* Table Body */}
+              <div className="divide-y divide-gray-50">
+                {isRequestLoading ? (
+                  <Loading message="Loading requests..." size="sm" className="py-8" />
+                ) : !requestData?.success || requests.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                      {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
+                  </div>
+                ) : (
+                  currentRequests.map((request: any, index: number) => (
+                    <div key={request._id || request.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                      {/* User */}
+                      <div className="col-span-3 flex items-center gap-3">
+                        <Image
+                          src={request.userId?.avatar?.url || request.userId?.avatar || "/assets/images/avatar.png"}
+                          alt="avatar"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
+                        />
+                        <div>
+                          <div className="font-semibold text-gray-900">{request.userId?.name || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{request.userId?.email || 'N/A'}</div>
+                        </div>
+                      </div>
+                      {/* Company Name */}
+                      <div className="col-span-3 flex items-center">
+                        <span className="text-gray-700 font-medium">{request.userId?.businessInfo?.businessId?.name || 'N/A'}</span>
+                      </div>
+                      {/* Request Date */}
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                      </div>
+                      {/* Status */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <StatusBadge status={request.status || 'pending'} />
+                      </div>
+                      {/* Action */}
+                      <div className="col-span-3 flex items-center justify-center gap-2">
+                        <button
+                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                          onClick={() => handleView(request)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                          onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                          onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                    {/* Company Name */}
-                    <div className="col-span-3 flex items-center">
-                      <span className="text-gray-700 font-medium">{request.companyName || request.businessName || 'N/A'}</span>
-                    </div>
-                    {/* Request Date */}
-                    <div className="col-span-3 flex items-center">
-                      <span className="text-gray-700 font-medium">{request.requestDate || (request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A')}</span>
-                    </div>
-                    {/* Approve */}
-                    <div className="col-span-2 flex items-center justify-center gap-2">
-                      <button
-                        className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-                        onClick={() => handleView(request)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="px-3 py-1 bg-green-500 text-white rounded disabled:opacity-50"
-                        onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
-                      >
-                        Approve
-                      </button>
-                    </div>
-                    {/* Reject */}
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button
-                        className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
-                        // disabled={isActionLoading} // This state variable is not defined in the original file
-                        onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
-                      >
-                        {/* {isActionLoading ? 'Rejecting...' : 'Reject'} */}
-                        Reject
-                      </button>
-                    </div>
-                  </ReviewTableRow>
-                ))
-              )}
-            </ReviewTable>
-            <ReviewPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+                  ))
+                )}
+              </div>
+            </div>
+            <PaginationComponent />
+            {/* Business Request Modal using createPortal */}
+            <BusinessRequestModal
+              isOpen={open}
+              onClose={() => setOpen(false)}
+              selected={selected}
+              onApprove={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'approve');
+                } catch (err: any) {
+                  toast({
+                    title: 'Approval Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              onReject={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'reject');
+                } catch (err: any) {
+                  toast({
+                    title: 'Rejection Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
             />
-            <ReviewModal open={open} onClose={() => setOpen(false)} title="Business Request Information" maxWidth="max-w-xl">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* User info */}
-                <div className="flex-1 bg-gray-50 rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img src={selected?.avatar || selected?.avatarUrl} alt={selected?.name} className="w-12 h-12 rounded-full object-cover" />
-                    <div>
-                      <div className="font-semibold">{selected?.name}</div>
-                      <div className="text-xs text-gray-500">{selected?.email}</div>
-                    </div>
-                  </div>
-                  <div className="text-gray-500 text-sm mb-1">Company Name</div>
-                  <div className="font-semibold mb-4">{selected?.companyName || selected?.businessName}</div>
-                  <div className="text-gray-500 text-sm mb-1">Reason</div>
-                  <div className="text-sm">{selected?.reason || 'N/A'}</div>
-                </div>
-              </div>
-              {/* Actions */}
-              <div className="flex justify-end gap-4 mt-8">
-                <button
-                  className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 bg-gray-100 hover:bg-gray-200"
-                  onClick={() => setOpen(false)}
-                >
-                  Reject
-                </button>
-                <button
-                  className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                  onClick={() => setOpen(false)}
-                >
-                  Approve
-                </button>
-              </div>
-            </ReviewModal>
           </>
         ) : (
           // Tab Business: Grid card view
           <>
             {isBusinessLoading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="mt-2 text-gray-500">Loading businesses...</p>
-              </div>
+              <Loading message="Loading businesses..." size="md" className="py-12" />
             ) : !businessData?.data || businessData.data.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No businesses found</p>

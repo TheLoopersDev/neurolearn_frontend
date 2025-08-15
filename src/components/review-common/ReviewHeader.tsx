@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface ReviewHeaderProps {
   searchTerm: string;
@@ -19,58 +19,25 @@ interface ReviewHeaderProps {
 const ReviewHeader: React.FC<ReviewHeaderProps> = ({
   searchTerm,
   setSearchTerm,
-  selectedCategory,
-  setSelectedCategory,
-  categories,
+
   activeTab,
   onTabChange,
   tabOptions,
-  selectedStatus,
-  setSelectedStatus,
-  statusOptions,
-  showStatusFilter = false,
+
 }) => {
   return (
-    <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl shadow-sm">
+    <div className="flex items-center justify-between mb-8 text-black">
       <div className="flex items-center gap-4">
         <div className="relative">
           <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search"
-            className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-80"
+            className="pl-12 pr-4 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-100 h-10"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="relative">
-          <select
-            className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-            value={selectedCategory}
-            onChange={e => setSelectedCategory(e.target.value)}
-          >
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
-        </div>
-        {showStatusFilter && selectedStatus && setSelectedStatus && statusOptions && (
-          <div className="relative">
-            <select
-              className="appearance-none bg-gray-50 rounded-full px-6 py-3 pr-10 border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer"
-              value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
-            >
-              {statusOptions.map(status => (
-                <option key={status} value={status}>
-                  {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
-                </option>
-              ))}
-            </select>
-            <ChevronRight className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
-          </div>
-        )}
       </div>
       <div className="flex gap-3">
         {tabOptions.map((tab) => (

@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination } from "@/components/review-common";
 import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-
-const categories = ['All courses', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+import Loading from "@/components/common/Loading";
 
 interface WithdrawData {
   _id: string;
@@ -29,7 +28,6 @@ interface WithdrawResponse {
 
 const WithdrawalsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All courses');
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<WithdrawData | null>(null);
@@ -44,7 +42,6 @@ const WithdrawalsPage = () => {
   const fetchWithdraws = async () => {
     try {
       setIsLoading(true);
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/withdraw`, {
         method: 'GET',
         credentials: 'include',
@@ -63,12 +60,10 @@ const WithdrawalsPage = () => {
         setWithdraws(data.withdraws);
       } else {
         setWithdraws([]);
-        // setError('No data'); // This line was removed as per the edit hint
       }
     } catch (error) {
       console.error('Error fetching withdraws:', error);
       setWithdraws([]);
-      // setError('Error loading withdraws'); // This line was removed as per the edit hint
     } finally {
       setIsLoading(false);
     }
@@ -151,8 +146,7 @@ const WithdrawalsPage = () => {
   const filteredWithdraws = withdraws.filter(withdraw => {
     const matchesSearch = withdraw.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       withdraw.user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedCategory === 'All courses' || withdraw.status.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const headers = [
@@ -164,30 +158,26 @@ const WithdrawalsPage = () => {
     { label: '', className: 'col-span-1' },
   ];
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
   const totalPages = Math.ceil(filteredWithdraws.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentWithdraws = filteredWithdraws.slice(startIndex, startIndex + itemsPerPage);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <Loading message="Loading withdrawals..." className="min-h-screen" />;
   }
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          categories={categories}
+          selectedCategory=""
+          setSelectedCategory={() => { }}
+          categories={[]}
           activeTab="withdrawals"
-          onTabChange={() => {}}
+          onTabChange={() => { }}
           tabOptions={[
             { value: 'withdrawals', label: 'Withdrawals' }
           ]}

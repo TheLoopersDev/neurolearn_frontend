@@ -29,14 +29,14 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const { toast } = useToast();
     const [step, setStep] = useState<1 | 2>(1);
     const [courseId, setCourseId] = useState<string | null>(propCourseId || null);
-    const [, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isContinuing, setIsContinuing] = useState(false);
     const [draftSaved, setDraftSaved] = useState(false);
 
-    const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId!, { skip: !courseId });
-    const { data: sectionData } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
+    const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId as string, { skip: !courseId });
+    const { refetch: refetchAllSections, } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
@@ -93,10 +93,13 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
         if (!getId(data.category)) errs.category = "Category is required";
         if (!getId(data.level)) errs.level = "Skill level is required";
         if (!data.description?.trim()) errs.description = "Description is required";
-        if (!data.benefits?.length) errs.benefits = "At least 1 benefit is required";
-        if (!data.prerequisites?.length) errs.prerequisites = "At least 1 prerequisite is required";
+        // if (!data.benefits?.length) errs.benefits = "At least 1 benefit is required";
+        // if (!data.prerequisites?.length) errs.prerequisites = "At least 1 prerequisite is required";
         if (data.price == null || data.price < 0) errs.price = "Price is required and must be >= 0";
         if (!data.duration || data.duration <= 0) errs.duration = "Duration must be greater than 0";
+        if (data.tags && data.tags.length > 3) {
+            errs.tags = "Maximum 3 topics allowed";
+        }
 
         const thumbnailUrl =
             typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
@@ -155,15 +158,18 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
 
         setIsPublishing(true);
         try {
-            const sections = sectionData?.data || [];
+            const fetch = await refetchAllSections();
+            const sections = 'data' in fetch ? (fetch.data?.data || []) : [];
+
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
                 toast({ title: "Error", description: "Course needs at least 1 section & lesson.", variant: "destructive" });
                 return;
             }
+
             await updateCourse({ id: courseId, course: { ...getPayload(), isDraft: false } }).unwrap();
             const res = await createCourseApprovalRequest({ courseId, message: "Requesting course approval" }).unwrap();
             toast({ title: "Success", description: res?.message || "Submitted!", variant: "success" });
-            router.push("/dashboard/courses");
+            router.push("/instructor/courses");
         } catch (err: any) {
             toast({ title: "Error", description: err?.data?.message || "Failed to publish.", variant: "destructive" });
         } finally {
@@ -207,20 +213,21 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                         loading={{ continue: isContinuing, draft: isSavingDraft, publish: isPublishing }}
                     />
 
-                    {step === 1 && formData._id && (
+                    {step === 1 && (
                         <section className="flex flex-row gap-6 items-start w-full max-w-[1120px] h-full">
                             <div className="w-4/5">
                                 <CourseInformationForm
-                                    key={formData._id || "new-course"}
+                                    key={courseId ?? "new-course"}
                                     formData={formData}
                                     setFormData={setFormData}
                                     courseId={courseId}
+                                    errors={errors}
+                                    setErrors={setErrors}
                                     onDraftSaved={(id) => {
                                         setFormData((prev) => ({ ...prev, _id: id }));
                                         setCourseId(id);
                                     }}
                                 />
-
                             </div>
                             <div className="flex flex-col gap-6">
                                 <FileUploadArea
@@ -232,6 +239,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                             </div>
                         </section>
                     )}
+
 
                     {step === 2 && courseId && (
                         <section className="w-full max-w-4xl mx-auto mt-8">

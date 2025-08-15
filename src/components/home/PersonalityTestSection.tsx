@@ -38,7 +38,7 @@ export default function PersonalityTestSection() {
           <h2 className="text-[54px] leading-[64px] text-[#0D0D0D] max-w-[648px] font-normal">
             Test your personality and interests
           </h2>
-          <Button href="/personality-test" variant="primary">
+          <Button href="/courses" variant="primary">
             Explore Now
           </Button>
         </div>

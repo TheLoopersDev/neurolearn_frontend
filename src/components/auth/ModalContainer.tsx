@@ -14,10 +14,13 @@ import {
   AnimatePresence,
   motion,
 } from 'framer-motion';
+import GroupChatModal from '@/components/chat/GroupChatModal';
+import CreateChatModal from '@/components/chat/CreateChatModal';
 import ActionModal from '../../app/(auth)/instructor/courses/create-course/_components/ActionModal';
 import AddEditSection from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditSection';
 import AddEditLessonModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/AddEditLesson';
 import PickQuizToAddModal from '@/app/(auth)/instructor/courses/create-course/_components/step2/PickQuizToAddModal';
+import CreateQuizModal from '@/app/(auth)/instructor/quizzes/_components/CreateQuizModal';
 
 
 export default function ModalContainer() {
@@ -86,6 +89,42 @@ export default function ModalContainer() {
             onClose={hideModal}
           />
         );
+      case 'groupSettings':
+        return (
+          <GroupChatModal
+            key="groupSettings"
+            isOpen
+            onClose={hideModal}
+            chatName={modalData?.chatName}
+            currentMembers={modalData?.currentMembers || []}
+            onUpdateGroupName={modalData?.onUpdateGroupName}
+            onAddMembers={modalData?.onAddMembers}
+            onRemoveMember={modalData?.onRemoveMember}
+            currentUserId={modalData?.currentUserId}
+          />
+        );
+      case 'createChat':
+        return (
+          <CreateChatModal
+            key="createChat"
+            open
+            onClose={hideModal}
+            currentUserId={modalData?.currentUserId}
+            onChatCreated={modalData?.onChatCreated}
+          />
+        );
+      case 'createQuiz':
+        return (
+          <CreateQuizModal
+            key="createQuiz"
+            isOpen
+            onClose={hideModal}
+            onSubmit={(details) => {
+              modalData?.onSubmit?.(details);
+              hideModal();
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -103,30 +142,32 @@ export default function ModalContainer() {
         <motion.div
           layout
           key="modal-backdrop"
-          initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+          initial={{ backdropFilter: 'blur(0px)' }}
+          animate={{ backdropFilter: 'blur(10px)' }}
+          exit={{ backdropFilter: 'blur(0px)' }}
           transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'transparent' }}
           onClick={hideModal}
         >
           <motion.div
             key="modal"
             layout
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{
               opacity: 0,
-              y: 60,
+              scale: 0.95,
+              y: 20,
               transition: {
-                duration: 0.3,
+                duration: 0.2,
                 ease: [0.4, 0, 0.2, 1],
               },
             }}
             transition={{
               type: 'spring',
-              stiffness: 250,
-              damping: 30,
+              stiffness: 300,
+              damping: 25,
               mass: 0.8,
             }}
             whileTap={{ scale: 0.98 }}
@@ -135,7 +176,10 @@ export default function ModalContainer() {
               willChange: 'opacity, transform',
             }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-5xl h-[600px] rounded-3xl"
+            className={`relative w-full rounded-3xl flex items-center justify-center min-h-fit ${modalType === 'createChat' || modalType === 'groupSettings'
+                ? 'max-w-md'
+                : 'max-w-5xl'
+              }`}
           >
             {renderModalContent()}
           </motion.div>

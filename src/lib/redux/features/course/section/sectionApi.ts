@@ -133,7 +133,11 @@ export const sectionApi = createApi({
       query: ({ courseId, data }) => ({
         url: `/sections/create/${courseId}`,
         method: 'POST',
-        body: data,
+        body: {
+          title: data.title,
+          description: data.description ?? '',
+          isPublished: Boolean(data.isPublished), 
+        },
       }),
       invalidatesTags: ['Section'],
     }),

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { PlusCircle, Search, SlidersHorizontal } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useModal } from '@/context/ModalContext';
 import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
-import CreateQuizModal from './CreateQuizModal';
+import SearchQuiz from './SearchQuiz';
+import Loading from '@/components/common/Loading';
 import {
   Pagination,
   PaginationContent,
@@ -21,116 +23,53 @@ import {
   useCreateQuizMutation,
 } from '@/lib/redux/features/quiz/quizApi';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 6;
 
 const QuizListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
+  const { showModal } = useModal();
 
-  // Nếu API của bạn hỗ trợ params (courseId/difficulty/...) thì truyền tại đây
   const { data, isFetching, isLoading, refetch } = useGetAllQuizzesQuery(
     {},
-    {
-      refetchOnMountOrArgChange: true,
-      refetchOnFocus: true,
-      refetchOnReconnect: true,
-    }
+    { refetchOnMountOrArgChange: true, refetchOnFocus: true, refetchOnReconnect: true }
   );
   const [createQuiz] = useCreateQuizMutation();
 
-  // Chuẩn hoá danh sách lấy từ RTK Query
   const allQuizzes: Quiz[] = useMemo(() => {
     if (!data) return [];
-    // Ưu tiên data.quizzes nếu là object { quizzes, ... }
     if (Array.isArray(data)) return data as unknown as Quiz[];
     if (Array.isArray((data as any).quizzes)) return (data as any).quizzes as Quiz[];
     return [];
   }, [data]);
 
-  // Tìm kiếm
   const searchedQuizzes = useMemo(() => {
     if (!searchTerm) return allQuizzes;
     return allQuizzes.filter(
-      (quiz) =>
-        typeof quiz.name === 'string' &&
-        quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (quiz) => typeof quiz.name === 'string' && quiz.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allQuizzes, searchTerm]);
 
-  // Pagination meta: nếu server trả pagination thì ưu tiên dùng
-  const serverTotalPages =
-    (data as any)?.pagination?.totalPages && Number((data as any).pagination.totalPages);
-
+  const serverTotalPages = (data as any)?.pagination?.totalPages && Number((data as any).pagination.totalPages);
   const totalPages = useMemo(() => {
     if (serverTotalPages && !Number.isNaN(serverTotalPages)) return serverTotalPages;
     return Math.max(1, Math.ceil(searchedQuizzes.length / ITEMS_PER_PAGE));
   }, [serverTotalPages, searchedQuizzes.length]);
 
-  // Co lại trang khi dữ liệu thay đổi (vd xoá khiến số trang giảm)
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
+    if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
 
-  // Lấy danh sách cho trang hiện tại (client-side)
   const quizzesForCurrentPage = useMemo(() => {
-    if (serverTotalPages) {
-      // Nếu server đã phân trang, bạn nên sửa API + hook để gọi theo page/limit.
-      // Ở đây giữ nguyên client-side slice làm fallback.
-    }
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return searchedQuizzes.slice(startIndex, endIndex);
   }, [searchedQuizzes, currentPage, serverTotalPages]);
 
   const handlePageChange = (page: number) => setCurrentPage(page);
-
-  const getPageNumbers = () => {
-    const pageNumbers: number[] = [];
-    const maxPagesToShow = 3;
-    const halfPagesToShow = Math.floor(maxPagesToShow / 2);
-
-    if (totalPages <= maxPagesToShow + 2) {
-      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-    } else {
-      pageNumbers.push(1);
-
-      if (currentPage > 1 + halfPagesToShow + 1 && totalPages > maxPagesToShow) {
-        if (pageNumbers[pageNumbers.length - 1] !== 1 || currentPage > 2 + halfPagesToShow)
-          pageNumbers.push(-1);
-      }
-
-      let startPage = Math.max(2, currentPage - halfPagesToShow);
-      let endPage = Math.min(totalPages - 1, currentPage + halfPagesToShow);
-
-      if (currentPage - halfPagesToShow <= 1) {
-        endPage = Math.min(totalPages - 1, maxPagesToShow);
-      }
-      if (currentPage + halfPagesToShow >= totalPages) {
-        startPage = Math.max(2, totalPages - maxPagesToShow + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        if (!pageNumbers.includes(i)) pageNumbers.push(i);
-      }
-
-      if (currentPage < totalPages - halfPagesToShow - 1 && totalPages > maxPagesToShow) {
-        if (pageNumbers[pageNumbers.length - 1] < totalPages - 1) pageNumbers.push(-1);
-      }
-
-      if (!pageNumbers.includes(totalPages)) pageNumbers.push(totalPages);
-    }
-
-    return pageNumbers.filter((num, index, self) => num === -1 || self.indexOf(num) === index);
-  };
-
-  const handleOpenCreateModal = () => setIsCreateModalOpen(true);
-  const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
   const handleCreateTestFromModal = useCallback(
     async (details: ManualCreationDetails | AICreationDetails) => {
@@ -150,11 +89,9 @@ const QuizListPage: React.FC = () => {
           variant: 'success',
         });
 
-        // Refetch list để cập nhật ngay (phòng khi backend không bắn lại list)
         refetch();
-
         router.push(`/instructor/quizzes/builder/${response.quiz?._id}`);
-      } catch (err) {
+      } catch {
         toast({
           title: 'Failed to create quiz',
           description: 'An error occurred while creating quiz.',
@@ -165,9 +102,15 @@ const QuizListPage: React.FC = () => {
     [createQuiz, router, toast, refetch]
   );
 
+  const handleOpenCreateModal = () => {
+    showModal('createQuiz', {
+      onSubmit: handleCreateTestFromModal,
+    });
+  };
+
   const renderQuizContent = () => {
     if (isLoading || isFetching) {
-      return <p className="text-center py-12">Loading quizzes...</p>;
+      return <Loading message="Loading quizzes..." size="md" className="min-h-[calc(100vh-200px)]" />;
     }
 
     if (quizzesForCurrentPage.length > 0) {
@@ -202,39 +145,13 @@ const QuizListPage: React.FC = () => {
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-3 sm:gap-4">
-          <div className="relative w-full sm:flex-1 lg:min-w-[300px] xl:min-w-[400px]">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search quizzes..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // reset về trang 1 khi tìm
-              }}
-              className="block text-black w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-white rounded-full shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder-gray-400 h-[42px]"
-            />
-          </div>
-
-          <button className="flex items-center text-sm text-gray-700 bg-white border border-gray-300 px-4 py-2.5 rounded-full hover:bg-gray-50 shadow-sm h-[42px]">
-            <SlidersHorizontal size={16} className="mr-2 text-gray-500" />
-            <span>All courses</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 ml-1.5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-
+        <SearchQuiz
+          searchTerm={searchTerm}
+          onSearchChange={(value) => {
+            setSearchTerm(value);
+            setCurrentPage(1);
+          }}
+        />
         <button
           onClick={handleOpenCreateModal}
           className="flex items-center bg-blue-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-blue-700 h-[42px]"
@@ -260,24 +177,44 @@ const QuizListPage: React.FC = () => {
               />
             </PaginationItem>
 
-            {getPageNumbers().map((page, index) => (
-              <PaginationItem key={index}>
-                {page === -1 ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href="#"
+            {(() => {
+              const pageNumbers: number[] = [];
+              const maxPagesToShow = 3;
+              const half = Math.floor(maxPagesToShow / 2);
+
+              if (totalPages <= maxPagesToShow + 2) {
+                for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+              } else {
+                pageNumbers.push(1);
+                if (currentPage > 1 + half + 1 && totalPages > maxPagesToShow) pageNumbers.push(-1);
+                let start = Math.max(2, currentPage - half);
+                let end = Math.min(totalPages - 1, currentPage + half);
+                if (currentPage - half <= 1) end = Math.min(totalPages - 1, maxPagesToShow);
+                if (currentPage + half >= totalPages) start = Math.max(2, totalPages - maxPagesToShow + 1);
+                for (let i = start; i <= end; i++) pageNumbers.push(i);
+                if (currentPage < totalPages - half - 1 && totalPages > maxPagesToShow) pageNumbers.push(-1);
+                pageNumbers.push(totalPages);
+              }
+
+              return Array.from(new Set(pageNumbers)).map((page, index) => (
+                <PaginationItem key={index}>
+                  {page === -1 ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
                       onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(page as number);
-                    }}
-                    isActive={currentPage === page}
-                  >
-                    {page}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
-            ))}
+                        e.preventDefault();
+                        handlePageChange(page as number);
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ));
+            })()}
 
             <PaginationItem>
               <PaginationNext
@@ -292,12 +229,6 @@ const QuizListPage: React.FC = () => {
           </PaginationContent>
         </Pagination>
       )}
-
-      <CreateQuizModal
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseCreateModal}
-        onSubmit={handleCreateTestFromModal}
-      />
     </div>
   );
 };
