@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface SearchCourseRequestProps {
     searchTerm?: string;
@@ -19,7 +19,6 @@ interface SearchCourseRequestProps {
 export default function SearchCourseRequest({
     searchTerm = "",
     onSearchChange,
-    activeTab = "request",
     searchPlaceholder = "Search"
 }: SearchCourseRequestProps) {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,36 +1,42 @@
 import Image from 'next/image';
-import { Plus, Minus } from 'lucide-react';
 
 interface CartItemProps {
-  quantity: number;
   course: any;
   onRemove: (courseId: string) => void;
-  onQuantityChange: (courseId: string, newQuantity: number) => void;
-  showQuantity?: boolean;
+  onPackageChange: (courseId: string, newIndex: number) => void;
+  showPackageSelector?: boolean;
 }
 
-// Hàm tiện ích để định dạng tiền tệ
 const formatVND = (amount: number): string => {
-  // Định dạng số với dấu phẩy ngăn cách hàng nghìn và thêm "VND"
-  return `${amount.toLocaleString('en-US')}VND`;
+  return `${amount.toLocaleString('en-US')} VND`;
 };
 
 export function CartItem({
   course,
   onRemove,
-  onQuantityChange,
-  showQuantity,
-  quantity,
+  onPackageChange,
+  showPackageSelector,
 }: CartItemProps) {
-  const totalPrice = (course?.price || 0) * quantity;
+  // Sử dụng selectedPackageIndex từ props thay vì state local
+  const selectedPackageIndex = typeof course.selectedPackageIndex === 'number'
+    ? course.selectedPackageIndex
+    : 0;
 
-  const handleIncrease = () => {
-    onQuantityChange(course?._id, quantity + 1);
+  const handlePackageChange = (courseId: string, newIndex: number) => {
+    onPackageChange(courseId, newIndex);
   };
 
-  const handleDecrease = () => {
-    onQuantityChange(course?._id, quantity - 1);
-  };
+  // Nếu có package thì lấy package đang chọn
+  const selectedPackage =
+    course?.coursePackage && course.coursePackage.length > 0 && selectedPackageIndex >= 0 && selectedPackageIndex < course.coursePackage.length
+      ? course.coursePackage[selectedPackageIndex]
+      : null;
+
+  // Giá đơn vị
+  const unitPrice = showPackageSelector && selectedPackage ? selectedPackage.price || 0 : course?.price || 0;
+
+  // Tổng giá (quantity = 1 khi không có package)
+  const totalPrice = showPackageSelector ? unitPrice : unitPrice * 1;
 
   return (
     <div className="grid grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-6">
@@ -50,32 +56,45 @@ export function CartItem({
         </div>
       </div>
 
-      {/* --- Quantity --- */}
-      {showQuantity && (
+      {/* --- Package Selector --- */}
+      {showPackageSelector && course?.coursePackage && course.coursePackage.length > 0 && (
         <div className="flex items-center justify-start gap-2 md:justify-center">
-          <button
-            onClick={handleDecrease}
-            disabled={quantity <= 1}
-            className="rounded-full p-1.5 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Decrease quantity"
-          >
-            <Minus className="h-4 w-4 text-gray-700" />
-          </button>
-          <span className="w-8 text-center text-base font-medium text-gray-900">{quantity}</span>
-          <button
-            onClick={handleIncrease}
-            className="rounded-full p-1.5 transition-colors hover:bg-gray-200"
-            aria-label="Increase quantity"
-          >
-            <Plus className="h-4 w-4 text-gray-700" />
-          </button>
+          <div className="w-full max-w-sm min-w-[100px] relative">
+            <select
+              value={selectedPackageIndex}
+              onChange={e => handlePackageChange(course._id, parseInt(e.target.value))}
+              className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded pl-3 pr-8 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+            >
+              {course.coursePackage.map((pkg: any, index: number) => (
+                <option key={index} value={index}>
+                  {pkg.package}
+                </option>
+              ))}
+            </select>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.2"
+              stroke="currentColor"
+              className="h-5 w-5 ml-1 absolute top-2.5 right-2.5 text-slate-700 pointer-events-none"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+              />
+            </svg>
+          </div>
         </div>
       )}
 
-      {/* --- Total (Updated Format) --- */}
+      {/* --- Unit Price --- */}
       <div className="text-right font-semibold text-gray-900">
-        {course.price ? formatVND(course.price) : 'Free'}
+        {unitPrice > 0 ? formatVND(unitPrice) : 'Free'}
       </div>
+
+      {/* --- Total Price --- */}
       <div className="text-right font-semibold text-gray-900">
         {totalPrice > 0 ? formatVND(totalPrice) : 'Free'}
       </div>
