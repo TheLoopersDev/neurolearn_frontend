@@ -11,7 +11,15 @@ interface ReceiptItem {
   date: string;
 }
 
-export default function ReceiptModal({ isOpen, onClose, data }: { isOpen: boolean; onClose: () => void; data: ReceiptItem | null }) {
+export default function ReceiptModal({
+  isOpen,
+  onClose,
+  data,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  data: ReceiptItem | null;
+}) {
   if (!isOpen || !data) return null;
 
   return (
@@ -32,18 +40,31 @@ export default function ReceiptModal({ isOpen, onClose, data }: { isOpen: boolea
                   height={180}
                   quality={100}
                   className="rounded-lg object-cover"
-                  onError={(e) => {
+                  onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://via.placeholder.com/300x180?text=No+Image';
                   }}
                 />
               </div>
               <div className="text-base font-semibold text-black">Academix</div>
-              <div className="text-sm text-gray-600">321 Street, Dong Da, Quy Nhon, Bình Định, Việt Nam</div>
-              <a className="text-blue-500 text-sm" href="https://academix.com" target="_blank" rel="noopener noreferrer">Academix.com</a>
-              <div className="text-base mt-2 text-black font-semibold">Translates to: Dao Tuan Kiet</div>
+              <div className="text-sm text-gray-600">
+                321 Street, Dong Da, Quy Nhon, Bình Định, Việt Nam
+              </div>
+              <a
+                className="text-blue-500 text-sm"
+                href="https://academix.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Academix.com
+              </a>
+              <div className="text-base mt-2 text-black font-semibold">
+                Translates to: Dao Tuan Kiet
+              </div>
               <div className="text-sm text-gray-600">Date: {data.date}</div>
-              <div className="text-sm break-all text-gray-600">OrderNo: DP–66D4772584AB4866B366D455A673D3D</div>
+              <div className="text-sm break-all text-gray-600">
+                OrderNo: DP–66D4772584AB4866B366D455A673D3D
+              </div>
             </div>
 
             {/* Right Side */}

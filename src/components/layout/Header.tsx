@@ -17,8 +17,6 @@ import Image from 'next/image';
 import { RootState } from '@/lib/redux/store';
 import { useLoadUserQuery } from '@/lib/redux/features/api/apiSlice';
 import ExploreDropdown from '../home/ExploreDropdown';
-import { userLoggerOut } from '@/lib/redux/features/auth/authSlice';
-import { useAppDispatch } from '@/lib/redux/hooks';
 import { Skeleton } from '../common/ui/Skeleton';
 import defaultCourseImage from '@/public/assets/images/default-course.png';
 import defaultInstructorImage from '@/public/assets/images/default-avatar.png';
@@ -32,9 +30,8 @@ const Header: React.FC = () => {
   const [isLoadings, setIsLoadings] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const { showModal } = useModal();
-  const { error, isLoading } = useLoadUserQuery(undefined);
+  const { isLoading } = useLoadUserQuery(undefined);
   const reduxUser = useSelector((state: RootState) => state.auth.user);
-  const dispatch = useAppDispatch();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -135,11 +132,7 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (error && 'status' in error && error.status === 400) {
-      dispatch(userLoggerOut());
-    }
-  }, [error, dispatch]);
+  // Do not force logout on transient /me errors here. Auth is managed centrally in ClientLayout.
 
   useEffect(() => {
     if (isSearchActive && searchRef.current) {
