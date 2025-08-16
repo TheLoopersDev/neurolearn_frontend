@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Business } from '@/types/business';
 
 interface BusinessDetailsModalProps {
@@ -20,7 +21,7 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
     });
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -208,6 +209,9 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
       </div>
     </div>
   );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
 };
 
 export default BusinessDetailsModal; 

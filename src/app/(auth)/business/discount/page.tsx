@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import DiscountTable from '@/components/dashboard/DiscountTable';
 import React from 'react';
+import Loading from '@/components/common/Loading';
 
 interface Discount {
   _id: string;
@@ -67,16 +68,11 @@ export default function Page() {
   if (loading) {
     return (
       <div className="flex h-screen w-full rounded-2xl">
-        <div className="w-full overflow-y-auto p-6">
+        <div className="w-full overflow-y-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Discount Management</h1>
           </div>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading discounts...</p>
-            </div>
-          </div>
+          <Loading message="Loading certificates..." />
         </div>
       </div>
     );

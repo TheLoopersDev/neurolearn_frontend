@@ -12,6 +12,17 @@ const CourseCard = ({ course }: CourseCardProps) => {
   const [imageError, setImageError] = useState(false);
 
 
+  // Ở đầu component, xác định locale & currency
+  const locale = typeof window !== "undefined" ? navigator.language : "en-US";
+  const currency = locale.startsWith("vi") ? "VND" : "USD";
+
+  // Hàm format giá
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: currency === "VND" ? 0 : 2,
+    }).format(price);
 
 
   return (
@@ -82,7 +93,9 @@ const CourseCard = ({ course }: CourseCardProps) => {
           <div className="flex justify-between items-center">
             <span className="text-xs text-[#0D0D0D]">200 Review rating</span>
             <span className="text-[#3858F8] text-[16px] font-semibold">
-              {course?.isFree ? 'Free' : `${course?.price} $`}
+              {course?.isFree
+                ? "Free"
+                : formatPrice(course?.price || 0)}
             </span>
           </div>
         </div>

@@ -8,6 +8,7 @@ import Book from '@/public/assets/business/book.svg';
 import Award from '@/public/assets/business/award.svg';
 import Teacher from '@/public/assets/business/teacher.svg';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import Loading from '@/components/common/Loading';
 
 interface DashboardData {
   totalEmployees: number;
@@ -92,12 +93,7 @@ function DashboardContent({ params }: { params: Promise<{ businessId: string }> 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
+      <Loading message="Loading dashboard data..." />
     );
   }
 

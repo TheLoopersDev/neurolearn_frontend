@@ -5,12 +5,13 @@ import Link from 'next/link';
 interface CartItemListProps {
   courses: any[];
   onRemoveItem: (courseId: string) => void;
-  onQuantityChange: (courseId: string, newQuantity: number) => void;
+  onPackageChange: (courseId: string, newIndex: number) => void; // thêm prop mới
   role: string | undefined;
 }
 
-export function CartItemList({ courses, onRemoveItem, onQuantityChange, role }: CartItemListProps) {
+export function CartItemList({ courses, onRemoveItem, onPackageChange, role }: CartItemListProps) {
   const isBusinessRole = role === 'admin';
+
   if (courses.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-secondary p-12 text-center">
@@ -21,26 +22,24 @@ export function CartItemList({ courses, onRemoveItem, onQuantityChange, role }: 
   }
 
   return (
-    // Main container for the list and footer
     <div>
-      {/* Header Row - visible on medium screens and up */}
+      {/* Header Row */}
       <div className="hidden rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-600 md:grid md:grid-cols-6 md:gap-4">
         <h3 className="col-span-3">Product Details</h3>
-        {isBusinessRole && <h3 className="text-center">Quantity</h3>}
+        {isBusinessRole && <h3 className="text-center">Package</h3>}
         <h3 className="text-center">Price</h3>
         <h3 className="text-center">Total</h3>
       </div>
 
-      {/* Items List Container */}
+      {/* Items List */}
       <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-background md:rounded-none md:border-x md:border-b md:border-t-0">
         {courses.map((course, index) => (
           <CartItem
-            quantity={course.quantity}
             key={course._id || `course-${index}`}
             course={course}
             onRemove={onRemoveItem}
-            onQuantityChange={onQuantityChange}
-            showQuantity={isBusinessRole}
+            showPackageSelector={isBusinessRole}
+            onPackageChange={onPackageChange} // truyền xuống
           />
         ))}
       </div>
