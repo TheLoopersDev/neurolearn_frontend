@@ -1,10 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-interface RootState {
-  auth?: {
-    token?: string;
-  };
-}
 
 interface ApiResponse<T> {
   success: boolean;
@@ -28,11 +23,8 @@ export const requestApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_SERVER_URI,
     credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth?.token;
-      if (token) headers.set('authorization', `Bearer ${token}`);
-      return headers;
-    },
+    // Don't manually set Authorization header for HttpOnly cookies
+    // The browser will automatically send the cookie with credentials: 'include'
   }),
   tagTypes: ['Request'],
   endpoints: builder => ({

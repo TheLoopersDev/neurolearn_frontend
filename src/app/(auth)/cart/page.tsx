@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { CartItemList } from './_components/CartItemsList';
 import { CartSummary } from './_components/CartSummary';
+import Loading from '@/components/common/Loading';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
-
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -23,10 +23,17 @@ export default function CartPage() {
 
         const rawItems = res.data.cart.items;
 
-        const formattedItems: any[] = rawItems.map((item: any) => ({
-          ...item.courseId,
-          quantity: item.quantity,
-        }));
+        const formattedItems: any[] = rawItems.map((item: any) => {
+          const isBusinessUser = user?.businessInfo?.role === 'admin';
+          const showPackageSelector = isBusinessUser;
+
+          return {
+            ...item.courseId,
+            quantity: item.quantity,
+            selectedPackageIndex: 0, // default chọn gói đầu tiên
+            showPackageSelector,
+          };
+        });
 
         setCartItems(formattedItems);
       } catch (error) {
@@ -36,18 +43,17 @@ export default function CartPage() {
       }
     };
 
-    fetchCartItems();
-  }, []);
+    if (user) {
+      fetchCartItems();
+    }
+  }, [user?.businessInfo?.role, user?._id]); // Thêm user._id để đảm bảo user đã load
 
   const handleRemoveItem = async (courseId: string) => {
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/remove-item`,
-        {
-          data: { courseId },
-          withCredentials: true,
-        }
-      );
+      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URI}/cart/remove-item`, {
+        data: { courseId },
+        withCredentials: true,
+      });
 
       setCartItems(prev => prev.filter(item => item._id !== courseId));
       toast({ title: 'Item removed successfully', variant: 'success' });
@@ -57,35 +63,22 @@ export default function CartPage() {
     }
   };
 
-  const handleQuantityChange = async (courseId: string, newQuantity: number) => {
-    const quantity = Math.max(1, newQuantity);
-    setCartItems(prev =>
-      prev.map(item => (item._id === courseId ? { ...item, quantity } : item))
-    );
-
-    try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/cart/update-quantity`,
-        { courseId, quantity },
-        { withCredentials: true }
+  // Cập nhật package được chọn
+  const handlePackageChange = (courseId: string, newIndex: number) => {
+    setCartItems(prev => {
+      const updated = prev.map(item =>
+        item._id === courseId ? { ...item, selectedPackageIndex: newIndex } : item
       );
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
-      toast({ title: 'Failed to update quantity', variant: 'destructive' });
-    }
+      return updated;
+    });
   };
 
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  if (loading) return <p className="p-4 text-gray-500">Loading cart...</p>;
+  if (loading) return <Loading message="Loading cart..." />;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-baseline justify-between border-b border-gray-200 pb-4">
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">Shopping Cart</h1>
-        <p className="text-lg font-semibold text-gray-900">
-          {totalItems} {totalItems === 1 ? 'Item' : 'Items'}
-        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-3">
@@ -93,8 +86,8 @@ export default function CartPage() {
           <CartItemList
             courses={cartItems}
             onRemoveItem={handleRemoveItem}
-            onQuantityChange={handleQuantityChange}
             role={user?.businessInfo?.role}
+            onPackageChange={handlePackageChange}
           />
         </section>
 

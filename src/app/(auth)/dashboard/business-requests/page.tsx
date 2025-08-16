@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ReviewHeader, ReviewPagination } from '@/components/review-common';
 import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusinessesQuery } from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +11,164 @@ import Loading from '@/components/common/Loading';
 import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/review-common';
+
+// Business Request Modal Component using createPortal
+const BusinessRequestModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  selected: any;
+  onApprove: (id: string) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}> = ({ isOpen, onClose, selected, onApprove, onReject }) => {
+  if (!isOpen || !selected) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const modalContent = (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || selected?.userId?.name || 'N/A'}</h3>
+        </div>
+        {/* Business Request Content */}
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* LEFT COLUMN */}
+            <div className="w-full lg:w-[70%] space-y-6">
+              {/* User Info */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                <div className="flex items-center gap-4 mb-4">
+                  <Image
+                    src={selected?.userId?.avatar?.url || selected?.userId?.avatar || "/assets/images/avatar.png"}
+                    alt={selected?.userId?.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="font-semibold text-lg">{selected?.userId?.name || 'N/A'}</div>
+                    <div className="text-gray-500">{selected?.userId?.email || 'N/A'}</div>
+                    <div className="text-sm text-gray-400">User ID: {selected?.userId?._id || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h4>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-500 text-sm">Company Name:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?.name || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Business Role:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.role ? selected.userId.businessInfo.role.charAt(0).toUpperCase() + selected.userId.businessInfo.role.slice(1) : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Business ID:</span>
+                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?._id || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Facebook:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.facebook || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Twitter:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.twitter || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">LinkedIn:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.linkedin || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Instagram:</span>
+                    <span className="font-medium">{selected?.userId?.socialLinks?.instagram || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <div className="w-full lg:w-[30%] space-y-6">
+              {/* Request Details */}
+              <div className="bg-blue-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Type:</span>
+                    <div className="font-semibold text-blue-600">{selected?.type ? selected.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Business Verification'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Date:</span>
+                    <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Status:</span>
+                    <div className="font-semibold">
+                      <StatusBadge status={selected?.status || 'pending'} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-6 border-t mt-8">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onReject(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Reject
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onApprove(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
+};
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -163,7 +322,7 @@ const BusinessRequestsPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -196,7 +355,7 @@ const BusinessRequestsPage = () => {
                 <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Company Name</div>
                 <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
                 <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
+                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide text-center">Action</div>
               </div>
               {/* Table Body */}
               <div className="divide-y divide-gray-50">
@@ -204,7 +363,7 @@ const BusinessRequestsPage = () => {
                   <Loading message="Loading requests..." size="sm" className="py-8" />
                 ) : !requestData?.success || requests.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
+                      {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
                   </div>
                 ) : (
                   currentRequests.map((request: any, index: number) => (
@@ -212,7 +371,7 @@ const BusinessRequestsPage = () => {
                       {/* User */}
                       <div className="col-span-3 flex items-center gap-3">
                         <Image
-                          src={request.userId?.avatar || "/assets/images/avatar.png"}
+                          src={request.userId?.avatar?.url || request.userId?.avatar || "/assets/images/avatar.png"}
                           alt="avatar"
                           width={48}
                           height={48}
@@ -225,11 +384,11 @@ const BusinessRequestsPage = () => {
                       </div>
                       {/* Company Name */}
                       <div className="col-span-3 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.userId?.businessInfo?.companyName || 'N/A'}</span>
+                        <span className="text-gray-700 font-medium">{request.userId?.businessInfo?.businessId?.name || 'N/A'}</span>
                       </div>
                       {/* Request Date */}
                       <div className="col-span-2 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A'}</span>
+                        <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
                       </div>
                       {/* Status */}
                       <div className="col-span-1 flex items-center justify-center">
@@ -262,160 +421,34 @@ const BusinessRequestsPage = () => {
               </div>
             </div>
             <PaginationComponent />
-            {/* Business Request Modal */}
-            {open && selected && (
-              <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4">
-                <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <div className="flex justify-between items-center p-6 border-b">
-                    <h3 className="text-2xl font-bold text-gray-900">Business Request Information</h3>
-                    <button
-                      onClick={() => setOpen(false)}
-                      className="text-gray-400 hover:text-gray-600 p-2"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  {/* Business Request Content */}
-                  <div className="p-6">
-                    <div className="flex flex-col lg:flex-row gap-8">
-                      {/* LEFT COLUMN */}
-                      <div className="w-full lg:w-[70%] space-y-6">
-                        {/* User Info */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
-                          <div className="flex items-center gap-4 mb-4">
-                            <Image
-                              src={selected?.userId?.avatar || "/assets/images/avatar.png"}
-                              alt={selected?.userId?.name}
-                              width={80}
-                              height={80}
-                              className="w-20 h-20 rounded-full object-cover"
-                            />
-                            <div>
-                              <div className="font-semibold text-lg">{selected?.userId?.name}</div>
-                              <div className="text-gray-500">{selected?.userId?.email}</div>
-                              <div className="text-sm text-gray-400">User ID: {selected?.userId?._id}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Business Information */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-gray-500 text-sm">Company Name:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.companyName || 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Business Role:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.role || 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Business ID:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.businessId || 'N/A'}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Social Links */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Facebook:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.facebook || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Twitter:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.twitter || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">LinkedIn:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.linkedin || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Instagram:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.instagram || 'Not provided'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* RIGHT SIDEBAR */}
-                      <div className="w-full lg:w-[30%] space-y-6">
-                        {/* Request Details */}
-                        <div className="bg-blue-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-gray-500 text-sm">Request Type:</span>
-                              <div className="font-semibold text-blue-600">{selected?.type || 'Business Verification'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Request Date:</span>
-                              <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Status:</span>
-                              <div className="font-semibold">
-                                <StatusBadge status={selected?.status || 'pending'} />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-4 pt-6 border-t mt-8">
-                      <button
-                  onClick={() => setOpen(false)}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await handleApproveOrReject(selected._id || selected.id, 'reject');
-                            setOpen(false);
-                          } catch (err: any) {
-                            toast({
-                              title: 'Rejection Failed',
-                              description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
-                              variant: 'destructive',
-                            });
-                          }
-                        }}
-                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                >
-                  Reject
-                </button>
-                <button
-                        onClick={async () => {
-                          try {
-                            await handleApproveOrReject(selected._id || selected.id, 'approve');
-                            setOpen(false);
-                          } catch (err: any) {
-                            toast({
-                              title: 'Approval Failed',
-                              description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
-                              variant: 'destructive',
-                            });
-                          }
-                        }}
-                        className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                >
-                  Approve
-                </button>
-              </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Business Request Modal using createPortal */}
+            <BusinessRequestModal
+              isOpen={open}
+              onClose={() => setOpen(false)}
+              selected={selected}
+              onApprove={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'approve');
+                } catch (err: any) {
+                  toast({
+                    title: 'Approval Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              onReject={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'reject');
+                } catch (err: any) {
+                  toast({
+                    title: 'Rejection Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            />
           </>
         ) : (
           // Tab Business: Grid card view

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
@@ -18,6 +19,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
   const { toast } = useToast();
   const { user } = useSelector((state: any) => state.auth);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   if (!isOpen) return null;
 
   const handleAddByEmail = async () => {
@@ -68,20 +70,18 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
       const formData = new FormData();
       formData.append('file', file);
 
-      await axios.post(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/import`,
         formData,
         {
           withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { 'Content-Type': 'multipart/form-data' },
         }
       );
 
       toast({
         title: 'Success',
-        description: 'Employees imported successfully.',
+        description: response?.data?.message,
         variant: 'success',
       });
       onRefresh();
@@ -96,7 +96,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[999] flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
 
@@ -118,19 +118,21 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
         <div className="flex mb-4 border-b">
           <button
             onClick={() => setActiveTab('email')}
-            className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'email'
+            className={`py-2 px-4 hover:cursor-pointer ${
+              activeTab === 'email'
                 ? 'border-b-2 border-indigo-600 text-indigo-600'
                 : 'text-gray-500'
-              }`}
+            }`}
           >
             Add by Email
           </button>
           <button
             onClick={() => setActiveTab('file')}
-            className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'file'
+            className={`py-2 px-4 hover:cursor-pointer ${
+              activeTab === 'file'
                 ? 'border-b-2 border-indigo-600 text-indigo-600'
                 : 'text-gray-500'
-              }`}
+            }`}
           >
             Add by File (.xlsx)
           </button>
@@ -159,16 +161,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
               </button>
             </div>
           )}
+
           {activeTab === 'file' && (
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Upload XLSX File
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Upload XLSX File</label>
 
               <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                 <div className="space-y-1 text-center">
                   <p className="text-xs text-gray-500">XLSX up to 10MB</p>
-
                   <div className="flex flex-col items-center">
                     <label
                       htmlFor="file-upload"
@@ -182,7 +182,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
                         type="file"
                         className="sr-only"
                         accept=".xlsx"
-                        onChange={(e) => {
+                        onChange={e => {
                           if (e.target.files && e.target.files.length > 0) {
                             setFile(e.target.files[0]);
                           }
@@ -218,10 +218,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
               </button>
             </div>
           )}
-
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
