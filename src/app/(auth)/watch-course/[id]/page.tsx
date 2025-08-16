@@ -17,6 +17,28 @@ function CoursePage() {
 
   const hasUpdatedProgress = useRef(false);
 
+  // Track changes to video/lesson to notify other components (e.g., ChatAI)
+  const prevUrlRef = useRef<string | null>(null);
+  const prevLessonRef = useRef<string | null>(null);
+  useEffect(() => {
+    const urlChanged = currentVideoUrl && currentVideoUrl !== prevUrlRef.current;
+    const lessonChanged = currentLessonId && currentLessonId !== prevLessonRef.current;
+    if (urlChanged || lessonChanged) {
+      prevUrlRef.current = currentVideoUrl ?? null;
+      prevLessonRef.current = currentLessonId ?? null;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('nl:video-changed', {
+            detail: {
+              url: currentVideoUrl ?? '',
+              lessonId: currentLessonId ?? '',
+            },
+          })
+        );
+      }
+    }
+  }, [currentVideoUrl, currentLessonId]);
+
   // Fetch course (with credentials so BE can merge progress)
   useEffect(() => {
     const fetchCourse = async () => {
@@ -35,16 +57,16 @@ function CoursePage() {
   }, [courseId]);
 
   // If course has demo video, show it; otherwise keep player empty for CTA card.
-  // useEffect(() => {
-  //   if (course?.demoUrl?.url) {
-  //     setCurrentVideoUrl(course.demoUrl.url);
-  //     setCurrentLessonId(null);
-  //     setNextLesson(null);
-  //   } else {
-  //     setCurrentVideoUrl(null);
-  //     setCurrentLessonId(null);
-  //   }
-  // }, [course]);
+  useEffect(() => {
+    if (course?.demoUrl?.url) {
+      setCurrentVideoUrl(course.demoUrl.url);
+      setCurrentLessonId(null);
+      setNextLesson(null);
+    } else {
+      setCurrentVideoUrl(null);
+      setCurrentLessonId(null);
+    }
+  }, [course]);
 
   // Find the first playable lesson
   const firstLesson = useMemo(() => {
@@ -252,13 +274,14 @@ function CoursePage() {
                 <div className="w-full aspect-video rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center p-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-3 animate-pulse">
+                      <div className="w-14 h-14 rounded-full bg-gray-200" />
                     </div>
 
                     <p className="text-gray-600 mb-3">
                       {nextLesson
                         ? 'Great job! Ready for the next lesson?'
                         : course?.name
-                          ? ''
+                          ? 'This course has no demo video.'
                           : 'Loading course...'}
                     </p>
 
