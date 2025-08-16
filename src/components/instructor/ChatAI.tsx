@@ -14,7 +14,7 @@ export default function ChatAI() {
   const [cachedTranscript, setCachedTranscript] = useState<string>("");
   const lastAudioUrlRef = useRef<string>("");
   const transcribeJobRef = useRef<string>("");
-  const [autoTxLoading, setAutoTxLoading] = useState<boolean>(false);
+  const [,setAutoTxLoading] = useState<boolean>(false);
   // Cache transcripts per video URL to avoid redundant transcriptions
   const transcriptCacheRef = useRef<Map<string, string>>(new Map());
 
