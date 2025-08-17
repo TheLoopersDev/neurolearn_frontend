@@ -158,24 +158,62 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
 
         setIsPublishing(true);
         try {
+            // lấy sections + lessons
             const fetch = await refetchAllSections();
             const sections = 'data' in fetch ? (fetch.data?.data || []) : [];
 
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
-                toast({ title: "Error", description: "Course needs at least 1 section & lesson.", variant: "destructive" });
+                toast({
+                    title: 'Error',
+                    description: 'Course needs at least 1 section & lesson.',
+                    variant: 'destructive',
+                });
                 return;
             }
 
-            await updateCourse({ id: courseId, course: { ...getPayload(), isDraft: false } }).unwrap();
-            const res = await createCourseApprovalRequest({ courseId, message: "Requesting course approval" }).unwrap();
-            toast({ title: "Success", description: res?.message || "Submitted!", variant: "success" });
-            router.push("/instructor/courses");
+            // cập nhật course trước khi gửi request
+            const basePayload = { ...getPayload(), isDraft: false };
+            await updateCourse({ id: courseId, course: basePayload }).unwrap();
+
+            // snapshot khóa + curriculum để gửi lên
+            const courseSnapshot = { _id: courseId, ...basePayload }; // (_id) hay (courseId) tuỳ bạn quy ước
+            const sectionsSnapshot = sections.map((sec: any) => ({
+                _id: sec._id,
+                title: sec.title,
+                order: sec.order,
+                isPublished: !!sec.isPublished,
+                lessons: Array.isArray(sec.lessons)
+                    ? sec.lessons.map((l: any) => ({
+                        _id: l._id,
+                        title: l.title,
+                        order: l.order,
+                        videoLength: l.videoLength,
+                        videoUrl: l.videoUrl,
+                    }))
+                    : [],
+            }));
+
+            // === Gửi JSON bình thường ===
+            await createCourseApprovalRequest({
+                courseId,
+                message: 'Requesting course approval',
+                courseSnapshot,
+                sectionsSnapshot,
+            }).unwrap();
+
+            toast({ title: 'Success', description: 'Submitted!', variant: 'success' });
+            router.push('/instructor/courses');
         } catch (err: any) {
-            toast({ title: "Error", description: err?.data?.message || "Failed to publish.", variant: "destructive" });
+            toast({
+                title: 'Error',
+                description: err?.data?.message || 'Failed to publish.',
+                variant: 'destructive',
+            });
         } finally {
             setIsPublishing(false);
         }
     };
+
 
     const handleContinue = async () => {
         const errs = validateForm();
