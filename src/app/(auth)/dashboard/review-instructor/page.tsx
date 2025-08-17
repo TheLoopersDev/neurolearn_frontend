@@ -7,8 +7,6 @@ import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 import SearchInstructorRequest from './_components/SearchInstructorRequest';
 import Loading from '@/components/common/Loading';
 
-const categories = ['All categories', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
-const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 interface InstructorData {
   _id: string;
@@ -32,8 +30,6 @@ interface InstructorData {
 
 const ReviewInstructorPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All instructors');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -48,15 +44,9 @@ const ReviewInstructorPage = () => {
 
 
   // API call for instructor verification requests
-  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
-    type: 'instructor_verification',
-    status: selectedStatus
+  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+    type: 'instructor_verification'
   });
-
-  // Refetch when status changes
-  useEffect(() => {
-    refetch();
-  }, [selectedStatus, refetch]);
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
@@ -69,9 +59,7 @@ const ReviewInstructorPage = () => {
       user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       requestData?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       requestData?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All instructors' ||
-      requestData?.category?.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
+    return matchesSearch
   });
 
   const requestsPerPage = 6;
@@ -125,12 +113,7 @@ const ReviewInstructorPage = () => {
       instructorProfession.includes(searchLower) ||
       instructorRole.includes(searchLower);
 
-    // Category filter - for instructors we can match by profession/role
-    const matchesCategory = selectedCategory === 'All instructors' ||
-      instructorProfession.includes(selectedCategory.toLowerCase()) ||
-      instructorRole.includes(selectedCategory.toLowerCase());
-
-    return matchesSearch && matchesCategory;
+    return matchesSearch
   });
 
   // Pagination for instructors
@@ -147,7 +130,7 @@ const ReviewInstructorPage = () => {
   // Reset to page 1 when search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [searchTerm]);
 
   // Handle instructor verification action
   const handleInstructorAction = async (requestId: string, action: 'approve' | 'reject') => {
@@ -197,12 +180,6 @@ const ReviewInstructorPage = () => {
           <SearchInstructorRequest
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            categories={categories}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
-            statusOptions={statusOptions}
             activeTab={activeTab}
             searchPlaceholder="Search instructors requests"
           />

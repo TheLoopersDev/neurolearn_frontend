@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ReviewPagination, ReviewModal } from '@/components/review-common';
+import { ReviewModal } from '@/components/review-common';
+import { CommonPagination } from '@/components/common/ui';
 import { 
   useGetAllDiscountsQuery, 
   useCreateDiscountMutation, 
@@ -120,7 +121,7 @@ const DiscountManagementPage = () => {
         {/* Header with Search and Filters */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4 w-full text-black">
-            <div className="relative w-100 h-8">
+            <div className="relative">
               <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -129,7 +130,7 @@ const DiscountManagementPage = () => {
                 placeholder="Search discounts..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-full"
+                className="pl-12 pr-4 py-3 bg-gray-50 rounded-full border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all w-100 h-10 text-black"
               />
             </div>
             <button
@@ -190,11 +191,11 @@ const DiscountManagementPage = () => {
                   />
                 ))}
               </div>
-                    {/* Always show pagination when there's data */}
+                    {/* Pagination */}
                     {discountData?.data && discountData.data.length > 0 && (
                 <div className="mt-8 pt-6 border-t border-gray-200">
-                  <ReviewPagination
-                          currentPage={discountData.currentPage || currentPage}
+                        <CommonPagination
+                          page={discountData.currentPage || currentPage}
                           totalPages={discountData.totalPages || Math.ceil(discountData.data.length / 6)}
                     onPageChange={setCurrentPage}
                   />

@@ -9,7 +9,12 @@ interface Props {
     onPageChange: (page: number) => void;
 }
 
-const CoursePagination: React.FC<Props> = ({ page, totalPages, isFetching, onPageChange }) => {
+const CommonPagination: React.FC<Props> = ({ page, totalPages, isFetching, onPageChange }) => {
+    // Ẩn pagination khi có ít hơn 6 items (totalPages <= 1)
+    if (totalPages <= 1) {
+        return null;
+    }
+
     const handleChangePage = (newPage: number) => {
         if (newPage !== page) {
             onPageChange(newPage);
@@ -100,4 +105,4 @@ const CoursePagination: React.FC<Props> = ({ page, totalPages, isFetching, onPag
     );
 };
 
-export default CoursePagination;
+export default CommonPagination;

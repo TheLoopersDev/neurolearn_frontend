@@ -7,15 +7,7 @@ import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
 import InstructorCard from './InstructorCard';
 import SearchInstructor from './SearchInstructor';
 import Loading from '@/components/common/Loading';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/common/ui/pagination'; // Đảm bảo đường dẫn đúng
+import { CommonPagination } from '@/components/common/ui';
 
 const fetchInstructors = async (): Promise<User[]> => {
   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/users/get-instructors`, {
@@ -57,33 +49,7 @@ const InstructorListPage: React.FC = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      // Tùy chọn: cuộn lên đầu khi chuyển trang
-      // window.scrollTo(0, 0);
     }
-  };
-
-  const getPageNumbers = () => {
-    const pageNumbers = new Set<number>();
-    pageNumbers.add(1);
-    pageNumbers.add(totalPages);
-    if (currentPage > 1) pageNumbers.add(currentPage - 1);
-    pageNumbers.add(currentPage);
-    if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
-
-    const sortedPages = Array.from(pageNumbers)
-      .filter(p => p > 0 && p <= totalPages)
-      .sort((a, b) => a - b);
-    const finalPages: (number | string)[] = [];
-    let lastPage = 0;
-
-    for (const page of sortedPages) {
-      if (lastPage !== 0 && page > lastPage + 1) {
-        finalPages.push('...');
-      }
-      finalPages.push(page);
-      lastPage = page;
-    }
-    return finalPages;
   };
 
   if (isLoading) {
@@ -124,50 +90,11 @@ const InstructorListPage: React.FC = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <Pagination className="mt-8 sm:mt-12">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={e => {
-                      e.preventDefault();
-                      handlePageChange(currentPage - 1);
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-                {getPageNumbers().map((page, index) => (
-                  <PaginationItem key={index}>
-                    {page === '...' ? (
-                      <PaginationEllipsis />
-                    ) : (
-                      <PaginationLink
-                        href="#"
-                        onClick={e => {
-                          e.preventDefault();
-                          handlePageChange(page as number);
-                        }}
-                        isActive={currentPage === page}
-                      >
-                        {page}
-                      </PaginationLink>
-                    )}
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={e => {
-                      e.preventDefault();
-                      handlePageChange(currentPage + 1);
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
+          <CommonPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       ) : (
         <div className="text-center py-16 bg-white rounded-xl shadow-sm mt-8">

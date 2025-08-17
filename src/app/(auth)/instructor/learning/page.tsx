@@ -4,9 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useGetAllPurchasedCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import LearningCard from './_components/LearningCard';
 import Loading from '@/components/common/Loading';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/common/ui/Button2';
 import SearchCourse from '@/components/dashboard/SearchCourse';
+import { CommonPagination } from '@/components/common/ui';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -16,11 +15,9 @@ const sa = (v: any) => (Array.isArray(v) ? v.map(s).join(' ') : s(v)); // array 
 
 export default function LearningPage() {
     const { data: courseData, isLoading } = useGetAllPurchasedCoursesQuery();
-    const router = useRouter();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [filterText, setFilterText] = useState("All courses");
 
     useEffect(() => setCurrentPage(1), [searchTerm]);
 
@@ -47,22 +44,8 @@ export default function LearningPage() {
                 return haystack.includes(q);
             });
         }
-
-        // Apply filter text logic
-        if (filterText === "In progress") {
-            list = list.filter((c: any) => c?.progress?.progressPercentage < 100);
-        } else if (filterText === "Completed") {
-            list = list.filter((c: any) => c?.progress?.progressPercentage === 100);
-        }
-
         return list;
-    }, [purchasedList, searchTerm, filterText]);
-
-
-    const filterOptions = useMemo(
-        () => ['All courses', 'In progress', 'Completed'],
-        []
-    );
+    }, [purchasedList, searchTerm]);
 
     // Pagination (same UX as your CourseCardGrid)
     const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
@@ -75,80 +58,35 @@ export default function LearningPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <SearchCourse
                     searchTerm={searchTerm}
-                    filterText={filterText}
-                    filterOptions={filterOptions}
                     onSearchChange={setSearchTerm}
-                    onFilterSelect={setFilterText}
                 />
             </div>
-
-
-            {/* Loading inline (keep layout) */}
             {isLoading && <Loading message="Loading courses..." />}
-
-            {/* Search meta */}
             {searchTerm.trim() && !isLoading && (
                 <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>
-                        Found <strong>{filteredCourses.length}</strong> result{filteredCourses.length === 1 ? '' : 's'}
                         {` for "`}<span className="font-medium">{searchTerm}</span>{`"`}
                     </span>
                 </div>
             )}
-
             {/* Content area */}
             {!isLoading && (
-                <>
-                    {filteredCourses.length === 0 ? (
-                        <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3">
-                            <p className="text-gray-600">
-                                {purchasedList.length === 0
-                                    ? 'You do not have any learning course!'
-                                    : 'No courses match your search.'}
-                            </p>
-
-                            {purchasedList.length === 0 ? (
-                                <Button variant="ghost" size="default" onClick={() => router.push('/courses')}>
-                                    Explore Courses
-                                </Button>
-                            ) : (
-                                <Button variant="ghost" size="default" onClick={() => setSearchTerm('')}>
-                                    Clear Search
-                                </Button>
-                            )}
+                <div>
+                    <div>
+                        {/* Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            {currentCourses.map((course: any) => (
+                                <LearningCard key={course._id} course={course} />
+                            ))}
                         </div>
-                    ) : (
-                        <>
-                            {/* Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                {currentCourses.map((course: any) => (
-                                    <LearningCard key={course._id} course={course} />
-                                ))}
-                            </div>
-
-                                {/* Pagination — same style as CourseCardGrid */}
-                                {totalPages > 1 && (
-                                    <div className="flex justify-center mt-8 gap-3">
-                                        <button
-                                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                                        >
-                                            Prev
-                                        </button>
-                                        <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-                                        <button
-                                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
-                            )}
-                        </>
-                    )}
-                </>
+                        {/* Pagination */}
+                        <CommonPagination
+                            page={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );
