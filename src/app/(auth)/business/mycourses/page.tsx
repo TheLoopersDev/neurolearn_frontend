@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import CourseCard from '@/components/business/CourseCard';
 import Loading from '@/components/common/Loading';
+import { CommonPagination } from '@/components/common/ui';
 
 interface Business {
   courses: any[];
@@ -11,6 +12,9 @@ export default function MyCoursesListPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,13 +89,25 @@ export default function MyCoursesListPage() {
     );
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil((business.courses?.length || 0) / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentCourses = business.courses?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [];
+
   return (
     <div className="min-h-screen">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {business.courses.map((course: any) => (
+        {currentCourses.map((course: any) => (
           <CourseCard key={course._id} course={course} />
         ))}
       </div>
+
+      {/* Pagination */}
+      <CommonPagination
+        page={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

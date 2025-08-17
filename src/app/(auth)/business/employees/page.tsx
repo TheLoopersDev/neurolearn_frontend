@@ -7,15 +7,19 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { useToast } from '@/hooks/use-toast';
 import Loading from '@/components/common/Loading';
+import { CommonPagination } from '@/components/common/ui';
 
 
 const EmployeePage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const { user } = useSelector((state: any) => state.auth);
   const businessId = user?.businessInfo?.businessId;
   const { toast } = useToast();
+
+  const ITEMS_PER_PAGE = 6;
 
   const fetchEmployees = async () => {
     if (!businessId) return;
@@ -127,11 +131,20 @@ const EmployeePage = () => {
         {loading ? (
           <Loading message="Loading employees..." />
         ) : (
+            <>
             <EmployeeTable
-              employees={employees}
+                employees={employees.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)}
               onUpgrade={handleUpgradeEmployee}
               onDelete={handleDeleteEmployee}
             />
+
+              {/* Pagination */}
+              <CommonPagination
+                page={currentPage}
+                totalPages={Math.ceil(employees.length / ITEMS_PER_PAGE)}
+                onPageChange={setCurrentPage}
+              />
+            </>
         )}
       </div>
     </>

@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface Instructor {
   name?: string;
-  profession?: string;
+  role?: string;
   avatar?: {
     url?: string;
   };
@@ -39,10 +39,11 @@ export default function InstructorInfo({ instructor, courseName }: { instructor:
           />
           <div>
             <div className="text-black font-semibold text-lg">{instructor?.name || 'Unknown Instructor'}</div>
-            <div className="text-gray-600 text-sm">{instructor?.profession || 'Expert'}</div>
+            <div className="text-gray-600 text-sm">
+              {instructor?.role || 'Instructor'}
+            </div>
           </div>
         </div>
-
         {/* Stats */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 text-sm text-black">

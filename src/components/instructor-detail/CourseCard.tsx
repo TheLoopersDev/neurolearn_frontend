@@ -15,7 +15,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const [imageError, setImageError] = useState(false);
   const authorName = course.publisher?.name || 'Instructor Name';
   const authorAvatar = course.publisher?.avatar?.url || '/assets/images/default-avatar.png';
-  const authorProfession = course.publisher?.profession || 'Instructional Expert';
+  const authorProfession = course.publisher?.role || 'Instructor';
   const formatPrice = (price: number): string => {
     if (course.isFree) return 'Free';
     return new Intl.NumberFormat('vi-VN', {
