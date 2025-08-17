@@ -53,7 +53,8 @@ export default function ModalContainer() {
             title={modalData?.title || "Confirm Action"}
             description={modalData?.description}
             confirmText={modalData?.confirmText || "Confirm"}
-            cancelText={modalData?.cancelText || "Cancel"}
+            confirmTextLoading={modalData?.confirmTextLoading || "Processing"}
+            cancelText={modalData?.cancelText}
             variant={modalData?.variant || "default"}
           />
         );

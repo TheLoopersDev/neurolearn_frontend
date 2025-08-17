@@ -75,13 +75,39 @@ const CardOption: React.FC<CardOptionProps> = ({
     }, []);
 
     const menuItems = [
-        { label: "Edit", action: () => handleNavigate(`/instructor/courses/edit-course/${courseId}`), color: "text-gray-800" },
-        { label: "Course Detail", action: () => handleNavigate(`/instructor/courses/${courseId}`), color: "text-gray-800" },
-        { label: "Analytics", action: () => handleNavigate(`/instructor/courses/${courseId}/analytics`), color: "text-gray-800" },
-        onPublish && { label: "Publish", action: () => handleAction(onPublish), color: "text-green-600 hover:bg-green-50" },
-        onUnpublish && { label: "Unpublish", action: () => handleAction(onUnpublish), color: "text-yellow-600 hover:bg-yellow-50" },
-        onDelete && { label: "Delete", action: () => handleAction(onDelete), color: "text-red-600 hover:bg-red-50" },
+        {
+            label: "Edit",
+            action: () => handleNavigate(`/instructor/courses/edit-course/${courseId}`),
+            color: "text-gray-700 hover:bg-gray-200 hover:text-gray-900 hover:ring-1 hover:ring-gray-300 hover:rounded-xl"
+        },
+        {
+            label: "Course Detail",
+            action: () => handleNavigate(`/instructor/courses/${courseId}`),
+            color: "text-gray-700 hover:bg-gray-200 hover:text-gray-900 hover:ring-1 hover:ring-gray-300 hover:rounded-xl"
+        },
+        {
+            label: "Analytics",
+            action: () => handleNavigate(`/instructor/dashboard`),
+            color: "text-gray-700 hover:bg-gray-200 hover:text-gray-900 hover:ring-1 hover:ring-gray-300 hover:rounded-xl"
+        },
+        onPublish && {
+            label: "Publish",
+            action: () => handleAction(onPublish),
+            color: "text-green-700 hover:bg-green-100 hover:text-green-900 hover:ring-1 hover:ring-green-300 hover:rounded-xl"
+        },
+        onUnpublish && {
+            label: "Unpublish",
+            action: () => handleAction(onUnpublish),
+            color: "text-yellow-700 hover:bg-yellow-100 hover:text-yellow-900 hover:ring-1 hover:bg-yellow-50 hover:rounded-xl"
+        },
+        onDelete && {
+            label: "Delete",
+            action: () => handleAction(onDelete),
+            color: "text-red-700 hover:bg-red-100 hover:text-red-900 hover:ring-1 hover:ring-red-300 hover:rounded-xl"
+        },
     ].filter(Boolean) as { label: string; action: () => void; color: string }[];
+
+
 
     return (
         <div className="relative z-[9999] inline-block text-left" ref={dropdownRef}>
@@ -97,7 +123,7 @@ const CardOption: React.FC<CardOptionProps> = ({
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        className="absolute right-0 z-[9999] mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 py-2"
+                        className="absolute right-0 z-[9999] mt-2 w-48 rounded-xl shadow-xl bg-white ring-1 ring-black/5 py-2"
                         variants={dropdownVariants}
                         initial="hidden"
                         animate="visible"
@@ -116,7 +142,7 @@ const CardOption: React.FC<CardOptionProps> = ({
                                 animate="visible"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className={`block w-full z-[9999] text-left px-4 py-2 text-sm font-medium rounded-lg transition ${item.color}`}
+                                className={`block w-full z-[9999] text-left px-4 py-2 text-sm font-semibold rounded-xl transition ${item.color}`}
 
                             >
                                 {item.label}
