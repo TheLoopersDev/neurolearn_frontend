@@ -10,7 +10,8 @@ import {
     usePublishCourseMutation,
     useUnpublishCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
-import { toast } from "@/hooks/use-toast";
+// ❌ remove toast
+// import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
 import { useDispatch } from "react-redux";
 
@@ -22,47 +23,60 @@ interface CourseHeaderProps {
 }
 
 export const CourseHeader: React.FC<CourseHeaderProps> = ({
-    thumbnailImage,
-    category,
-    title,
-    courseId,
+    thumbnailImage, category, title, courseId,
 }) => {
-    const [deleteCourse] = useDeleteCourseMutation();
-    const [publishCourse] = usePublishCourseMutation();
-    const [unpublishCourse] = useUnpublishCourseMutation();
+    const [deleteCourse, { error: deleteError, isLoading: isDeleting }] = useDeleteCourseMutation();
+    const [publishCourse, { isLoading: isPublishing }] = usePublishCourseMutation();
+    const [unpublishCourse, { isLoading: isUnpublishing }] = useUnpublishCourseMutation();
     const { showModal } = useModal();
     const dispatch = useDispatch();
+
+    const getErrMsg = (e: unknown): string => {
+        const anyE = e as any;
+        if (!anyE) return "Failed to delete course.";
+        if (typeof anyE === "string") return anyE;
+        if (anyE.data) return anyE.data?.message || anyE.data?.error || JSON.stringify(anyE.data) || "Failed to delete course.";
+        return anyE.message || "Failed to delete course.";
+    };
 
     const handleDelete = async () => {
         try {
             await deleteCourse(courseId).unwrap();
-            dispatch(courseApi.util.invalidateTags([{ type: 'Course' }]));
-            toast({
+            dispatch(courseApi.util.invalidateTags([{ type: "Course" }]));
+            // ✅ Success modal
+            showModal("actionConfirm", {
                 title: "Deleted",
                 description: "Course deleted successfully!",
-                variant: "success",
+                confirmTextLoading: "Closing…",
+                variant: "primary",
             });
         } catch (err) {
-            toast({
-                title: "Error",
-                description: "Failed to delete course.",
+            const msg = getErrMsg(err) || getErrMsg(deleteError);
+            // ❌ no toast — show error modal
+            showModal("actionConfirm", {
+                title: "Delete failed",
+                description: msg,
+                confirmTextLoading: "Closing…",
                 variant: "destructive",
             });
+            // KHÔNG throw để tránh modal xác nhận cũ hiển thị lỗi
         }
     };
 
     const handlePublish = async () => {
         try {
             await publishCourse(courseId).unwrap();
-            toast({
+            showModal("actionConfirm", {
                 title: "Published",
                 description: "Course published successfully!",
-                variant: "success",
+                confirmTextLoading: "Closing…",
+                variant: "primary",
             });
         } catch (err) {
-            toast({
-                title: "Error",
+            showModal("actionConfirm", {
+                title: "Publish failed",
                 description: "Failed to publish course.",
+                confirmTextLoading: "Closing…",
                 variant: "destructive",
             });
         }
@@ -71,15 +85,17 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
     const handleUnpublish = async () => {
         try {
             await unpublishCourse(courseId).unwrap();
-            toast({
+            showModal("actionConfirm", {
                 title: "Unpublished",
                 description: "Course unpublished successfully!",
-                variant: "success",
+                confirmTextLoading: "Closing…",
+                variant: "primary",
             });
         } catch (err) {
-            toast({
-                title: "Error",
+            showModal("actionConfirm", {
+                title: "Unpublish failed",
                 description: "Failed to unpublish course.",
+                confirmTextLoading: "Closing…",
                 variant: "destructive",
             });
         }
@@ -96,13 +112,13 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                     className="w-full h-[160px] object-cover rounded-2xl"
                     priority
                 />
+
                 <div className="flex justify-between items-center w-full max-w-[323px] mt-2 z-30">
                     <div className="flex gap-2 items-center">
                         <Image src={tag} alt="Tag icon" width={16} height={16} />
                         <span className="text-[#3858F8] text-sm font-medium">{category}</span>
                     </div>
 
-                    {/* Wrapped CardOption with high z-index container */}
                     <div className="relative z-[9999]">
                         <CardOption
                             courseId={courseId}
@@ -110,17 +126,19 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                                 showModal("actionConfirm", {
                                     title: "Delete Course",
                                     description: "Are you sure you want to delete this course?",
-                                    confirmText: "Delete",
+                                    confirmText: isDeleting ? "Deleting…" : "Delete",
+                                    confirmTextLoading: "Deleting…",
                                     cancelText: "Cancel",
                                     variant: "destructive",
-                                    onConfirm: handleDelete,
+                                    onConfirm: handleDelete,  // sẽ mở success/error modal sau khi chạy
                                 })
                             }
                             onPublish={() =>
                                 showModal("actionConfirm", {
                                     title: "Publish Course",
                                     description: "Do you want to publish this course?",
-                                    confirmText: "Publish",
+                                    confirmText: isPublishing ? "Publishing…" : "Publish",
+                                    confirmTextLoading: "Publishing…",
                                     cancelText: "Cancel",
                                     variant: "primary",
                                     onConfirm: handlePublish,
@@ -130,7 +148,8 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                                 showModal("actionConfirm", {
                                     title: "Unpublish Course",
                                     description: "Do you want to unpublish this course?",
-                                    confirmText: "Unpublish",
+                                    confirmText: isUnpublishing ? "Unpublishing…" : "Unpublish",
+                                    confirmTextLoading: "Unpublishing…",
                                     cancelText: "Cancel",
                                     variant: "outline",
                                     onConfirm: handleUnpublish,
@@ -140,6 +159,7 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                     </div>
                 </div>
             </div>
+
             <h2 className="w-full text-base font-semibold leading-5 text-stone-950 line-clamp-2 min-h-[40px]">
                 {title}
             </h2>
