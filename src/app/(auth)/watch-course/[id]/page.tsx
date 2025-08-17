@@ -58,16 +58,16 @@ function CoursePage() {
   }, [courseId]);
 
   // If course has demo video, show it; otherwise keep player empty for CTA card.
-  useEffect(() => {
-    if (course?.demoUrl?.url) {
-      setCurrentVideoUrl(course.demoUrl.url);
-      setCurrentLessonId(null);
-      setNextLesson(null);
-    } else {
-      setCurrentVideoUrl(null);
-      setCurrentLessonId(null);
-    }
-  }, [course]);
+  // useEffect(() => {
+  //   if (course?.demoUrl?.url) {
+  //     setCurrentVideoUrl(course.demoUrl.url);
+  //     setCurrentLessonId(null);
+  //     setNextLesson(null);
+  //   } else {
+  //     setCurrentVideoUrl(null);
+  //     setCurrentLessonId(null);
+  //   }
+  // }, [course]);
 
   // Find the first playable lesson
   type FlatLesson = {
@@ -188,7 +188,6 @@ function CoursePage() {
   };
 
 
-  // ReactPlayer progress
   // ReactPlayer progress
   const handleProgress = async (state: { played: number }) => {
     if (state.played >= 0.8 && currentLessonId && !hasUpdatedProgress.current) {
