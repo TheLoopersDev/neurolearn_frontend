@@ -109,7 +109,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             const course = courseData.courses;
             setFormData({
                 ...course,
-                tags: Array.isArray(course.tags) ? course.tags : [],
                 benefits: Array.isArray(course.benefits) ? course.benefits : [],
                 prerequisites: Array.isArray(course.prerequisites) ? course.prerequisites : [],
             });
@@ -138,7 +137,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             thumbnail: typeof data.thumbnail === "object" ? data.thumbnail : undefined,
             demoUrl: data.demoUrl || undefined,
             duration: data.duration || 0,
-            topics: Array.isArray(data.tags) ? data.tags : [],
             benefits: Array.isArray(data.benefits) ? data.benefits : [],
             prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites : [],
             isFree: data.isFree || false,
@@ -158,7 +156,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
         if (!data.description?.trim()) errs.description = "Description is required";
         if (data.price == null || data.price < 0) errs.price = "Price is required and must be >= 0";
         if (!data.duration || data.duration <= 0) errs.duration = "Duration must be greater than 0";
-        if (data.tags && data.tags.length > 3) errs.tags = "Maximum 3 topics allowed";
+        // if (data.tags && data.tags.length > 3) errs.tags = "Maximum 3 topics allowed";
 
         const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
         if (!thumbnailUrl?.trim()) errs.thumbnail = "Thumbnail is required";

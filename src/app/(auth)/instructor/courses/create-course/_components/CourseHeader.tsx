@@ -8,10 +8,9 @@ import {
     courseApi,
     useDeleteCourseMutation,
     // usePublishCourseMutation,
-    // useUnpublishCourseMutation,
+    useUnpublishCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
-// ❌ remove toast
-// import { toast } from "@/hooks/use-toast";
+
 import { useModal } from "@/context/ModalContext";
 import { useDispatch } from "react-redux";
 
@@ -27,7 +26,7 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
 }) => {
     const [deleteCourse, { error: deleteError, isLoading: isDeleting }] = useDeleteCourseMutation();
     // const [publishCourse, { isLoading: isPublishing }] = usePublishCourseMutation();
-    // const [unpublishCourse, { isLoading: isUnpublishing }] = useUnpublishCourseMutation();
+    const [unpublishCourse, { isLoading: isUnpublishing }] = useUnpublishCourseMutation();
     const { showModal } = useModal();
     const dispatch = useDispatch();
 
@@ -82,24 +81,24 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
     //     }
     // };
 
-    // const handleUnpublish = async () => {
-    //     try {
-    //         await unpublishCourse(courseId).unwrap();
-    //         showModal("actionConfirm", {
-    //             title: "Unpublished",
-    //             description: "Course unpublished successfully!",
-    //             confirmTextLoading: "Closing…",
-    //             variant: "primary",
-    //         });
-    //     } catch (err) {
-    //         showModal("actionConfirm", {
-    //             title: "Unpublish failed",
-    //             description: "Failed to unpublish course.",
-    //             confirmTextLoading: "Closing…",
-    //             variant: "destructive",
-    //         });
-    //     }
-    // };
+    const handleUnpublish = async () => {
+        try {
+            await unpublishCourse(courseId).unwrap();
+            showModal("actionConfirm", {
+                title: "Unpublished",
+                description: "Course unpublished successfully!",
+                confirmTextLoading: "Closing…",
+                variant: "primary",
+            });
+        } catch (err) {
+            showModal("actionConfirm", {
+                title: "Unpublish failed",
+                description: "Failed to unpublish course.",
+                confirmTextLoading: "Closing…",
+                variant: "destructive",
+            });
+        }
+    };
 
     return (
         <header className="w-full flex flex-col justify-between h-full relative">
@@ -144,17 +143,17 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                             //         onConfirm: handlePublish,
                             //     })
                             // }
-                            // onUnpublish={() =>
-                            //     showModal("actionConfirm", {
-                            //         title: "Unpublish Course",
-                            //         description: "Do you want to unpublish this course?",
-                            //         confirmText: isUnpublishing ? "Unpublishing…" : "Unpublish",
-                            //         confirmTextLoading: "Unpublishing…",
-                            //         cancelText: "Cancel",
-                            //         variant: "outline",
-                            //         onConfirm: handleUnpublish,
-                            //     })
-                            // }
+                            onUnpublish={() =>
+                                showModal("actionConfirm", {
+                                    title: "Unpublish Course",
+                                    description: "Do you want to unpublish this course?",
+                                    confirmText: isUnpublishing ? "Unpublishing…" : "Unpublish",
+                                    confirmTextLoading: "Unpublishing…",
+                                    cancelText: "Cancel",
+                                    variant: "outline",
+                                    onConfirm: handleUnpublish,
+                                })
+                            }
                         />
                     </div>
                 </div>
