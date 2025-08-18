@@ -248,6 +248,8 @@ function getDropdownList(user: User) {
 }
 
 export function UserDropdown() {
+  const [open, setOpen] = useState(false);
+
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
@@ -346,13 +348,14 @@ export function UserDropdown() {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 sm:gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow"
+          className="flex items-center gap-3 p-[7px_9px] bg-white rounded-full h-14 w-fit cursor-pointer transition hover:shadow"
         >
+          {/* Avatar */}
           <div className="w-10 h-10 rounded-full bg-[#B8DFF2] overflow-hidden flex items-center justify-center">
             <Image
               className="w-full h-full object-cover rounded-full"
@@ -363,21 +366,26 @@ export function UserDropdown() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 max-w-[150px] min-w-0">
-            <span className="hidden md:block font-medium text-base text-black truncate leading-none">
+
+          {/* Name + Arrow */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="hidden md:block font-medium text-base text-black truncate leading-none whitespace-nowrap">
               {user.name}
             </span>
-            <svg
+
+            <motion.svg
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-4 h-4 shrink-0 -translate-y-[1px]"
               viewBox="0 0 16 9"
               fill="none"
-              aria-hidden="true"
             >
-              <path d="M1 1L8 8L15 1" stroke="#000" strokeWidth="2" />
-            </svg>
+              <path d="M1 1L8 8L15 1" stroke="#444444ff" strokeWidth="2" />
+            </motion.svg>
           </div>
         </motion.div>
       </DropdownMenuTrigger>
+
 
       <AnimatePresence>
         <DropdownMenuContent

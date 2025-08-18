@@ -2,11 +2,10 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-// import ReviewCourseHeader from './_components/ReviewCourseHeader';
 import CourseInformationSection from './_components/CourseInformationSection';
 import CourseCurriculumSection from './_components/CourseCurriculumSection';
-import { useGetCourseByDetailQuery } from '@/lib/redux/features/course/courseApi';
-import { useLessonsBySections } from '@/lib/redux/hooks';
+import { useGetCategoryQuery } from '@/lib/redux/features/course/category/categoryApi';
+import Loading from '@/components/common/Loading';
 
 interface Lesson {
     id: string;
@@ -22,72 +21,175 @@ interface Section {
     lessons: Lesson[];
 }
 
-interface Course {
+interface CourseInfoModel {
     title: string;
+    subTitle?: string;
     category: string;
     skillLevel: string;
-    tags: string[];
-    originalPrice: number;
-    salePrice?: number;
+    originalPrice: number; // == price
+    salePrice?: number;    // == estimatedPrice
+    duration?: number;     // minutes
     description: string;
+    overview?: string;
     thumbnail: string;
+    prerequisites: string[];
+    benefits: string[];
     curriculum: Section[];
 }
 
 const ReviewCoursePage: React.FC = () => {
     const { id: courseId } = useParams();
+    const [course, setCourse] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
-    // Fetch course info
-    const {
-        data: courseData,
-        isLoading: loadingCourse,
-        isError: errorCourse,
-    } = useGetCourseByDetailQuery(courseId as string);
+    // Fetch via the same API used by CoursePage
+    React.useEffect(() => {
+        const fetchCourse = async () => {
+            if (!courseId) return;
+            setLoading(true);
+            setError(null);
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/review/${courseId}`,
+                    { credentials: 'include', cache: 'no-store' }
+                );
+                const data = await res.json();
+                if (data?.success && data?.course) {
+                    setCourse(data.course);
+                } else {
+                    setError('Không thể tải dữ liệu khóa học.');
+                }
+            } catch (e) {
+                console.error(e);
+                setError('Không thể tải dữ liệu khóa học.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCourse();
+    }, [courseId]);
 
-    // Fetch curriculum via custom hook
-    const {
-        curriculum,
-        isLoading: loadingCurriculum,
-        isError: errorCurriculum,
-    } = useLessonsBySections(courseId as string);
+    // --- Category name (API returns ID) ---
+    const categoryId = React.useMemo(() => {
+        const cat = course?.category;
+        if (!cat) return '';
+        if (typeof cat === 'string') return cat;
+        if (typeof cat === 'object') return cat?._id ?? '';
+        return '';
+    }, [course]);
 
-    if (loadingCourse || loadingCurriculum) {
-        return <div className="p-10 text-center">Đang tải khóa học...</div>;
+    const { data: categoryRes } = useGetCategoryQuery(categoryId, { skip: !categoryId });
+    // Be tolerant to different shapes
+    const categoryTitle =
+        (typeof course?.category === 'object' && course?.category?.title) ||
+        (categoryRes as any)?.data?.title ||
+        (categoryRes as any)?.category?.title ||
+        (categoryRes as any)?.title ||
+        'N/A';
+
+    // --- Build curriculum (supports new `items[]` and legacy `lessons[]`) ---
+    const curriculum: Section[] = React.useMemo(() => {
+        if (!course?.sections) return [];
+        const out: Section[] = [];
+
+        for (const sec of course.sections) {
+            const sectionId = String(sec._id ?? sec.id ?? crypto.randomUUID());
+            const sectionTitle = String(sec.title ?? sec.name ?? 'Untitled Section');
+
+            const lessons: Lesson[] = [];
+
+            if (Array.isArray(sec.items) && sec.items.length) {
+                for (const it of sec.items) {
+                    const kind = String(it?.kind ?? '').toLowerCase();
+                    const baseTitle = it?.title ?? it?.payload?.title ?? 'Untitled';
+                    const id = String(it?._id ?? crypto.randomUUID());
+
+                    if (kind === 'lesson') {
+                        lessons.push({
+                            id,
+                            type: 'video',
+                            title: String(baseTitle),
+                            url: it?.payload?.videoUrl?.url || undefined,
+                            thumbnail: it?.payload?.thumbnail?.url || undefined,
+                        });
+                    } else if (kind === 'quiz') {
+                        lessons.push({ id, type: 'quiz', title: String(baseTitle) });
+                    } else if (kind === 'document') {
+                        lessons.push({
+                            id,
+                            type: 'document',
+                            title: String(baseTitle),
+                            url: it?.payload?.url || undefined,
+                            thumbnail: it?.payload?.thumbnail?.url || undefined,
+                        });
+                    }
+                }
+            } else if (Array.isArray(sec.lessons)) {
+                for (const l of sec.lessons) {
+                    lessons.push({
+                        id: String(l?._id ?? crypto.randomUUID()),
+                        type: 'video',
+                        title: String(l?.title ?? 'Untitled'),
+                        url: l?.videoUrl?.url || undefined,
+                        thumbnail: l?.thumbnail?.url || undefined,
+                    });
+                }
+            }
+
+            out.push({ id: sectionId, title: sectionTitle, lessons });
+        }
+
+        return out;
+    }, [course]);
+
+    if (loading) {
+        return <div className="w-full"><Loading /></div>;
     }
 
-    if (errorCourse || errorCurriculum || !courseData?.courses) {
+    if (error || !course) {
         return (
-            <div className="p-10 text-center text-red-500">
-                Không thể tải dữ liệu khóa học.
+            <div className="p-10 text-center text-gray-500">
+                {error || 'Unable to load course data.'}
             </div>
         );
     }
 
-    const courseInfo: Course = {
-        title: courseData.courses.name,
-        category: typeof courseData.courses.category === 'object' && courseData.courses.category !== null
-            ? courseData.courses.category.title
-            : courseData.courses.category || 'N/A',
-        skillLevel: typeof courseData.courses.level === 'object' && courseData.courses.level !== null
-            ? courseData.courses.level.name
-            : courseData.courses.level || 'N/A',
-        tags: Array.isArray(courseData.courses.tags)
-            ? courseData.courses.tags
-            : (typeof courseData.courses.tags === 'string'
-                ? (courseData.courses.tags as string).split(',')
-                : []),
-        originalPrice: courseData.courses.estimatedPrice ?? 0,
-        salePrice: courseData.courses.price,
-        description: courseData.courses.description ?? '',
-        thumbnail: courseData.courses.thumbnail?.url || '',
+    const prerequisites: string[] = Array.isArray(course.prerequisites)
+        ? course.prerequisites.map((p: any) => String(p?.title ?? p)).filter(Boolean)
+        : [];
+
+    const benefits: string[] = Array.isArray(course.benefits)
+        ? course.benefits.map((b: any) => String(b?.title ?? b)).filter(Boolean)
+        : [];
+
+    const skillLevel =
+        typeof course.level === 'object' && course.level !== null
+            ? (course.level.name ?? 'N/A')
+            : (course.level ?? 'N/A');
+
+    // IMPORTANT: Match "Create Course" semantics
+    // - Original Price = price
+    // - Sale Price     = estimatedPrice
+    const courseInfo: CourseInfoModel = {
+        title: course.name ?? '',
+        subTitle: course.subTitle ?? '',
+        category: categoryTitle,
+        skillLevel,
+        originalPrice: Number(course.price ?? 0),
+        salePrice: course.estimatedPrice ?? undefined,
+        duration: course.durationText ?? undefined,
+        description: course.description ?? '',
+        overview: course.overview ?? '',
+        thumbnail: course.thumbnail?.url || '',
+        prerequisites,
+        benefits,
         curriculum,
     };
 
     return (
         <div className="min-h-screen bg-secondary p-8 font-sans">
             <div className="mx-auto max-w-6xl rounded-lg bg-background shadow-lg">
-                {/* <ReviewCourseHeader /> */}
-
                 <div className="p-8">
                     <CourseInformationSection course={courseInfo} />
                     <div className="my-8 h-px bg-gray-200" />

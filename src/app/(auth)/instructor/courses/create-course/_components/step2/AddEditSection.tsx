@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/common/ui/Button2";
 import { FormInput } from "../step1/FormInput";
-import { FormSelect } from "../step1/FormSelect";
 import { Save, Plus, X } from "lucide-react";
 
 interface AddEditSectionProps {
@@ -98,18 +97,6 @@ const AddEditSection: React.FC<AddEditSectionProps> = ({
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
-
-                    {/* map boolean <-> string chỉ khi hiển thị */}
-                    <FormSelect
-                        label="Published Status"
-                        value={isPublished ? "true" : "false"}
-                        onChange={(e) => setIsPublished(e.target.value === "true")}
-                        options={[
-                            { label: "Draft", value: "false" },
-                            { label: "Published", value: "true" },
-                        ]}
-                    />
-
                     <div className="flex justify-end gap-3 pt-2">
                         <Button variant="ghost" size="sm" type="button" onClick={onClose} disabled={submitting}>
                             Cancel
