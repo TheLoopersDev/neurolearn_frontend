@@ -3,7 +3,10 @@
 
 import React from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { GripVertical, BookOpen, HelpCircle, Pencil, Trash2 } from "lucide-react";
+import {
+    GripVertical, BookOpen, HelpCircle, Pencil, Trash2, CheckCircle2,
+    FileText,
+} from "lucide-react";
 import { Button } from "@/components/common/ui/Button2";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -19,6 +22,25 @@ import { useModal } from "@/context/ModalContext";
 type MixedItem =
     | { kind: "lesson"; _id: string; order: number; title?: string; payload: any }
     | { kind: "quiz"; _id: string; order: number; name?: string; payload: any };
+
+// Badge chỉ dựa trên isPublished
+const PublishBadge: React.FC<{ published: boolean }> = ({ published }) => {
+    const cls = published
+        ? "text-green-700 bg-green-50 ring-1 ring-green-200"
+        : "text-gray-700 bg-gray-100 ring-1 ring-gray-200";
+    const Icon = published ? CheckCircle2 : FileText;
+    const label = published ? "Published" : "Draft";
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}
+            title={label}
+        >
+            <Icon size={14} />
+            {label}
+        </span>
+    );
+};
 
 export default function SectionContentList({
     section,
@@ -224,20 +246,28 @@ export default function SectionContentList({
                                                         </div>
 
                                                         {item.kind === "lesson" ? (
-                                                            <div className="flex items-center gap-2 flex-1">
+                                                            <div className="flex items-center gap-2 flex-1 min-w-0">
                                                                 <BookOpen size={16} className="text-gray-600" />
-                                                                <span className="text-gray-600">
+
+                                                                {/* ✅ Badge publish cho lesson */}
+                                                                <PublishBadge published={!!(item.payload?.isPublished ?? (item as any)?.isPublished)} />
+
+                                                                <span
+                                                                    className="text-gray-600 truncate"
+                                                                    title={item.payload?.title ?? item.title}
+                                                                >
                                                                     {item.payload?.title ?? item.title}
                                                                 </span>
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-2 flex-1">
+                                                                <div className="flex items-center gap-2 flex-1 min-w-0">
                                                                 <HelpCircle size={16} className="text-gray-600" />
-                                                                    <span className="text-gray-600">
+                                                                    <span className="text-gray-600 truncate" title={item.payload?.name ?? item.name}>
                                                                         {item.payload?.name ?? item.name}
                                                                     </span>
                                                             </div>
                                                         )}
+
                                                     </div>
 
                                                     <div className="flex gap-2">
