@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Loading from '@/components/common/Loading';
+import { CommonPagination } from '@/components/common/ui';
 
 interface Course {
   name: string;
@@ -162,24 +163,12 @@ export default function ReceiptTable({ userType, searchTerm = '' }: ReceiptTable
       </table>
 
       {/* Pagination Controls */}
-      {filteredOrders.length > 0 && totalPages > 1 && (
-        <div className="flex justify-center mt-6 gap-3">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {filteredOrders.length > 0 && (
+        <CommonPagination
+          page={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );

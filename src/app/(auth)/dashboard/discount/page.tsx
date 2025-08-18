@@ -3,6 +3,7 @@
 import DiscountTable from '@/components/dashboard/DiscountTable';
 import React, { useState, useEffect } from 'react';
 import Loading from '@/components/common/Loading';
+import { CommonPagination } from '@/components/common/ui';
 
 interface Discount {
   _id: string;
@@ -65,7 +66,7 @@ export default function Page() {
 
     return (
         <div className="flex h-screen w-full rounded-2xl">
-            <div className="w-full overflow-y-auto p-6">
+        <div className="w-full overflow-y-auto">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">Discount Management</h1>
                 </div>
@@ -76,25 +77,11 @@ export default function Page() {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-6 gap-3">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <CommonPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
             </div>
         </div>
     );

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import DiscountTable from '@/components/dashboard/DiscountTable';
 import React from 'react';
 import Loading from '@/components/common/Loading';
+import { CommonPagination } from '@/components/common/ui';
 
 interface Discount {
   _id: string;
@@ -26,6 +27,9 @@ export default function Page() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const fetchDiscounts = async () => {
@@ -132,15 +136,22 @@ export default function Page() {
 
   return (
     <div className="flex h-screen w-full rounded-2xl">
-      <div className="w-full overflow-y-auto p-6">
+      <div className="w-full overflow-y-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Discount Management</h1>
         </div>
 
         {/* Discount Table */}
         <div className="w-full">
-          <DiscountTable discounts={discounts} />
+          <DiscountTable discounts={discounts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)} />
         </div>
+
+        {/* Pagination */}
+        <CommonPagination
+          page={currentPage}
+          totalPages={Math.ceil(discounts.length / ITEMS_PER_PAGE)}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );
