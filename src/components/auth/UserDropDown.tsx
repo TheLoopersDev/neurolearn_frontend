@@ -93,6 +93,11 @@ function getDropdownList(user: User) {
         href: '/business/discount',
         icon: <Image src={discountIcon} alt="" width={20} height={20} />,
       },
+      {
+        title: 'Setting',
+        href: '/business/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
 
     ];
   }
@@ -103,6 +108,15 @@ function getDropdownList(user: User) {
           href: `/business/dashboard/${user.businessInfo?.businessId}`,
           icon: <Image src={businessIcon} alt="" width={20} height={20} />,
         },
+      ...(user?.businessInfo?.role === 'admin'
+        ? [
+          {
+            title: 'Setting',
+            href: '/business/setting',
+            icon: <Image src={setting} alt="" width={20} height={20} />,
+          },
+        ]
+        : []),
       ]
     : [];
 

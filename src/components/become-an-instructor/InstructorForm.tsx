@@ -222,7 +222,7 @@ export default function InstructorForm() {
                                         />
                                     </div>
                                     <div className="col-span-2 flex flex-col space-y-1">
-                                        <label htmlFor="category" className="font-medium">Category</label>
+                                        <label htmlFor="category" className="font-medium">Subject-specific terminology</label>
                                         <div className="relative">
                                             <select
                                                 id="category"
