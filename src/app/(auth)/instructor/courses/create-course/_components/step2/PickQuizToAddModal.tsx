@@ -10,7 +10,7 @@ import QuizCard from "@/app/(auth)/instructor/quizzes/_components/QuizCard";
 
 type Props = {
     courseId?: string;
-    onSubmit: (payload: { quizId: string; position?: number }) => Promise<void> | void;
+    onSubmit: (payload: { quizId: string; position?: number }) => Promise<any> | any;
     onClose: () => void;
 };
 
@@ -23,7 +23,6 @@ type Quiz = {
     duration?: string;
     progress?: number;
     createdAt?: string;
-    // questions?: any[]  // optional for the modal; QuizCard is relaxed below
     [k: string]: any;
 };
 
@@ -35,15 +34,86 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
     const [selected, setSelected] = useState<string>("");
     const [position, setPosition] = useState<string>("");
 
-    const { data, isLoading, isError, refetch, isFetching } = useGetAllQuizzesQuery(
+    const {
+        data,
+        isLoading,
+        isError,
+        error,
+        refetch,
+        isFetching,
+    } = useGetAllQuizzesQuery(
         { difficulty: difficulty === "all" ? undefined : difficulty },
         { refetchOnMountOrArgChange: true }
     );
 
+    // 🔹 Helper nhỏ trong file: chuẩn hoá lỗi từ RTK/BE và bắn toast
+    const showApiError = (err: any, fallback = "Request failed") => {
+        let message = fallback;
+        let details: string[] = [];
+
+        const toArray = (val: any): string[] => {
+            if (!val) return [];
+            if (Array.isArray(val)) {
+                return val
+                    .map((x) =>
+                        typeof x === "string" ? x : x?.msg || x?.message || x?.error || ""
+                    )
+                    .filter(Boolean);
+            }
+            if (typeof val === "object") {
+                const out: string[] = [];
+                for (const [k, v] of Object.entries(val)) {
+                    if (Array.isArray(v)) v.forEach((s) => out.push(`${k}: ${s}`));
+                    else if (typeof v === "string") out.push(`${k}: ${v}`);
+                }
+                return out;
+            }
+            if (typeof val === "string") return [val];
+            return [];
+        };
+
+        if (err && typeof err === "object" && "status" in err) {
+            const data = (err as any).data;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || (err as any)?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        } else if (err instanceof Error) {
+            message = err.message || fallback;
+        } else if (typeof err === "string") {
+            message = err;
+        } else if (err && typeof err === "object") {
+            const data = (err as any).data ?? err;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || (data as any)?.error || fallback;
+                details = toArray((data as any)?.errors);
+            }
+        }
+
+        toast({
+            title: "Error",
+            description:
+                details.length > 0 ? (
+                    <ul className="list-disc pl-4">
+                        {details.map((d, i) => (
+                            <li key={i}>{d}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <span>{message}</span>
+                ),
+            variant: "destructive",
+            duration: 6000,
+        });
+    };
+
     const [allQuizzes, setAllQuizzes] = useState<Quiz[]>([]);
     useEffect(() => {
         const fromApi: Quiz[] = (data as any)?.quizzes ?? (data as any)?.data ?? [];
-        // normalize: unique by _id and stable sort
         const map = new Map<string, Quiz>();
         for (const item of fromApi) {
             if (!item?._id) continue;
@@ -52,10 +122,17 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
         setAllQuizzes(Array.from(map.values()).sort((a, b) => a._id.localeCompare(b._id)));
     }, [data]);
 
-    // If selected quiz no longer exists in the canonical list, unselect
     useEffect(() => {
         if (selected && !allQuizzes.some((x) => x._id === selected)) setSelected("");
     }, [allQuizzes, selected]);
+
+    const [loadErrorToasted, setLoadErrorToasted] = useState(false);
+    useEffect(() => {
+        if (isError && !loadErrorToasted) {
+            showApiError(error, "Failed to load quizzes.");
+            setLoadErrorToasted(true);
+        }
+    }, [isError, error, loadErrorToasted]); // eslint-disable-line
 
     const visibleQuizzes = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -84,7 +161,11 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
         try {
             const res: any = await onSubmit({ quizId: selected, position: finalPos });
             const ok = res?.success ?? true;
-            const name = res?.quiz?.name || allQuizzes.find((x) => x._id === selected)?.name;
+            const name =
+                res?.quiz?.name ||
+                allQuizzes.find((x) => x._id === selected)?.name ||
+                res?.quiz?.examTitle ||
+                allQuizzes.find((x) => x._id === selected)?.examTitle;
 
             if (ok) {
                 toast({
@@ -94,13 +175,15 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                 });
                 onClose();
             } else {
-                throw new Error(res?.message || "Failed to add quiz.");
+                throw { data: { message: res?.message || "Failed to add quiz." } };
             }
-        } catch (err: any) {
-            const msg = err?.data?.message || err?.message || "Failed to add quiz. Please try again.";
-            toast({ title: "Error", description: msg, variant: "destructive" });
+        } catch (err) {
+            showApiError(err, "Failed to add quiz. Please try again.");
         }
     };
+
+    // ✅ Chỉ scroll nếu số quiz hiển thị > 4
+    const shouldScroll = visibleQuizzes.length > 4;
 
     return (
         <div
@@ -225,8 +308,13 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                 </div>
             </div>
 
-            {/* List (no framer; deterministic rendering) */}
-            <div className="relative z-0 px-6 flex-1 min-h-0 overflow-y-auto pb-24">
+            {/* List */}
+            <div
+                className={[
+                    "relative z-0 px-6 pb-24",
+                    shouldScroll ? "max-h-[400px] overflow-y-auto pr-2" : "",
+                ].join(" ")}
+            >
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {Array.from({ length: 6 }).map((_, i) => (
@@ -264,7 +352,7 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                         No quizzes found. Try adjusting filters or create a new quiz.
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
                                     {visibleQuizzes.map((qz) => {
                                         const checked = selected === qz._id;
                                         return (
@@ -281,7 +369,7 @@ export default function PickQuizToAddModal({ onSubmit, onClose }: Props) {
                                                 </div>
 
                                                 <QuizCard
-                                                    quiz={qz as any}   // quiz type is relaxed in file #2 below
+                                                    quiz={qz as any}
                                                     disableLink
                                                     hideOptions
                                                     isSelected={checked}

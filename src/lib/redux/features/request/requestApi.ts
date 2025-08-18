@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -29,17 +28,20 @@ export const requestApi = createApi({
   tagTypes: ['Request'],
   endpoints: builder => ({
     createCourseApprovalRequest: builder.mutation<
-      ApiResponse<CourseApprovalRequest>,
-      { courseId: string; message?: string }
+      ApiResponse<any>,
+      {
+        courseId: string;
+        message?: string;
+        courseSnapshot?: any;
+        sectionsSnapshot?: any;
+      }
     >({
-      query: ({ courseId, message }) => ({
+      query: body => ({
         url: '/request/create-request-course',
         method: 'POST',
-        body: { courseId, message },
+        body, // JSON
       }),
-      invalidatesTags: ['Request'],
     }),
-
     getInstructorCourseRequests: builder.query<
       { success: boolean; total: number; data: CourseApprovalRequest[] },
       void

@@ -84,11 +84,9 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
     try {
       const alreadyExists = await checkCourseExistInCart();
 
-      const isBusinessManager = user?.businessInfo?.role === 'admin';
-
-      if (alreadyExists && !isBusinessManager) {
+      if (alreadyExists) {
         toast({
-          variant: 'success',
+          variant: 'destructive',
           title: 'This course is already in your cart',
           description: 'You can check it in your cart.',
           duration: 3000,
@@ -111,7 +109,6 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         });
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
       toast({
         variant: 'destructive',
         title: 'Failed to add course to cart',

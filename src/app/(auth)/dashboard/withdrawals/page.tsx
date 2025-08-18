@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { ReviewHeader, ReviewTable, ReviewTableRow, ReviewPagination } from "@/components/review-common";
+import { ReviewHeader, ReviewTable, ReviewTableRow } from "@/components/review-common";
+import { CommonPagination } from '@/components/common/ui';
 import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/components/common/Loading";
@@ -239,8 +240,8 @@ const WithdrawalsPage = () => {
           )}
         </ReviewTable>
 
-        <ReviewPagination
-          currentPage={currentPage}
+        <CommonPagination
+          page={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />

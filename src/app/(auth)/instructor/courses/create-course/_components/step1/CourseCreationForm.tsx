@@ -36,17 +36,79 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const [draftSaved, setDraftSaved] = useState(false);
 
     const { data: courseData, isSuccess } = useGetCourseByDetailQuery(courseId as string, { skip: !courseId });
-    const { refetch: refetchAllSections, } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
+    const { refetch: refetchAllSections } = useGetAllSectionsQuery(courseId!, { skip: !courseId });
     const [createCourse] = useCreateCourseMutation();
     const [updateCourse] = useUpdateCourseMutation();
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
+
+    // 🔹 Helper nhỏ ngay trong file: hiện toast lỗi đúng thông điệp từ BE/RTK
+    const showApiError = (err: any, fallback = "Request failed") => {
+        // Chuẩn hoá message
+        let message = fallback;
+        let details: string[] = [];
+
+        const toArray = (val: any): string[] => {
+            if (!val) return [];
+            if (Array.isArray(val)) {
+                return val
+                    .map((x) => (typeof x === "string" ? x : x?.msg || x?.message || x?.error || ""))
+                    .filter(Boolean);
+            }
+            if (typeof val === "object") {
+                const out: string[] = [];
+                for (const [k, v] of Object.entries(val)) {
+                    if (Array.isArray(v)) v.forEach((s) => out.push(`${k}: ${s}`));
+                    else if (typeof v === "string") out.push(`${k}: ${v}`);
+                }
+                return out;
+            }
+            if (typeof val === "string") return [val];
+            return [];
+        };
+
+        // 1) RTK FetchBaseQueryError: { status, data }
+        if (err && typeof err === "object" && "status" in err) {
+            const data = (err as any).data;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || err?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+        // 2) SerializedError | Error | string
+        else if (err instanceof Error) {
+            message = err.message || fallback;
+        } else if (typeof err === "string") {
+            message = err;
+        } else if (err && typeof err === "object") {
+            const data = (err as any).data ?? err;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+
+        toast({
+            title: "Error",
+            description:
+                details.length > 0 ? (
+                    <ul className="list-disc pl-4">{details.map((d, i) => <li key={i}>{d}</li>)}</ul>
+                ) : (
+                    <span>{message}</span>
+                ),
+            variant: "destructive",
+            duration: 6000,
+        });
+    };
 
     useEffect(() => {
         if (isSuccess && courseData?.courses) {
             const course = courseData.courses;
             setFormData({
                 ...course,
-                tags: Array.isArray(course.tags) ? course.tags : [],
                 benefits: Array.isArray(course.benefits) ? course.benefits : [],
                 prerequisites: Array.isArray(course.prerequisites) ? course.prerequisites : [],
             });
@@ -75,7 +137,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             thumbnail: typeof data.thumbnail === "object" ? data.thumbnail : undefined,
             demoUrl: data.demoUrl || undefined,
             duration: data.duration || 0,
-            topics: Array.isArray(data.tags) ? data.tags : [],
             benefits: Array.isArray(data.benefits) ? data.benefits : [],
             prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites : [],
             isFree: data.isFree || false,
@@ -93,16 +154,11 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
         if (!getId(data.category)) errs.category = "Category is required";
         if (!getId(data.level)) errs.level = "Skill level is required";
         if (!data.description?.trim()) errs.description = "Description is required";
-        // if (!data.benefits?.length) errs.benefits = "At least 1 benefit is required";
-        // if (!data.prerequisites?.length) errs.prerequisites = "At least 1 prerequisite is required";
         if (data.price == null || data.price < 0) errs.price = "Price is required and must be >= 0";
         if (!data.duration || data.duration <= 0) errs.duration = "Duration must be greater than 0";
-        if (data.tags && data.tags.length > 3) {
-            errs.tags = "Maximum 3 topics allowed";
-        }
+        // if (data.tags && data.tags.length > 3) errs.tags = "Maximum 3 topics allowed";
 
-        const thumbnailUrl =
-            typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
+        const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
         if (!thumbnailUrl?.trim()) errs.thumbnail = "Thumbnail is required";
 
         setErrors(errs);
@@ -141,7 +197,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             }
             setDraftSaved(true);
         } catch (err) {
-            toast({ title: "Error", description: "Failed to save draft.", variant: "destructive" });
+            showApiError(err, "Failed to save draft.");
         } finally {
             setIsSavingDraft(false);
         }
@@ -158,20 +214,53 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
 
         setIsPublishing(true);
         try {
+            // lấy sections + lessons
             const fetch = await refetchAllSections();
-            const sections = 'data' in fetch ? (fetch.data?.data || []) : [];
+            const sections = "data" in fetch ? (fetch.data?.data || []) : [];
 
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
-                toast({ title: "Error", description: "Course needs at least 1 section & lesson.", variant: "destructive" });
+                toast({
+                    title: "Error",
+                    description: "Course needs at least 1 section & lesson.",
+                    variant: "destructive",
+                });
                 return;
             }
 
-            await updateCourse({ id: courseId, course: { ...getPayload(), isDraft: false } }).unwrap();
-            const res = await createCourseApprovalRequest({ courseId, message: "Requesting course approval" }).unwrap();
-            toast({ title: "Success", description: res?.message || "Submitted!", variant: "success" });
-            router.push("/instructor/courses");
-        } catch (err: any) {
-            toast({ title: "Error", description: err?.data?.message || "Failed to publish.", variant: "destructive" });
+            // cập nhật course trước khi gửi request
+            const basePayload = { ...getPayload(), isDraft: false };
+            await updateCourse({ id: courseId, course: basePayload }).unwrap();
+
+            // snapshot
+            const courseSnapshot = { _id: courseId, ...basePayload };
+            const sectionsSnapshot = sections.map((sec: any) => ({
+                _id: sec._id,
+                title: sec.title,
+                order: sec.order,
+                isPublished: !!sec.isPublished,
+                lessons: Array.isArray(sec.lessons)
+                    ? sec.lessons.map((l: any) => ({
+                        _id: l._id,
+                        title: l.title,
+                        order: l.order,
+                        videoLength: l.videoLength,
+                        videoUrl: l.videoUrl,
+                    }))
+                    : [],
+            }));
+
+            await createCourseApprovalRequest({
+                courseId,
+                message: "Requesting course approval",
+                courseSnapshot,
+                sectionsSnapshot,
+            }).unwrap();
+
+            toast({ title: "Success", description: "Submitted!", variant: "success" });
+            router.push(`/instructor/courses/${courseId}`);
+        } catch (err) {
+            // Ví dụ nếu BE trả code 409 + message "Course is already published..."
+            showApiError(err, "Failed to publish.");
         } finally {
             setIsPublishing(false);
         }
@@ -192,8 +281,8 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                 toast({ title: "Draft created", description: "Draft saved.", variant: "success" });
             }
             setStep(2);
-        } catch {
-            toast({ title: "Error", description: "Failed to continue.", variant: "destructive" });
+        } catch (err) {
+            showApiError(err, "Failed to continue.");
         } finally {
             setIsContinuing(false);
         }
@@ -214,7 +303,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                     />
 
                     {step === 1 && (
-                        <section className="flex flex-row gap-6 items-start w-full max-w-[1120px] h-full">
+                        <section className="flex flex-row gap-6 items-start w/full max-w-[1120px] h-full">
                             <div className="w-4/5">
                                 <CourseInformationForm
                                     key={courseId ?? "new-course"}
@@ -233,13 +322,15 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                                 <FileUploadArea
                                     thumbnail={typeof formData.thumbnail === "object" ? formData.thumbnail : null}
                                     setThumbnail={(val) =>
-                                        setFormData((prev) => ({ ...prev, thumbnail: typeof val === "string" ? { url: val } : val }))
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            thumbnail: typeof val === "string" ? { url: val } : val,
+                                        }))
                                     }
                                 />
                             </div>
                         </section>
                     )}
-
 
                     {step === 2 && courseId && (
                         <section className="w-full max-w-4xl mx-auto mt-8">

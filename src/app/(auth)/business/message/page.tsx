@@ -323,7 +323,7 @@ const BusinessMessagePage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex gap-5 p-5">
+      <div className="flex-1 flex gap-5 py-5">
         {/* Chat List */}
         <BusinessChatList
           chats={chatRooms.map(mapChatRoomToChat)}

@@ -51,6 +51,15 @@ export default function EditCoursePage() {
 
     if (error) return <div className="text-red-500">Error loading course</div>;
 
+    if (course?.isPublished == true) {
+        return (
+            <div className="w-full text-center py-10">
+                <p className="text-lg font-semibold text-gray-700">
+                    This course has already been published and cannot be edited.
+                </p>    
+            </div>
+        );
+    }
     return (
         isReady && (
             <CourseCreationForm

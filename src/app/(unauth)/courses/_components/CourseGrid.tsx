@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useGetCoursesPaginatedQuery } from '@/lib/redux/features/course/courseApi';
 import CourseCard from '@/components/common/CourseCard';
-import CoursePagination from './CoursePagination';
+import { CommonPagination } from '@/components/common/ui';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 
 interface CourseGridProps {
@@ -89,7 +89,7 @@ const CourseGrid: React.FC<CourseGridProps> = ({
                 </div>
             )}
 
-            <CoursePagination
+            <CommonPagination
                 page={page}
                 totalPages={data?.totalPages ?? 1}
                 isFetching={isFetching}

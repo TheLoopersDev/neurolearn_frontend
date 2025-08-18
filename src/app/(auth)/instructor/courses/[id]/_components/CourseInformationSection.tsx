@@ -1,80 +1,135 @@
 import React from 'react';
 import Image from 'next/image';
-import courseImage from '@/public/assets/images/default-course.png'; // Đây là một đối tượng StaticImageData
+import courseImage from '@/public/assets/images/default-course.png';
 
 interface CourseInformationSectionProps {
     course: {
         title: string;
+        subTitle?: string;
         category: string;
         skillLevel: string;
-        tags: string[];
-        originalPrice: number;
-        salePrice?: number;
+        originalPrice: number;  // price
+        salePrice?: number;     // estimatedPrice
+        duration?: number;      // minutes
         description: string;
-        thumbnail: string; // Vẫn giữ loại string nếu bạn muốn linh hoạt truyền URL từ props
+        overview?: string;
+        thumbnail: string;      // URL
+        prerequisites: string[];
+        benefits: string[];
     };
 }
 
-const CourseInformationSection: React.FC<CourseInformationSectionProps> = ({ course }) => {    
+// Locale + currency config
+const LOCALE = 'vi-VN'; // hiển thị số theo locale VN
+const CURRENCY_UNIT = 'VND'; // mệnh giá hiển thị sau số
+// Formatter: không thập phân, mệnh giá đứng SAU số tiền
+const formatMoney = (n?: number) => {
+    // nếu không phải số -> N/A
+    if (typeof n !== 'number') return 'N/A';
+    // ép về số nguyên + format theo locale (không thập phân)
+    const whole = Math.round(n).toLocaleString(LOCALE, {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0,
+    });
+    // mệnh giá đặt SAU số tiền
+    return `${whole} ${CURRENCY_UNIT}`;
+};
+
+const CourseInformationSection: React.FC<CourseInformationSectionProps> = ({ course }) => {
     return (
         <section className="mb-8">
             <h2 className="mb-6 text-2xl font-semibold text-gray-900">Course Information</h2>
+
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                <div>
-                    <div className="mb-4">
+                {/* Left info */}
+                <div className="space-y-4">
+                    <div>
                         <label className="mb-1 block text-sm font-medium text-gray-600">Title</label>
-                        <p className="text-lg font-medium text-gray-900">{course.title}</p>
+                        <p className="text-lg font-medium text-gray-900">{course.title || '—'}</p>
                     </div>
 
-                    <div className="mb-4 grid grid-cols-2 gap-4">
+                    {course.subTitle ? (
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-600">
-                                Coursera Category
-                            </label>
-                            <p className="text-lg font-medium text-gray-900">{course.category}</p>
+                            <label className="mb-1 block text-sm font-medium text-gray-600">Sub Title</label>
+                            <p className="text-gray-900">{course.subTitle}</p>
+                        </div>
+                    ) : null}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-600">Category</label>
+                            <p className="text-gray-900">{course.category || 'N/A'}</p>
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-600">Skill level</label>
-                            <p className="text-lg font-medium text-gray-900">{course.skillLevel}</p>
+                            <p className="text-gray-900">{course.skillLevel || 'N/A'}</p>
                         </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="mb-1 block text-sm font-medium text-gray-600">Add Tag</label>
-                        <div className="flex flex-wrap gap-2">
-                            {course.tags.map((tag, index) => (
-                                <span
-                                    key={index}
-                                    className="rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-800"
-                                >
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="mb-4 grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-600">Original Price</label>
-                            <p className="text-lg font-medium text-gray-900">
-                                ${course.originalPrice.toFixed(2)}
-                            </p>
+                            <p className="text-gray-900">{formatMoney(course.originalPrice)}</p>
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-600">Sale Price</label>
-                            <p className="text-lg font-medium text-gray-900">
-                                {course.salePrice ? `$${course.salePrice.toFixed(2)}` : 'N/A'}
+                            <p className="text-gray-900">
+                                {typeof course.salePrice === 'number' ? formatMoney(course.salePrice) : 'N/A'}
                             </p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-600">Duration</label>
+                            <p className="text-gray-900">{course.duration ? `${course.duration}` : 'N/A'}</p>
                         </div>
                     </div>
 
                     <div>
                         <label className="mb-1 block text-sm font-medium text-gray-600">Description</label>
-                        <p className="text-lg leading-relaxed text-gray-900">{course.description}</p>
+                        <p className="text-lg leading-relaxed text-gray-900 whitespace-pre-wrap">
+                            {course.description || '—'}
+                        </p>
+                    </div>
+
+                    {course.overview ? (
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-600">Overview</label>
+                            <p className="text-gray-900 whitespace-pre-wrap">{course.overview}</p>
+                        </div>
+                    ) : null}
+
+                    {/* Prerequisites */}
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-600">Prerequisites</label>
+                        {course.prerequisites?.length ? (
+                            <ul className="list-disc pl-6 text-gray-900 space-y-1">
+                                {course.prerequisites.map((p, i) => (
+                                    <li key={`${p}-${i}`}>{p}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500">No prerequisites specified.</p>
+                        )}
+                    </div>
+
+                    {/* Benefits */}
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-600">Benefits</label>
+                        {course.benefits?.length ? (
+                            <ul className="list-disc pl-6 text-gray-900 space-y-1">
+                                {course.benefits.map((b, i) => (
+                                    <li key={`${b}-${i}`}>{b}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500">No benefits specified.</p>
+                        )}
                     </div>
                 </div>
 
-                {/* Thumbnail Display */}
+                {/* Right: thumbnail */}
                 <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6">
                     <Image
                         src={course.thumbnail || courseImage.src}
