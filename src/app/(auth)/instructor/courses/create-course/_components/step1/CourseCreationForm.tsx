@@ -257,7 +257,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             }).unwrap();
 
             toast({ title: "Success", description: "Submitted!", variant: "success" });
-            router.push("/instructor/courses");
+            router.push(`/instructor/courses/${courseId}`);
         } catch (err) {
             // Ví dụ nếu BE trả code 409 + message "Course is already published..."
             showApiError(err, "Failed to publish.");
