@@ -63,9 +63,6 @@ export default function CourseDetailsPage() {
             <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
             <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
               <p>{course?.description || 'No description provided by instructor.'}</p>
-              <a href="#" className="inline-block text-blue-600 font-medium hover:bg-blue-600 hover:text-white rounded p-1">
-                View all &gt;
-              </a>
             </div>
             {/* Course Detail */}
             <CourseDetail course={course} />
@@ -79,7 +76,7 @@ export default function CourseDetailsPage() {
             <CourseCard course={course} />
             <Rating rating={course.rating as number} />
             <PublisherCard author={course.publisher} updatedAt={course.updatedAt ? new Date(course.updatedAt) : undefined} />
-            <OverView title={course.name} overview={course.overview} topics={course.tags || []} sectionsCount={course.sections?.length || 0} />
+            <OverView title={course.name} overview={course.overview} />
             {/* Learners are viewing */}
           </div>
         </div>

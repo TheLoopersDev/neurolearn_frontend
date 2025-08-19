@@ -130,7 +130,7 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-x-hidden">
       <div className="w-full overflow-y-auto">
         <div className="rounded-2xl overflow-hidden w-full">
           <Image
@@ -156,8 +156,8 @@ export default function UserDashboard() {
             isInstructor={!true} 
           />
 
-          <div className="flex gap-6">
-            <div className="w-[50%]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="min-w-0">
               <div className="bg-white rounded-2xl p-4 w-full h-full flex flex-col">
                 {isLoading ? (
                   <Loading message="Loading courses..." size="sm" className="min-h-[200px]" />
@@ -170,10 +170,11 @@ export default function UserDashboard() {
                 )}
               </div>
             </div>
-            <div className="w-[50%]">
+            <div className="min-w-0">
               <UpcomingExam items={data?.upcomingExams || []} />
             </div>
           </div>
+
         </div>
       </div>
     </div>

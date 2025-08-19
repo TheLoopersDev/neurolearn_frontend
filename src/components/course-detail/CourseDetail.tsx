@@ -19,7 +19,7 @@ export default function CourseDetail({ course }: { course: Course }) {
           Duration
           <div className="flex items-center gap-2 text-black mt-2">
             <Image src="/assets/icons/clock.svg" alt="Clock Icon" width={24} height={24} />
-            <span>{course?.duration ? course.duration + ' hours' : 'N/A'}</span>
+            <span>{course?.durationText ? course.durationText : 'N/A'}</span>
           </div>
         </div>
         <div className="flex-1 text-base h-[116px] bg-[#FFFFFF] text-[#6B6B6B] rounded-lg p-6">

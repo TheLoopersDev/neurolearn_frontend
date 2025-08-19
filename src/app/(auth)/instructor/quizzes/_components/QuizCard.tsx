@@ -3,11 +3,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import { Quiz } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteQuizMutation } from '@/lib/redux/features/quiz/quizApi';
 import QuizOptions from './QuizOptions';
+import defaultCover from '@/public/assets/create-quiz/thumbnail.png';
+import { useModal } from '@/context/ModalContext';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -18,6 +20,7 @@ interface QuizCardProps {
   className?: string;
   liftOnHover?: boolean;
 }
+
 
 const QuizCard: React.FC<QuizCardProps> = ({
   quiz,
@@ -31,20 +34,37 @@ const QuizCard: React.FC<QuizCardProps> = ({
   const [deleteQuiz] = useDeleteQuizMutation();
   const { toast } = useToast();
 
+  const { showModal } = useModal(); // ⬅️ lấy showModal
+
   const handleDeleteQuiz = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa quiz này?')) return;
-    try {
-      await deleteQuiz(id).unwrap();
-      toast({ title: 'Success', description: 'Quiz đã được xóa', variant: 'success' });
-    } catch (err: any) {
-      toast({
-        title: 'Error',
-        description: err?.data?.message || 'Xóa quiz thất bại',
-        variant: 'destructive',
-      });
-      throw err;
-    }
+    showModal('actionConfirm', {
+      title: 'Delete quiz?',
+      description: `This will permanently remove "${quiz?.name || 'this quiz'}". This action cannot be undone.`,
+      confirmText: 'Delete',
+      confirmTextLoading: 'Deleting...',
+      cancelText: 'Cancel',
+      variant: 'danger', // hoặc 'destructive' theo style bạn đặt
+      onConfirm: async () => {
+        try {
+          await deleteQuiz(id).unwrap();
+          toast({ title: 'Success', description: 'Quiz deleted successfully', variant: 'success' });
+        } catch (err: any) {
+          toast({
+            title: 'Error',
+            description: err?.data?.message || 'Quiz delete failed',
+            variant: 'destructive',
+          });
+          throw err; // để modal (nếu có) biết là action fail, không auto close
+        }
+      },
+    });
   };
+  const FALLBACK_IMG: StaticImageData = defaultCover;
+  const coverSrc: string | StaticImageData =
+    typeof quiz?.imageUrl === 'string' && quiz.imageUrl.trim()
+      ? (quiz.imageUrl as string)
+      : FALLBACK_IMG;
+
 
   const numberOfQuestions = quiz.totalQuestions ?? quiz.questions?.length ?? 0;
 
@@ -73,11 +93,11 @@ const QuizCard: React.FC<QuizCardProps> = ({
         {/* 1. Thumbnail */}
         <div className="relative w-full h-full row-span-2 bg-slate-100 rounded-xl overflow-hidden self-start">
           <Image
-            src={'/assets/create-quiz/thumbnail.png'}
-            alt={quiz.name || 'Quiz thumbnail'}
+            src={coverSrc}
+            alt="Quiz cover"
             fill
-            sizes="(max-width: 768px) 30vw, 100px"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover rounded-lg"
+            unoptimized
           />
         </div>
 
