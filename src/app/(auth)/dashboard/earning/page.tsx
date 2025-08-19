@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { WithdrawForm } from '@/components/instructor/revenue/WithdrawForm';
 import { BalanceOverview } from '@/components/instructor/revenue/BalanceOverview';
 import { CardSection } from '@/components/instructor/revenue/CardSection';
@@ -9,6 +9,8 @@ import { useModal } from '@/context/ModalContext';
 import { useMemo } from 'react';
 import { useGetTotalIncomeQuery } from '@/lib/redux/features/income/incomeApi';
 import Loading from '@/components/common/Loading';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
 
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
@@ -18,6 +20,22 @@ const WithdrawDashboard: React.FC = () => {
   const income = useMemo(() => {
     return data?.income ?? 0;
   }, [data]);
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not instructor
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'instructor') {
+      router.replace('/'); // send non-instructor to home
+    }
+  }, [ready, role, router]);
+
 
   const errorMessage = isError ? 'Không thể lấy dữ liệu thu nhập' : null;
 
@@ -41,7 +59,8 @@ const WithdrawDashboard: React.FC = () => {
   if (isLoading) {
     return <Loading message="Loading earnings..." className="min-h-screen" />;
   }
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'instructor') return null;
   return (
     <div className="min-h-screen" >
       <main className="max-w-6xl mx-auto">

@@ -118,6 +118,7 @@ export interface IReview {
       thumbnail?: string;
       url?: string;
     };
+    createdAt?: Date;
   };
   commentReplies?: Array<{
     user: {
@@ -213,6 +214,7 @@ export interface Course {
   category?: string | { _id: string; title: string } | null;
   subCategory?: string | { _id: string; title: string } | null;
   duration?: number;
+  durationText?: string;
   isDraft?: boolean;
   createdAt: string;
   updatedAt: string;

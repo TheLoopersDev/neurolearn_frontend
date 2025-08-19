@@ -15,8 +15,8 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
   return (
     <section className="mt-5 w-full">
       <h2 className="text-lg font-semibold leading-none text-stone-950">Balance Overview</h2>
-      <div className="flex flex-wrap gap-3 items-center mt-5 w-full">
-        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[200px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5 w-full">
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-full">
           <div className="w-full">
             <TotalWithdrawIcon />
             <div className="mt-3 w-full">
@@ -26,7 +26,7 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
           </div>
         </article>
 
-        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[200px]">
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-full">
           <div className="w-full">
             <ServiceFeeIcon />
             <div className="mt-3 w-full">
@@ -36,7 +36,7 @@ export const BalanceOverview: React.FC<BalanceOverviewProps> = ({
           </div>
         </article>
 
-        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-[200px]">
+        <article className="flex flex-col justify-center bg-white border border-gray-200 rounded-xl py-3 px-3 min-h-24 w-full">
           <div className="w-full">
             <CurrentBalanceIcon />
             <div className="mt-3 w-full">

@@ -1,9 +1,28 @@
 'use client';
 
+import { useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+    const role = user?.businessInfo?.role;
+    const [ready, setReady] = useState(false);
+  
+    // Mark as client-ready to avoid hydration flicker
+    useEffect(() => setReady(true), []);
+  
+    // Redirect when not business
+    useEffect(() => {
+      if (!ready) return;
+      if (role !== 'employee' || 'manager' || 'admin') {
+        router.replace('/'); // send non-business to home
+      }
+    }, [ready, role, router]);
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'employee' || 'manager' || 'admin') return null;
   return (
     <div className="flex justify-center min-h-screen">
       <div className="flex min-h-screen w-full max-w-7xl">

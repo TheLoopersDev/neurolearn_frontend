@@ -7,6 +7,7 @@ import { CourseCard } from "./CourseCard";
 import { useGetUserCoursesQuery } from "@/lib/redux/features/course/courseApi";
 import { useGetInstructorCourseRequestsQuery } from "@/lib/redux/features/request/requestApi";
 import Loading from "@/components/common/Loading";
+import { CommonPagination } from "@/components/common/ui";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -125,25 +126,11 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
           ))}
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-6 gap-3">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-            >
-              Prev
-            </button>
-            <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <CommonPagination
+          page={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );

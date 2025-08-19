@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import dashboard from '@/public/assets/icons/dashboard.svg';
 import courses from '@/public/assets/icons/book.svg';
 import message from '@/public/assets/icons/message.svg';
-// import setting from '@/public/assets/icons/setting.svg';
+import setting from '@/public/assets/icons/setting.svg';
 import magicPenIcon from '@/public/assets/create-quiz/magicpen.svg';
 import purchaseHistory from '@/public/assets/icons/purchase-history.svg';
 import discount from '@/public/assets/business/discount.svg';
@@ -20,6 +20,8 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { user } = useSelector((state: any) => state.auth);
 
+  const isBusinessAdmin = user?.businessInfo?.role === 'admin';
+
   const menuItems = [
     { icon: dashboard, label: 'Dashboard', path: `/business/dashboard/${user?.businessInfo?.businessId}` },
     {
@@ -27,12 +29,15 @@ const Sidebar = () => {
       label: 'My Courses',
       path: '/business/mycourses',
     },
-    // 👇 Mục Employee mới được thêm vào đây
     { icon: dashboard, label: 'Employee', path: '/business/employees' },
     { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
     { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
     { icon: discount, label: 'Discount', path: '/business/discount' },
   ];
+
+  if (isBusinessAdmin) {
+    menuItems.push({ icon: setting, label: 'Setting', path: '/business/setting' });
+  }
 
   return (
     <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">

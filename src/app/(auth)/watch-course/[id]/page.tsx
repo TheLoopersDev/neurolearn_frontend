@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import TabMenu from '@/components/instructor/TabMenu';
 import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
@@ -10,6 +10,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 function CoursePage() {
   const { id: courseId } = useParams();
+  const router = useRouter();
+  const [isPurchased, setIsPurchased] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!courseId) return;
+    let cancelled = false;
+
+    axios
+      .get(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/${courseId}/is-purchased`, {
+        withCredentials: true,
+      })
+      .then(res => {
+        if (!cancelled) setIsPurchased(!!res?.data?.isPurchased);
+      })
+      .catch(() => {
+        if (!cancelled) setIsPurchased(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [courseId]);
+  useEffect(() => {
+    if (isPurchased === false) {
+      router.replace('/courses');
+    }
+  }, [isPurchased, router]);
+
   const [course, setCourse] = useState<any>(null);
 
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
@@ -201,7 +227,7 @@ function CoursePage() {
     setNextLesson(null);
     hasUpdatedProgress.current = false;
   };
-
+  if (isPurchased === false) return <div className="w-full py-20" />; 
   return (
     <div className="w-full py-20">
       <div className="w-full">

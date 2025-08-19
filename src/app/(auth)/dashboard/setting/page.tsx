@@ -134,14 +134,13 @@ const SettingPage: React.FC = () => {
       // 3. Handle password update if new password fields are filled
       // The Zod schema in ProfileEditorForm should handle basic password validation (empty, length, match)
       // Here, we only call the API if newPassword is provided.
-      if (formData.newPassword && formData.newPassword.length >= 6) {
+      if (formData.newPassword) {
         // Check length after Zod validation to be safe
         passwordAttemptedChange = true;
         // The Zod validation should already ensure oldPassword, newPassword, retypePassword conditions
         // are met if a password change is attempted. If not, the form wouldn't submit.
 
         await updatePassword({
-          oldPassword: formData.oldPassword!, // Use non-null assertion as Zod validation ensures its presence if newPassword is there
           newPassword: formData.newPassword,
         }).unwrap();
         // Success toast and logout/redirect handled by the isPasswordUpdateSuccess useEffect
