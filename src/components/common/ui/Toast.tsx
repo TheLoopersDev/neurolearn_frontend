@@ -29,9 +29,11 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border bg-background text-foreground',
-        destructive: 'bg-[#ef4444] text-[#ededed] border-red-600',
-        success: 'border-green-500 bg-green-500 text-primary-50',
+        // trước: 'border bg-background text-foreground'
+        default: 'border bg-background text-white',
+        destructive: 'bg-[#ef4444] text-white border-red-600',
+        // trước: 'border-green-500 bg-green-500 text-primary-50'
+        success: 'border-green-500 bg-green-500 text-white',
       },
     },
     defaultVariants: {
@@ -39,6 +41,7 @@ const toastVariants = cva(
     },
   }
 );
+
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
@@ -76,7 +79,8 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      'absolute right-1 top-1 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600',
+      // trước: '... text-foreground/50 ... group-[.destructive]:text-red-300 ...'
+      'absolute right-1 top-1 rounded-md p-1 text-white/70 opacity-0 transition-opacity hover:text-white focus:opacity-100 focus:outline-none focus:ring-1 focus:ring-white group-hover:opacity-100',
       className
     )}
     toast-close=""
@@ -85,6 +89,7 @@ const ToastClose = React.forwardRef<
     <X className="h-4 w-4" />
   </ToastPrimitives.Close>
 ));
+
 ToastClose.displayName = ToastPrimitives.Close.displayName;
 
 const ToastTitle = React.forwardRef<
