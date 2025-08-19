@@ -147,76 +147,31 @@ function getDropdownList(user: User) {
   }
 
   if (user.role === 'instructor') {
-    return [
-      {
-        title: 'Dashboard',
-        href: '/instructor/dashboard',
-        icon: <Image src={dashboard} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Learning',
-        href: '/instructor/learning',
-        icon: <Image src={courses} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Courses',
-        href: '/instructor/courses',
-        icon: <Image src={courses} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Quizzes',
-        href: '/instructor/quizzes',
-        icon: <Image src={createQuiz} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Earning',
-        href: '/dashboard/earning',
-        icon: <Image src={earning} alt="" width={20} height={20} />,
-      },
-      // {
-      //   title: 'Withdrawals',
-      //   href: '/dashboard/withdrawals',
-      //   icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
-      // },
-      {
-        title: 'Purchase History',
-        href: '/dashboard/purchase-history',
-        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Certificate',
-        href: '/dashboard/certificate',
-        icon: <Image src={certificate} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Discount',
-        href: '/dashboard/discount',
-        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Message',
-        href: '/dashboard/message',
-        icon: <Image src={message} alt="" width={20} height={20} />,
-      },
-      {
-        title: 'Setting',
-        href: '/dashboard/setting',
-        icon: <Image src={setting} alt="" width={20} height={20} />,
-      },
-      ...businessItems,
-    ];
-  }
-
   return [
     {
       title: 'Dashboard',
-      href: '/dashboard',
+      href: '/instructor/dashboard',
       icon: <Image src={dashboard} alt="" width={20} height={20} />,
     },
     {
-      title: 'Courses',
-      href: '/dashboard/my-courses',
+      title: 'Learning',
+      href: '/instructor/learning',
       icon: <Image src={courses} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Courses',
+      href: '/instructor/courses',
+      icon: <Image src={courses} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Quizzes',
+      href: '/instructor/quizzes',
+      icon: <Image src={createQuiz} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Earning',
+      href: '/dashboard/earning',
+      icon: <Image src={earning} alt="" width={20} height={20} />,
     },
     {
       title: 'Purchase History',
@@ -245,6 +200,55 @@ function getDropdownList(user: User) {
     },
     ...businessItems,
   ];
+}
+
+return [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: <Image src={dashboard} alt="" width={20} height={20} />,
+  },
+  {
+    title: 'Courses',
+    href: '/dashboard/my-courses',
+    icon: <Image src={courses} alt="" width={20} height={20} />,
+  },
+  ...(user?.businessInfo?.role === 'employee'
+    ? [
+        {
+          title: 'Business Courses',
+          href: '/dashboard/assign-course',
+          icon: <Image src={courses} alt="" width={20} height={20} />,
+        },
+      ]
+    : []),
+  {
+    title: 'Purchase History',
+    href: '/dashboard/purchase-history',
+    icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+  },
+  {
+    title: 'Certificate',
+    href: '/dashboard/certificate',
+    icon: <Image src={certificate} alt="" width={20} height={20} />,
+  },
+  {
+    title: 'Discount',
+    href: '/dashboard/discount',
+    icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+  },
+  {
+    title: 'Message',
+    href: '/dashboard/message',
+    icon: <Image src={message} alt="" width={20} height={20} />,
+  },
+  {
+    title: 'Setting',
+    href: '/dashboard/setting',
+    icon: <Image src={setting} alt="" width={20} height={20} />,
+  },
+  ...businessItems,
+];
 }
 
 export function UserDropdown() {
