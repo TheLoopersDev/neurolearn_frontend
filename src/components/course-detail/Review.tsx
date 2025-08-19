@@ -29,8 +29,8 @@ export default function Review({ reviews }: { reviews: IReview[] }) {
                     {review.user?.name || 'Anonymous'}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {review.createdAt
-                      ? new Date(review.createdAt).toLocaleDateString()
+                    {review?.user?.createdAt
+                      ? new Date(review.user.createdAt).toLocaleDateString('vi-VN')
                       : 'Unknown date'}
                   </p>
                 </div>

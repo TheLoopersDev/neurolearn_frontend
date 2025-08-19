@@ -85,7 +85,6 @@ const CoursePreviewModal: React.FC<{
               <OverView
                 title={selectedRequest.courseId?.name || 'N/A'}
                 overview={selectedRequest.courseId?.description || 'N/A'}
-                topics={selectedRequest.courseId?.tags ? (Array.isArray(selectedRequest.courseId.tags) ? selectedRequest.courseId.tags : (typeof selectedRequest.courseId.tags === 'string' ? selectedRequest.courseId.tags.split(',').map((tag: string) => tag.trim()) : [])) : []}
               />
             </div>
           </div>

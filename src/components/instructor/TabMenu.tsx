@@ -1,27 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import ChatAI from './ChatAI';
-import QnA from './QnA';
-import NotificationPanel from './NotificationPanel';
+// import QnA from './QnA';
+// import NotificationPanel from './NotificationPanel';
 import EvaluatePanel from './EvaluatePanel';
 import { Course } from '@/types/course';
 
 const tabs = [
   { id: 'chat', label: 'Chat.AI', icon: '/assets/icons/chat.svg' },
-  { id: 'qa', label: 'Q&A', icon: '/assets/icons/qa.svg' },
-  { id: 'notification', label: 'Notification', icon: '/assets/icons/notification.svg' },
+  // { id: 'qa', label: 'Q&A', icon: '/assets/icons/qa.svg' },
+  // { id: 'notification', label: 'Notification', icon: '/assets/icons/notification.svg' },
   { id: 'evaluate', label: 'Evaluate', icon: '/assets/icons/black-star.svg' },
 ];
 
 type TabMenuProps = Readonly<{
-  course: Course; // hoặc cụ thể hơn nếu bạn có type Course
+  // Allow null/undefined because parent may still be loading
+  course?: Partial<Course> | null;
 }>;
 
-export default function TabMenu({ course }: TabMenuProps) {
-  const [activeTab, setActiveTab] = useState('chat');
+export default function TabMenu({ course = null }: TabMenuProps) {
+  const [activeTab, setActiveTab] = useState<'chat' | 'evaluate' | string>('chat');
+
+  // Null-safe courseId and reviews
+  const courseId = useMemo<string>(() => {
+    const c = course as any;
+    return c?._id ?? c?.id ?? '';
+  }, [course]);
+
+  const reviews = useMemo<any[]>(() => {
+    const c = course as any;
+    return Array.isArray(c?.reviews) ? c.reviews : [];
+  }, [course]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -47,15 +59,23 @@ export default function TabMenu({ course }: TabMenuProps) {
       {/* Tab content area */}
       <div className="mt-4 h-[524px] overflow-y-auto pr-2">
         {activeTab === 'chat' && <ChatAI />}
-        {activeTab === 'qa' && <QnA />}
-        {activeTab === 'notification' && <NotificationPanel />}
-        {activeTab === 'evaluate' && <EvaluatePanel courseId={course._id} reviews={course.reviews} />}
-        {activeTab !== 'lesson' && activeTab !== 'chat' && activeTab !== 'qa' && activeTab !== 'notification' && activeTab !== 'evaluate' &&(
-          <div className="p-4 bg-white rounded-b-xl shadow text-[#6B6B6B]">
-            Content for <strong>{tabs.find(tab => tab.id === activeTab)?.label}</strong> coming
-            soon.
-          </div>
+
+        {/* {activeTab === 'qa' && <QnA />}
+        {activeTab === 'notification' && <NotificationPanel />} */}
+
+        {activeTab === 'evaluate' && (
+          <EvaluatePanel courseId={courseId} reviews={reviews} />
         )}
+
+        {activeTab !== 'lesson' &&
+          activeTab !== 'chat' &&
+          // activeTab !== 'qa' &&
+          // activeTab !== 'notification' &&
+          activeTab !== 'evaluate' && (
+            <div className="p-4 bg-white rounded-b-xl shadow text-[#6B6B6B]">
+              Content for <strong>{tabs.find(t => t.id === activeTab)?.label ?? activeTab}</strong> coming soon.
+            </div>
+          )}
       </div>
     </div>
   );

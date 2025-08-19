@@ -44,20 +44,22 @@ export default function ClientLayout({ children }: { readonly children: React.Re
 
     // 1) Đẩy session vào Redux để UI có gì đó ngay (role tạm)
     if (session?.user) {
-      dispatch(setAuthState({
-        token: (session as any).accessToken ?? null,
-        user: {
-          _id: (session.user as any).id ?? '',
-          name: session.user.name ?? '',
-          email: session.user.email ?? '',
-          role: 'user',
-          avatar: session.user.image ? { url: session.user.image } : undefined,
-        },
-        isAuthenticated: true,
-      }));
+      dispatch(
+        setAuthState({
+          token: (session as any).accessToken ?? null,
+          user: {
+            _id: (session.user as any).id ?? '',
+            name: session.user.name ?? '',
+            email: session.user.email ?? '',
+            role: 'user',
+            avatar: session.user.image ? { url: session.user.image } : undefined,
+          },
+          isAuthenticated: true,
+        }),
+      );
     }
 
-    // 2) Chạy bridge 1 lần → BE set cookie → refetch /me
+    // 2) Bridge 1 lần -> BE set cookie -> refetch /me
     if (!didBridge.current) {
       didBridge.current = true;
       (async () => {
@@ -68,9 +70,9 @@ export default function ClientLayout({ children }: { readonly children: React.Re
             avatar: session?.user?.image,
           }).unwrap();
         } catch {
-          // ignore, vẫn refetch thử
+          // ignore
         } finally {
-          await refetch(); // ⬅️ Quan trọng: gọi lại ngay sau khi (có thể) đã có cookie
+          await refetch();
         }
       })();
     }
@@ -78,51 +80,56 @@ export default function ClientLayout({ children }: { readonly children: React.Re
     // 3) Khi /me có dữ liệu thật (có role), override Redux
     if (me?.user) {
       const u = me.user;
-      dispatch(setAuthState({
-        token: (session as any)?.accessToken ?? null,
-        user: {
-          _id: u.id ?? u._id ?? '',
-          name: u.name ?? '',
-          email: u.email ?? '',
-          role: u.role ?? 'user',
-          avatar: u?.avatar?.url ? { url: u.avatar.url } : undefined,
-        },
-        isAuthenticated: true,
-      }));
+      dispatch(
+        setAuthState({
+          token: (session as any)?.accessToken ?? null,
+          user: {
+            _id: u.id ?? u._id ?? '',
+            name: u.name ?? '',
+            email: u.email ?? '',
+            role: u.role ?? 'user',
+            avatar: u?.avatar?.url ? { url: u.avatar.url } : undefined,
+          },
+          isAuthenticated: true,
+        }),
+      );
     }
   }, [status, session, me, refetch, socialAuth, dispatch]);
 
   return (
     <ModalProvider>
-      <div className="relative bg-gray-50 min-h-screen z-10">
-        {/* Background cố định, không effect màu */}
+      {/* Wrapper: responsive + tránh tràn ngang + footer dính đáy */}
+      <div className="relative min-h-dvh flex flex-col bg-gray-50 overflow-x-clip z-10
+                      pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+
+        {/* Background cố định (responsive height/width) */}
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute left-1/2 -translate-x-1/2 w-[clamp(800px,100vw,1172px)] h-[clamp(320px,60vw,467px)] top-[clamp(-200px,-20vw,-234px)] -z-10 rounded-b-[100%]"
+          className="pointer-events-none select-none absolute left-1/2 -translate-x-1/2
+                     w-[min(1172px,100vw)] h-[clamp(260px,56vw,467px)]
+                     sm:h-[clamp(300px,50vw,467px)]
+                     top-[clamp(-220px,-22vw,-180px)]
+                     -z-10 rounded-b-[100%]"
           style={{
             background:
               'radial-gradient(58.94% 105.86% at 50% -5.86%, #5B78FF 0%, #F7F8FA 100%)',
           }}
         />
 
+        {/* Header full-width, tự xử lý responsive bên trong */}
         <Header />
 
-        <div className="relative max-w-7xl mx-auto">
+        {/* Main container: padding theo breakpoint, giữ max width */}
+        <main className="relative w-full max-w-7xl mx-auto flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
           <LazyMotion features={domAnimation}>
             <MotionConfig
               reducedMotion="user"
               transition={
                 reduce
                   ? { duration: 0 }
-                  : {
-                    type: 'spring',
-                    stiffness: 520, // snappy như iOS
-                    damping: 42,
-                    mass: 0.7,
-                  }
+                  : { type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }
               }
             >
-              {/* Bọc cả Suspense để tránh nháy */}
               <AnimatePresence mode="sync" initial={false}>
                 <Suspense
                   key={pathname}
@@ -132,21 +139,23 @@ export default function ClientLayout({ children }: { readonly children: React.Re
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="p-6"
+                      className="grid place-items-center min-h-[40dvh] px-3"
                     >
                       <Loading />
                     </m.div>
                   }
                 >
                   {children}
-
                 </Suspense>
               </AnimatePresence>
             </MotionConfig>
           </LazyMotion>
-        </div>
+        </main>
 
-        <Footer />
+        {/* Footer: khoảng cách theo breakpoint */}
+        <div className="mt-8 sm:mt-10">
+          <Footer />
+        </div>
       </div>
 
       <ModalContainer />
