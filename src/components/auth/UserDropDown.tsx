@@ -53,17 +53,67 @@ function getDropdownList(user: User) {
   const isBusinessAdminOrManager = user?.businessInfo?.role === 'manager';
   if (user.role === 'user' && user?.businessInfo?.role === 'admin') {
     return [
-      { title: 'Business Dashboard', href: `/business/dashboard/${user.businessInfo?.businessId}`, icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'My Courses',
+        href: '/business/mycourses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Employee',
+        href: '/business/employees',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/business/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/business/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/business/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/business/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
+
+    ];
+  }
+  const businessItems = isBusinessAdminOrManager
+  ? [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      ...(user?.businessInfo?.role === 'admin'
+        ? [
+            {
+              title: 'Setting',
+              href: '/business/setting',
+              icon: <Image src={setting} alt="" width={20} height={20} />,
+            },
+          ]
+        : []),
       { title: 'My Courses', href: '/business/mycourses', icon: <Image src={courses} alt="" width={20} height={20} /> },
       { title: 'Employee', href: '/business/employees', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
       { title: 'Message', href: '/business/message', icon: <Image src={message} alt="" width={20} height={20} /> },
       { title: 'Purchase History', href: '/business/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
       { title: 'Discount', href: '/business/discount', icon: <Image src={discountIcon} alt="" width={20} height={20} /> },
-    ];
-  }
-  const businessItems = isBusinessAdminOrManager
-    ? [{ title: 'Business Dashboard', href: `/business/dashboard/${user.businessInfo?.businessId}`, icon: <Image src={businessIcon} alt="" width={20} height={20} /> }]
-    : [];
+    ]
+  : [];
 
   if (user.role === 'admin') {
     return [
@@ -72,6 +122,7 @@ function getDropdownList(user: User) {
       { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
       { title: 'Instructor Requests', href: '/dashboard/review-instructor', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
       { title: 'Business Requests', href: '/dashboard/business-requests', icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
+      { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
       { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
       { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
     ];
@@ -107,8 +158,7 @@ function getDropdownList(user: User) {
 
 export function UserDropdown() {
   const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false); // responsive flag
-
+  const [isMobile, setIsMobile] = useState(false);
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
@@ -209,7 +259,6 @@ export function UserDropdown() {
             <span className="hidden sm:block font-medium text-base text-black truncate leading-none whitespace-nowrap max-w-[120px] md:max-w-[160px]">
               {user.name}
             </span>
-
             <motion.svg
               animate={{ rotate: open ? 180 : 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
@@ -242,7 +291,6 @@ export function UserDropdown() {
           <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit">
             <DropdownMenuLabel className="px-4 sm:px-3 py-2 text-sm text-gray-500" />
             <DropdownMenuSeparator className="border-t border-gray-200" />
-
             {/* Scrollable Menu Items */}
             <div className="max-h-[55vh] overflow-y-auto">
               <DropdownMenuGroup>
@@ -267,7 +315,6 @@ export function UserDropdown() {
                 ))}
               </DropdownMenuGroup>
             </div>
-
             {/* Fixed Sign Out Button at Bottom */}
             <div className="sticky bottom-0 bg-white pt-2 border-t border-gray-200">
               <DropdownMenuItem asChild>

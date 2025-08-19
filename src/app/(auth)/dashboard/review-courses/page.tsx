@@ -1,22 +1,22 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Eye, Trash2, MoreHorizontal,
-} from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { CommonPagination } from '@/components/common/ui';
 import { useGetCoursesQuery } from '@/lib/redux/features/course/courseApi';
 import { Course } from '@/types/course';
 import Image from 'next/image';
-import { useGetPendingRequestsQuery, useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import { useHandleRequestMutation } from '@/lib/redux/features/api/apiSlice';
+import { useGetPendingCourseRequestsQuery } from '@/lib/redux/features/request/requestApi';
 import CourseDetail from '@/components/course-detail/CourseDetail';
 import CourseContent from '@/components/course-detail/CourseContent';
 import PublisherCard from '@/components/course-detail/PublisherCard';
 import OverView from '@/components/course-detail/OverView';
 import InstructorInfo from '@/components/common/ui/InstuctorInfo';
-import { StatusBadge } from '@/components/review-common';
+// Removed unused StatusBadge import
 import { useToast } from '@/hooks/use-toast';
 import SearchCourseRequest from './_components/SearchCourseRequest';
+import CourseRequestCard from './_components/CourseRequestCard';
 import Loading from '@/components/common/Loading';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
@@ -41,7 +41,7 @@ const CoursePreviewModal: React.FC<{
     <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
       <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
-          <h3 className="text-2xl font-bold text-gray-900">Course Preview: {selectedRequest.courseId?.name || 'N/A'}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Course Preview: {selectedRequest.data?.course?.name || selectedRequest.courseId?.name || 'N/A'}</h3>
         </div>
         {/* Course Preview Content using course-detail components */}
         <div className="p-6">
@@ -51,8 +51,8 @@ const CoursePreviewModal: React.FC<{
               {/* Course Thumbnail */}
               <div className="w-full">
                 <Image
-                  src={typeof selectedRequest.courseId?.thumbnail === 'string' ? selectedRequest.courseId.thumbnail : (selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg')}
-                  alt={selectedRequest.courseId?.name || 'Course thumbnail'}
+                  src={selectedRequest.data?.course?.thumbnail?.url || selectedRequest.courseId?.thumbnail?.url || '/assets/business/book.svg'}
+                  alt={selectedRequest.data?.course?.name || selectedRequest.courseId?.name || 'Course thumbnail'}
                   width={1200}
                   height={480}
                   className="w-full h-64 object-cover rounded-4xl"
@@ -60,33 +60,48 @@ const CoursePreviewModal: React.FC<{
               </div>
               {/* Instructor Info */}
               <InstructorInfo
-                courseName={selectedRequest.courseId?.name || 'N/A'}
+                courseName={selectedRequest.data?.course?.name || selectedRequest.courseId?.name || 'N/A'}
                 instructor={selectedRequest.userId}
               />
               {/* Description Section */}
               <div>
                 <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
                 <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
-                  <p>{selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
+                  <p>{selectedRequest.data?.course?.description || selectedRequest.courseId?.description || 'No description provided by instructor.'}</p>
                   <a href="#" className="inline-block text-blue-600 font-medium hover:underline">
                     View all &gt;
                   </a>
                 </div>
               </div>
               {/* Course Detail */}
-              <CourseDetail course={selectedRequest.courseId || {}} />
+              <CourseDetail
+                course={{
+                  ...(selectedRequest.data?.course || selectedRequest.courseId || {}),
+                  sections: selectedRequest.data?.sections || selectedRequest.courseId?.sections || []
+                }}
+              />
               {/* Course Content */}
-              <CourseContent sections={selectedRequest.courseId?.sections || []} />
+              <CourseContent
+                sections={(selectedRequest.data?.sections || selectedRequest.courseId?.sections || []).map((section: any) => ({
+                  ...section,
+                  lessons: (section.lessons || []).map((lesson: any) => ({
+                    ...lesson,
+                    videoUrl: lesson.videoUrl || null,
+                    videoLength: lesson.videoLength || null,
+                    isFree: lesson.isFree || false
+                  }))
+                }))}
+              />
             </div>
             {/* RIGHT SIDEBAR */}
             <div className="w-full lg:w-[30%] space-y-15">
               <PublisherCard
                 author={selectedRequest.userId}
-                updatedAt={selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined}
+                updatedAt={selectedRequest.data?.course?.updatedAt ? new Date(selectedRequest.data.course.updatedAt) : (selectedRequest.courseId?.updatedAt ? new Date(selectedRequest.courseId.updatedAt) : undefined)}
               />
               <OverView
-                title={selectedRequest.courseId?.name || 'N/A'}
-                overview={selectedRequest.courseId?.description || 'N/A'}
+                title={selectedRequest.data?.course?.name || selectedRequest.courseId?.name || 'N/A'}
+                overview={selectedRequest.data?.course?.overview || selectedRequest.data?.course?.description || selectedRequest.courseId?.description || 'N/A'}
               />
             </div>
           </div>
@@ -162,8 +177,8 @@ const CourseManagementSystem: React.FC = () => {
   const { data, isLoading, isError } = useGetCoursesQuery();
   const courses: Course[] = data?.courses || [];
 
-  // API call for course approval requests
-  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
+  // API call for course approval requests - using the new detailed endpoint
+  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingCourseRequestsQuery({
     type: 'course_approval',
   });
   const [handleRequest] = useHandleRequestMutation();
@@ -182,14 +197,19 @@ const CourseManagementSystem: React.FC = () => {
       return true; // Show all requests when no search term
     }
 
-    const courseName = req.courseId?.name || req.data?.courseTitle || '';
+    // Use the new data structure with fallbacks to old structure
+    const courseName = req.data?.course?.name || req.courseId?.name || '';
     const instructorName = req.userId?.name || '';
     const instructorEmail = req.userId?.email || '';
+    const courseDescription = req.data?.course?.description || req.courseId?.description || '';
+    const courseSubTitle = req.data?.course?.subTitle || req.courseId?.subTitle || '';
 
     const searchLower = searchTerm.toLowerCase().trim();
     const matchesSearch = courseName.toLowerCase().includes(searchLower) ||
       instructorName.toLowerCase().includes(searchLower) ||
-      instructorEmail.toLowerCase().includes(searchLower);
+      instructorEmail.toLowerCase().includes(searchLower) ||
+      courseDescription.toLowerCase().includes(searchLower) ||
+      courseSubTitle.toLowerCase().includes(searchLower);
 
     return matchesSearch;
   });
@@ -437,90 +457,42 @@ const CourseManagementSystem: React.FC = () => {
           </div>
         </div>
         {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The Course</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-10">Browse The Course</h1>
         {/* Tab content */}
         {activeTab === 'request' ? (
           <>
-            {/* Table Container */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Instructor</div>
-                <div className="col-span-4 text-sm font-semibold text-gray-600 uppercase tracking-wide">Course Title</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide text-center">Action</div>
-              </div>
-              {/* Table Body */}
-              <div className="divide-y divide-gray-50">
-                {isRequestLoading ? (
-                  <Loading message="Loading requests..." size="sm" className="py-8" />
-                ) : !requestData?.success || !currentRequests || currentRequests.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                      {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
+            {/* Request Cards Container */}
+            <div className="space-y-6">
+              {isRequestLoading ? (
+                <Loading message="Loading requests..." size="sm" className="py-12" />
+              ) : !requestData?.success || !currentRequests || currentRequests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
                   </div>
-
                 ) : (
-                      currentRequests.map((req: any, index: number) => (
-                    <div key={req._id || req.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                      {/* Instructor */}
-                          <div className="col-span-3 flex items-center gap-3">
-                        <Image
-                              src={req.userId?.avatar?.url || req.userId?.avatar || 'https://via.placeholder.com/56'}
-                          alt="avatar"
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
-                        />
-                        <div>
-                          <div className="font-semibold text-gray-900">{req.userId?.name || 'N/A'}</div>
-                              <div className="text-sm text-gray-500">{req.userId?.email || 'N/A'}</div>
-                        </div>
-                      </div>
-                      {/* Course Title */}
-                          <div className="col-span-4 flex items-center">
-                        <div className="font-medium text-gray-900 line-clamp-2">{req.courseId?.name || req.data?.courseTitle || 'N/A'}</div>
-                          </div>
-                      {/* Request Date */}
-                      <div className="col-span-2 flex items-center">
-                            <span className="text-gray-700 font-medium">{req.createdAt ? new Date(req.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
-                      </div>
-                      {/* Status */}
-                      <div className="col-span-1 flex items-center justify-center">
-                        <StatusBadge status={req.status || 'pending'} />
-                      </div>
-                      {/* Action */}
-                          <div className="col-span-2 flex items-center justify-center gap-2">
-                        <button
-                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                          onClick={() => {
-                            setSelectedRequest(req);
-                            setIsModalOpen(true);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                          onClick={async () => {
-                            try {
-                              await handleApproveOrReject(req._id || req.id, 'reject');
-                            } catch (err: any) {
-                              toast({
-                                title: 'Rejection Failed',
-                                description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
-                                variant: 'destructive',
-                              });
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                    currentRequests.map((req: any, index: number) => (
+                      <CourseRequestCard
+                        key={req._id || req.id}
+                        request={req}
+                        index={index}
+                        onPreview={(request) => {
+                          setSelectedRequest(request);
+                          setIsModalOpen(true);
+                        }}
+                        onReject={async (id) => {
+                          try {
+                            await handleApproveOrReject(id, 'reject');
+                          } catch (err: any) {
+                            toast({
+                              title: 'Rejection Failed',
+                              description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                              variant: 'destructive',
+                            });
+                          }
+                        }}
+                      />
                   ))
-                )}
-              </div>
+              )}
             </div>
           </>
         ) : (

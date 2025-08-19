@@ -206,8 +206,8 @@ const ReviewCoursePage: React.FC = () => {
     // While checking/redirecting, render nothing (or your <Loading/>)
     if (!ready || role !== 'instructor') return null;
     return (
-        <div className="min-h-screen bg-secondary p-8 font-sans">
-            <div className="mx-auto max-w-6xl rounded-lg bg-background shadow-lg">
+        <div className="min-h-screen bg-white font-sans rounded-xl">
+            <div className="mx-auto max-w-6xl shadow-lg">
                 <div className="p-8">
                     <CourseInformationSection course={courseInfo} />
                     <div className="my-8 h-px bg-gray-200" />
