@@ -1,10 +1,11 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { ReviewHeader, ReviewTable, ReviewTableRow } from "@/components/review-common";
+import { ReviewHeader } from "@/components/review-common";
 import { CommonPagination } from '@/components/common/ui';
-import { Eye, Trash2 } from 'lucide-react';
+// Icons were imported but not used; removed to satisfy lint rules
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/components/common/Loading";
+import WithdrawalRequestCard from './_components/WithdrawalRequestCard';
 
 interface WithdrawData {
   _id: string;
@@ -116,13 +117,7 @@ const WithdrawalsPage = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+  // Removed unused formatDate
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -131,18 +126,7 @@ const WithdrawalsPage = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'approved':
-        return 'text-green-600 bg-green-100';
-      case 'rejected':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
+  // Removed unused getStatusColor
 
   const filteredWithdraws = withdraws.filter(withdraw => {
     const matchesSearch = withdraw.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,14 +134,7 @@ const WithdrawalsPage = () => {
     return matchesSearch;
   });
 
-  const headers = [
-    { label: 'User', className: 'col-span-3' },
-    { label: 'Request Date', className: 'col-span-2' },
-    { label: 'Requested Amount', className: 'col-span-2' },
-    { label: 'Status', className: 'col-span-2' },
-    { label: 'Progress', className: 'col-span-2' },
-    { label: '', className: 'col-span-1' },
-  ];
+  // Removed unused headers
 
   const itemsPerPage = 6;
   const totalPages = Math.ceil(filteredWithdraws.length / itemsPerPage);
@@ -184,61 +161,29 @@ const WithdrawalsPage = () => {
           ]}
         />
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse The User</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-10">Browse The Withdrawals</h1>
 
-        <ReviewTable headers={headers}>
+        {/* Withdrawal Cards Container */}
+        <div className="space-y-6">
           {currentWithdraws.length === 0 ? (
-            <div className="text-center py-8 col-span-12 text-gray-500">No data</div>
+            <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+              {searchTerm ? `No withdrawals found matching "${searchTerm}"` : 'No withdrawals found'}
+            </div>
           ) : (
               currentWithdraws.map((withdraw, index) => (
-                <ReviewTableRow key={withdraw._id} index={index}>
-                {/* User */}
-                <div className="col-span-3 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-lg">
-                    {withdraw.user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">{withdraw.user.name}</div>
-                    <div className="text-sm text-gray-500">{withdraw.user.email}</div>
-                  </div>
-                </div>
-                {/* Request Date */}
-                <div className="col-span-2 flex items-center">
-                  <span className="text-gray-700 font-medium">{formatDate(withdraw.requestedAt)}</span>
-                </div>
-                {/* Requested Amount */}
-                <div className="col-span-2 flex items-center">
-                  <span className="text-gray-700 font-medium">{formatAmount(withdraw.amount)}</span>
-                </div>
-                {/* Status */}
-                <div className="col-span-2 flex items-center">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(withdraw.status)}`}>
-                    {withdraw.status}
-                  </span>
-                </div>
-                {/* Progress (Eye Icon) */}
-                <div className="col-span-2 flex items-center justify-center">
-                  <button
-                    onClick={() => handleView(withdraw)}
-                    className="p-2 rounded-full hover:bg-blue-50 transition-colors group"
-                    title="View Details"
-                  >
-                    <Eye className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
-                  </button>
-                </div>
-                {/* Actions (Delete Icon) */}
-                <div className="col-span-1 flex items-center justify-center">
-                  <button
-                    className="p-2 rounded-full hover:bg-orange-50 transition-colors group"
-                    title="Delete Request"
-                  >
-                    <Trash2 className="w-5 h-5 text-orange-400 group-hover:text-orange-500" />
-                  </button>
-                </div>
-              </ReviewTableRow>
-            ))
+                <WithdrawalRequestCard
+                  key={withdraw._id}
+                  withdrawal={withdraw}
+                  index={index}
+                  onPreview={(withdrawal) => handleView(withdrawal)}
+                  onReject={(id) => {
+                    // Handle reject logic here
+                    console.log('Reject withdrawal:', id);
+                  }}
+                />
+              ))
           )}
-        </ReviewTable>
+        </div>
 
         <CommonPagination
           page={currentPage}

@@ -136,19 +136,50 @@ export const bankApi = createApi({
           return { error: { status: 400, data: 'Cannot get bank card info' } };
         }
         const creditCard = creditCardResult.data.data;
+        // Debug: log credit card used for withdraw
+        try {
+          console.log('[withdraw] creditCard', creditCard);
+        } catch {}
         const { amount, reason } = arg;
+        const sanitizedAccountNumber = (creditCard.accountNumber || '').toString().replace(/\s+/g, '');
+        const accountName = (creditCard.name || '').toString().trim();
         const body: Record<string, unknown> = {
-          bankName: creditCard.cardType,
-          bankAccountNumber: creditCard.accountNumber,
-          bankAccountName: creditCard.name,
+          bankName: (creditCard.cardType || '').toString().trim(),
+          bankAccountNumber: sanitizedAccountNumber,
+          bankAccountName: accountName,
+          // Compatibility with alternative backend field names
+          accountName,
+          accountNumber: sanitizedAccountNumber,
           amount,
+          // Extra nesting for compatibility with alternate controllers
+          bank: {
+            name: (creditCard.cardType || '').toString().trim(),
+            accountName,
+            accountNumber: sanitizedAccountNumber,
+          },
+          data: {
+            bankName: (creditCard.cardType || '').toString().trim(),
+            bankAccountName: accountName,
+            bankAccountNumber: sanitizedAccountNumber,
+            amount,
+            ...(reason ? { reason } : {}),
+          },
         };
+        // Debug: log payload before sending
+        try {
+          console.log('[withdraw] payload object', body);
+          console.log('[withdraw] payload json', JSON.stringify(body));
+        } catch {}
         if (reason) body.reason = reason;
         const withdrawResult = await baseQuery({
           url: '/withdraw',
           method: 'POST',
-          body,
+          body: JSON.stringify(body),
+          headers: { 'Content-Type': 'application/json' },
         }) as { data?: { success: boolean; message: string } };
+        try {
+          console.log('[withdraw] response', withdrawResult);
+        } catch {}
         if (withdrawResult.data) {
           return { data: withdrawResult.data };
         } else {

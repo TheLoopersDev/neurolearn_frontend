@@ -2,8 +2,8 @@ import React from 'react';
 import Image from 'next/image';
 import { CardInfoProps } from '@/types/income';
 import { useGetMyCreditCardQuery, useGetBankInfoQuery } from '@/lib/redux/features/bank/bankApi';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '@/lib/redux/store';
 
 interface CreditCardProps extends CardInfoProps {
   bankLogo?: string;
@@ -96,17 +96,14 @@ const CreditCardUI: React.FC<CreditCardProps> = ({
 // Data-connected component that fetches from API
 export const CreditCard: React.FC = () => {
   // Get auth state to check if user is logged in
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth);
 
   // Fetch user's credit card info
   const {
     data: creditCardData,
     isLoading,
     error
-  } = useGetMyCreditCardQuery(undefined, {
-    // Only fetch if user is authenticated
-    skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
-  });
+  } = useGetMyCreditCardQuery();
 
   // Fetch bank info để map shortName thành fullName và lấy logo
   const { data: bankInfoData } = useGetBankInfoQuery();
