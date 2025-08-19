@@ -12,6 +12,8 @@ import Loading from '@/components/common/Loading';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/review-common';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
 // Business Request Modal Component using createPortal
 const BusinessRequestModal: React.FC<{
@@ -186,7 +188,21 @@ const BusinessRequestsPage = () => {
   const [businessDetailsOpen, setBusinessDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
 
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
   // API call for business approval requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
     type: 'business_verification',
@@ -267,7 +283,7 @@ const BusinessRequestsPage = () => {
       }
       return finalPages;
     };
-
+   
     return (
       <div className="flex justify-center items-center gap-2 mt-8">
         <button
@@ -317,7 +333,8 @@ const BusinessRequestsPage = () => {
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return null;
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">

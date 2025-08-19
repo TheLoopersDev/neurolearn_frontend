@@ -115,7 +115,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
   };
 
   const addAiQuestionTypeConfig = () => {
-    if (aiQuestionTypes.length < 3) {
+    if (aiQuestionTypes.length < 10) {
       setAiQuestionTypes([...aiQuestionTypes, { type: 'multiple-choice', count: 1 }]);
     } else {
       alert('Maximum of 3 question type configurations reached.');

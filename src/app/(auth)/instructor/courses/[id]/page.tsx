@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import CourseInformationSection from './_components/CourseInformationSection';
 import CourseCurriculumSection from './_components/CourseCurriculumSection';
 import { useGetCategoryQuery } from '@/lib/redux/features/course/category/categoryApi';
 import Loading from '@/components/common/Loading';
+import { useSelector } from 'react-redux';
 
 interface Lesson {
     id: string;
@@ -42,6 +43,22 @@ const ReviewCoursePage: React.FC = () => {
     const [course, setCourse] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
+    const router = useRouter();
+    const { user } = useSelector((state: any) => state.auth);
+    const role = user?.role;
+    const [ready, setReady] = useState(false);
+
+    // Mark as client-ready to avoid hydration flicker
+    useEffect(() => setReady(true), []);
+
+    // Redirect when not instructor
+    useEffect(() => {
+        if (!ready) return;
+        if (role !== 'instructor') {
+            router.replace('/'); // send non-instructor to home
+        }
+    }, [ready, role, router]);
+
 
     // Fetch via the same API used by CoursePage
     React.useEffect(() => {
@@ -186,7 +203,8 @@ const ReviewCoursePage: React.FC = () => {
         benefits,
         curriculum,
     };
-
+    // While checking/redirecting, render nothing (or your <Loading/>)
+    if (!ready || role !== 'instructor') return null;
     return (
         <div className="min-h-screen bg-white font-sans rounded-xl">
             <div className="mx-auto max-w-6xl shadow-lg">

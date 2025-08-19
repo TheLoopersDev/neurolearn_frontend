@@ -13,6 +13,7 @@ import {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
 } from '@/lib/redux/features/quiz/quizApi';
+import CreateWithAIModal, { AIQuestionType } from './CreateWithAIModal';
 import axios from 'axios';
 
 function getIconForQuestionType(type: QuestionData['questionType']): React.ReactNode {
@@ -62,6 +63,8 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const [currentQuizIdInternal, setCurrentQuizIdInternal] = useState<string | null>(null);
   const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [, setAiBusy] = useState(false);
 
   // === COVER IMAGE UPLOAD STATE ===
   const [coverUrl, setCoverUrl] = useState<string>('');    // url hiện có (từ server)
@@ -172,12 +175,11 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   // ====== IMAGE VALIDATION ======
   const validateImage = useCallback(async (file: File): Promise<{ ok: true } | { ok: false; message: string }> => {
     const mimeOk = file.type.startsWith('image/');
-    if (!mimeOk) return { ok: false, message: 'Chỉ chấp nhận tệp ảnh (JPEG, PNG, WEBP, ...)' };
+    if (!mimeOk) return { ok: false, message: 'Only image files are allowed (JPEG, PNG, WEBP, ...).' };
 
     const sizeMb = file.size / (1024 * 1024);
-    if (sizeMb > MAX_IMAGE_MB) return { ok: false, message: `Kích thước tối đa ${MAX_IMAGE_MB}MB` };
+    if (sizeMb > MAX_IMAGE_MB) return { ok: false, message: `Maximum size is ${MAX_IMAGE_MB}MB.` };
 
-    // Kiểm tra kích thước ảnh
     const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve({ w: img.width, h: img.height });
@@ -185,20 +187,21 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
       img.src = URL.createObjectURL(file);
     }).catch(() => null as any);
 
-    if (!dims) return { ok: false, message: 'Không đọc được kích thước ảnh.' };
+    if (!dims) return { ok: false, message: 'Unable to read image dimensions.' };
     if (dims.w < MIN_W || dims.h < MIN_H) {
-      return { ok: false, message: `Ảnh quá nhỏ. Tối thiểu ${MIN_W}×${MIN_H}px (tỉ lệ ~16:9).` };
+      return { ok: false, message: `Image is too small. Minimum ${MIN_W}×${MIN_H}px (approx 16:9).` };
     }
 
     return { ok: true };
   }, []);
+
 
   const onPickImage = useCallback(
     async (file?: File | null) => {
       if (!file) return;
       const valid = await validateImage(file);
       if (!valid.ok) {
-        toast({ title: 'Ảnh không hợp lệ', description: valid.message, variant: 'destructive' });
+        toast({ title: 'Invalid image', description: valid.message, variant: 'destructive' });
         return;
       }
       setImageFile(file);
@@ -283,6 +286,95 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
     }
   }, [currentQuizIdInternal, isSidebarOpen, questionsList, addQuestion, toast]);
 
+  // ====== ADD FROM AI (with modal inputs) ======
+  const handleGenerateFromAI = useCallback(
+    async (details: {
+      examTitle: string;
+      difficultyLevel: 'Easy' | 'Medium' | 'Hard';
+      topic: string;
+      documentFile?: File | null;
+      totalCount: number;
+      questionType: AIQuestionType;
+    }) => {
+      try {
+        if (!currentQuizIdInternal) {
+          toast({ title: 'No quiz', description: 'Please create or open a quiz first.', variant: 'destructive' });
+          return;
+        }
+        setAiBusy(true);
+
+        const fd = new FormData();
+        fd.append('mode', 'quiz');
+        fd.append('difficultyLevel', details.difficultyLevel);
+        const exTitle = details.examTitle || quizName || '';
+        const theTopic = details.topic || quizCategory || '';
+        if (exTitle) fd.append('examTitle', exTitle);
+        if (theTopic) fd.append('topic', theTopic);
+        if (details.documentFile) fd.append('file', details.documentFile);
+        fd.append('questionConfigs', JSON.stringify([{ type: details.questionType, count: details.totalCount }]));
+
+        const resp = await fetch('/api/ai/summarize', { method: 'POST', body: fd });
+        if (!resp.ok) {
+          const msg = await resp.text();
+          throw new Error(msg || 'AI request failed');
+        }
+        const data = await resp.json();
+        const aiQuestions: any[] = Array.isArray(data?.questions) ? data.questions : [];
+        if (aiQuestions.length === 0) {
+          toast({ title: 'AI', description: 'No questions returned from AI.', variant: 'destructive' });
+          return;
+        }
+
+        const startNumber = questionsList.length > 0
+          ? Math.max(...questionsList.map(q => q.questionNumber)) + 1
+          : 1;
+
+        for (let i = 0; i < aiQuestions.length; i++) {
+          const q = aiQuestions[i];
+          const number = startNumber + i;
+          const localId = `q_${Date.now()}_${number}`;
+
+          const normalized: QuestionData = {
+            id: localId,
+            questionNumber: number,
+            title: String(q.title || `Question ${number}`),
+            questionType: (details.questionType as any) || q.questionType || 'multiple-choice',
+            questionImage: null,
+            choicesConfig: {
+              isMultipleAnswer: ((details.questionType as any) || q.questionType) === 'multiple-choice',
+              isAnswerWithImageEnabled: false,
+            },
+            options: Array.isArray(q.options)
+              ? q.options.map((o: any, idx: number) => ({ id: String(o?.id ?? o?._id ?? idx + 1), text: String(o?.text ?? '') }))
+              : [],
+            correctAnswerIds: Array.isArray(q.correctAnswerIds) ? q.correctAnswerIds.map(String) : [],
+            points: String(q.points ?? '01'),
+            isRequired: true,
+          };
+
+          try {
+            const res = await addQuestion({ id: currentQuizIdInternal, question: normalized }).unwrap();
+            const merged = (res?.question ? { ...res.question, id: localId } : normalized) as QuestionData;
+            setQuestionsList(prev => [...prev, merged]);
+            setSelectedQuestionId(localId);
+          } catch (e) {
+            console.error('Add AI question failed', e);
+          }
+        }
+
+        if (!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+          setIsSidebarOpen(true);
+        }
+
+        toast({ title: 'AI', description: 'Added AI-generated questions.', variant: 'success' });
+      } catch (e: any) {
+        toast({ title: 'AI Error', description: e?.message || 'Failed to add from AI', variant: 'destructive' });
+      } finally {
+        setAiBusy(false);
+        setAiModalOpen(false);
+      }
+    }, [addQuestion, currentQuizIdInternal, isSidebarOpen, questionsList, quizCategory, quizName, toast]
+  );
   // ====== UPDATE QUESTION ======
   const handleQuestionDataUpdateFromEditor = useCallback(
     async (updatedData: QuestionData) => {
@@ -440,7 +532,9 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
 
   return (
     <div className="min-h-screen flex flex-col rounded-xl">
-      <QuizBuilderHeader title={quizName} onSaveQuiz={handleSaveQuiz} isEditing={!!currentQuizIdInternal} />
+      <QuizBuilderHeader title={quizName} onSaveQuiz={handleSaveQuiz} isEditing={!!currentQuizIdInternal}
+      // onCreateWithAI={() => setAiModalOpen(true)
+      />
 
       {/* Quiz Settings Section */}
       <div className="p-6 space-y-6 max-w-screen w-full">
@@ -466,8 +560,8 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 16l5-5 4 4 5-6 4 5" />
                       </svg>
-                      <p className="text-sm">Kéo & thả ảnh vào đây</p>
-                      <p className="text-xs text-gray-400">hoặc bấm chọn ảnh</p>
+                          <p className="text-sm">Drag & drop an image here</p>
+                          <p className="text-xs text-gray-400">or click to select</p>
                     </div>
                   )}
                 </div>
@@ -475,7 +569,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
                 {/* Overlay actions */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-black/30 flex items-center justify-center gap-3">
                   <label htmlFor="coverInput" className="px-3 py-2 bg-white text-gray-700 rounded-md text-sm cursor-pointer shadow-sm hover:bg-gray-100">
-                    Chọn ảnh
+                    Choose image
                   </label>
                   {(previewUrl || coverUrl) && (
                     <button
@@ -483,7 +577,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
                       onClick={handleRemoveCover}
                       className="px-3 py-2 bg-red-50 text-red-600 rounded-md text-sm shadow-sm hover:bg-red-100"
                     >
-                      Gỡ ảnh
+                      Remove
                     </button>
                   )}
                 </div>
@@ -498,10 +592,10 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
               </div>
 
               <p className="mt-2 text-xs text-gray-500">
-                PNG/JPG/WebP, ≤ {MAX_IMAGE_MB}MB, tối thiểu {MIN_W}×{MIN_H}px (tỷ lệ 16:9) để hiển thị đẹp.
+                PNG/JPG/WebP, ≤ {MAX_IMAGE_MB}MB, minimum {MIN_W}×{MIN_H}px (16:9 recommended) for best results.
               </p>
               {isUploadingImage && (
-                <p className="mt-1 text-xs text-blue-600">Đang tải ảnh lên…</p>
+                <p className="mt-1 text-xs text-blue-600">Uploading image…</p>
               )}
             </div>
 
@@ -555,7 +649,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
                       max={100}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     />
-                    <div className="absolute right-3 top-3 text-gray-400">%</div>
+                    <div className="absolute right-3 top-3 text-gray-400">point</div>
                   </div>
                 </div>
 
@@ -633,6 +727,14 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           </div>
         </main>
       </div>
+      {aiModalOpen && (
+        <CreateWithAIModal
+          open={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+          onConfirm={handleGenerateFromAI}
+        // isBusy={aiBusy}
+        />
+      )}
     </div>
   );
 };

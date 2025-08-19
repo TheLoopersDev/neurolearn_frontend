@@ -60,6 +60,7 @@ function StepControl({ active, completed, label, stepNumber }: StepControlProps)
 export default function HeaderStepControls({
     step,
     onContinue,
+    onContinueAI,
     onBack,
     onSaveDraft,
     onPublish,
@@ -68,6 +69,7 @@ export default function HeaderStepControls({
 }: {
     step: 1 | 2;
     onContinue: () => void;
+        onContinueAI?: () => void;
     onBack: () => void;
     onSaveDraft: () => void;
     onPublish: () => void;
@@ -76,6 +78,7 @@ export default function HeaderStepControls({
             draft?: boolean;
             continue?: boolean;
             publish?: boolean;
+            ai?: boolean;
         };
 }) {
     const isStep1 = step === 1;
@@ -143,6 +146,22 @@ export default function HeaderStepControls({
                             "Publish"
                         )}
                     </button>
+                    {/* Continue with AI (only step 1) */}
+                    {isStep1 && onContinueAI && (
+                        <button
+                            onClick={onContinueAI}
+                            disabled={!!loading?.ai}
+                            className="px-4 py-2 rounded-4xl bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading?.ai ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 size={16} className="animate-spin" /> Generating...
+                                </div>
+                            ) : (
+                                "Continue with AI"
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 

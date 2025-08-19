@@ -5,6 +5,8 @@ import { CommonPagination } from '@/components/common/ui';
 // Icons were imported but not used; removed to satisfy lint rules
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/components/common/Loading";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import WithdrawalRequestCard from './_components/WithdrawalRequestCard';
 
 interface WithdrawData {
@@ -36,6 +38,21 @@ const WithdrawalsPage = () => {
   const [withdraws, setWithdraws] = useState<WithdrawData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
 
   useEffect(() => {
     fetchWithdraws();
@@ -145,6 +162,8 @@ const WithdrawalsPage = () => {
     return <Loading message="Loading withdrawals..." className="min-h-screen" />;
   }
 
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return null;
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
