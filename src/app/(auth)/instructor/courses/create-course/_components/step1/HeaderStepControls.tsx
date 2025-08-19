@@ -85,7 +85,7 @@ export default function HeaderStepControls({
         loading?.draft;
 
     return (
-        <div className="flex flex-col w-full gap-4 mb-6">
+        <div className="flex flex-col w-full gap-4 mb-6 bg-white rounded-2xl p-4">
             <div className="flex justify-between items-center mt-2">
                 <div className="text-xs text-gray-500">
                     {step === 1

@@ -10,6 +10,9 @@ import ChangePasswordForm from './ChangePasswordForm';
 import { Button } from '@/components/common/ui/Button2';
 
 // --- Định nghĩa Schema Validation bằng Zod ---
+// Yêu cầu mật khẩu mạnh: 8-64 ký tự, có chữ thường, chữ hoa, số, ký tự đặc biệt, không chứa khoảng trắng
+const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?])\S{8,64}$/;
+
 const profileFormSchema = z
   .object({
     name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
@@ -31,28 +34,21 @@ const profileFormSchema = z
     // Only apply password validation if newPassword, oldPassword, or retypePassword fields are NOT empty
     // This implies the user is attempting to change password.
     const isPasswordChangeAttempt =
-      (data.oldPassword && data.oldPassword.length > 0) ||
       (data.newPassword && data.newPassword.length > 0) ||
       (data.retypePassword && data.retypePassword.length > 0);
 
     if (isPasswordChangeAttempt) {
-      if (!data.oldPassword) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Current password is required to change password.',
-          path: ['oldPassword'],
-        });
-      }
       if (!data.newPassword) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'New password is required.',
           path: ['newPassword'],
         });
-      } else if (data.newPassword.length < 6) {
+      } else if (!strongPasswordRegex.test(data.newPassword)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'New password must be at least 6 characters.',
+          message:
+            'Password must be 8-64 chars, include uppercase, lowercase, number, special character, and no spaces.',
           path: ['newPassword'],
         });
       }
@@ -161,11 +157,7 @@ const ProfileEditorForm: React.FC<ProfileEditorFormProps> = ({
               ) : (
                 <>
                   <ChangePasswordForm register={register} errors={errors} />
-                  <div className="mt-4">
-                    <Button onClick={togglePasswordChange} disabled={isSaving}>
-                      Cancel Password Change
-                    </Button>
-                  </div>
+
                 </>
               )}
             </div>
