@@ -92,33 +92,28 @@ function getDropdownList(user: User) {
     ];
   }
   const businessItems = isBusinessAdminOrManager
-    ? [
-        {
-          title: 'Business Dashboard',
-          href: `/business/dashboard/${user.businessInfo?.businessId}`,
-          icon: <Image src={businessIcon} alt="" width={20} height={20} />,
-        },
+  ? [
+      {
+        title: 'Business Dashboard',
+        href: `/business/dashboard/${user.businessInfo?.businessId}`,
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
       ...(user?.businessInfo?.role === 'admin'
         ? [
-          {
-            title: 'Setting',
-            href: '/business/setting',
-            icon: <Image src={setting} alt="" width={20} height={20} />,
-          },
-        ]
+            {
+              title: 'Setting',
+              href: '/business/setting',
+              icon: <Image src={setting} alt="" width={20} height={20} />,
+            },
+          ]
         : []),
-      ]
-      { title: 'Business Dashboard', href: `/business/dashboard/${user.businessInfo?.businessId}`, icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
       { title: 'My Courses', href: '/business/mycourses', icon: <Image src={courses} alt="" width={20} height={20} /> },
       { title: 'Employee', href: '/business/employees', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
       { title: 'Message', href: '/business/message', icon: <Image src={message} alt="" width={20} height={20} /> },
       { title: 'Purchase History', href: '/business/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
       { title: 'Discount', href: '/business/discount', icon: <Image src={discountIcon} alt="" width={20} height={20} /> },
-    ];
-  }
-  const businessItems = isBusinessAdminOrManager
-    ? [{ title: 'Business Dashboard', href: `/business/dashboard/${user.businessInfo?.businessId}`, icon: <Image src={businessIcon} alt="" width={20} height={20} /> }]
-    : [];
+    ]
+  : [];
 
   if (user.role === 'admin') {
     return [
