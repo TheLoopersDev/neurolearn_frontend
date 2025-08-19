@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useSelector } from 'react-redux';
+import { getOrCreateBusinessGroupChat, addEmployeeToBusinessGroupChat } from '@/lib/firestore/chat';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -22,6 +23,78 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
 
   if (!isOpen) return null;
 
+  // Hàm tạo hoặc cập nhật business group chat
+  const handleBusinessGroupChat = async (newEmployeeId: string, newEmployeeName: string) => {
+    try {
+      const businessId = user?.businessInfo?.businessId;
+      const adminId = user?._id;
+
+      if (!businessId || !adminId) {
+        console.error('Missing business info or admin ID');
+        return;
+      }
+
+      // Lấy thông tin business để có business name
+      const businessResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/me`,
+        { withCredentials: true }
+      );
+
+      const businessName = businessResponse.data.business?.businessName || 'Business';
+
+      // Lấy danh sách employees hiện tại để tạo group chat
+      const employeesResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${businessId}/visible-employees`,
+        { withCredentials: true }
+      );
+
+      const currentEmployees = employeesResponse.data.employees || [];
+      const employeeIds = currentEmployees
+        .filter((emp: any) => emp.user && emp.user._id !== adminId)
+        .map((emp: any) => emp.user._id);
+
+      const employeeNames: Record<string, string> = {};
+      currentEmployees.forEach((emp: any) => {
+        if (emp.user) {
+          employeeNames[emp.user._id] = emp.user.name;
+        }
+      });
+
+      // Tạo hoặc lấy business group chat
+      await getOrCreateBusinessGroupChat(
+        businessId,
+        businessName,
+        adminId,
+        employeeIds,
+        employeeNames
+      );
+
+      // Thêm employee mới vào group chat
+      await addEmployeeToBusinessGroupChat(
+        businessId,
+        newEmployeeId,
+        newEmployeeName
+      );
+
+      console.log('Business group chat updated successfully');
+
+      // Hiển thị thông báo thành công
+      toast({
+        title: 'Group Chat Updated',
+        description: `${newEmployeeName} đã được thêm vào business group chat`,
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error('Error updating business group chat:', error);
+      // Hiển thị cảnh báo nhưng không block việc thêm employee
+      toast({
+        title: 'Warning',
+        description: 'Employee added but group chat update failed. You can manually add them later.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleAddByEmail = async () => {
     if (!email) {
       toast({
@@ -38,6 +111,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
         { email, role: 'employee' },
         { withCredentials: true }
       );
+
+      // Tự động tạo hoặc cập nhật business group chat
+      if (res.data.success && res.data.employee) {
+        await handleBusinessGroupChat(
+          res.data.employee._id || res.data.employee.userId,
+          res.data.employee.name || res.data.employee.email
+        );
+      }
 
       toast({
         title: 'Success',
@@ -60,32 +141,44 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
     if (!file) {
       toast({
         title: 'Error',
-        description: 'Please select a .xlsx file to upload.',
+        description: 'Please select a file to import.',
         variant: 'destructive',
       });
       return;
     }
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
-      const response = await axios.post(
+    try {
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URI}/business/${user?.businessInfo?.businessId}/employees/import`,
         formData,
-        {
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
+        { withCredentials: true }
       );
+
+      // Tự động cập nhật business group chat cho tất cả employees mới
+      if (res.data.success && res.data.employees) {
+        for (const employee of res.data.employees) {
+          if (employee.user) {
+            await handleBusinessGroupChat(
+              employee.user._id,
+              employee.user.name || employee.user.email
+            );
+          }
+        }
+      }
 
       toast({
         title: 'Success',
-        description: response?.data?.message,
+        description: res.data.message,
         variant: 'success',
       });
       onRefresh();
       setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       onClose();
     } catch (err: any) {
       toast({
