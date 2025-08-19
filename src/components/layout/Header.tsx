@@ -66,15 +66,15 @@ const Header: React.FC = () => {
         when: "beforeChildren"
       }
     },
-    scrolled: {
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-      backdropFilter: 'blur(8px)',
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut"
-      }
-    }
+    // scrolled: {
+    //   backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    //   boxShadow: '0 30px 30px rgba(0, 0, 0, 0.1)',
+    //   backdropFilter: 'blur(8px)',
+    //   transition: {
+    //     duration: 0.3,
+    //     ease: "easeInOut"
+    //   }
+    // }
   };
 
   const buttonVariants: Variants = {

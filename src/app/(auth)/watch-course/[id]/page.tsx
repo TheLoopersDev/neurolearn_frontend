@@ -6,7 +6,7 @@ import TabMenu from '@/components/instructor/TabMenu';
 import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
 import axios from 'axios';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
 
 function CoursePage() {
   const { id: courseId } = useParams();
@@ -18,7 +18,7 @@ function CoursePage() {
 
   const hasUpdatedProgress = useRef(false);
 
-  // Track changes to video/lesson to notify other components (e.g., ChatAI)
+  // Notify other components when video/lesson changes
   const prevUrlRef = useRef<string | null>(null);
   const prevLessonRef = useRef<string | null>(null);
   useEffect(() => {
@@ -30,17 +30,14 @@ function CoursePage() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
           new CustomEvent('nl:video-changed', {
-            detail: {
-              url: currentVideoUrl ?? '',
-              lessonId: currentLessonId ?? '',
-            },
+            detail: { url: currentVideoUrl ?? '', lessonId: currentLessonId ?? '' },
           })
         );
       }
     }
   }, [currentVideoUrl, currentLessonId]);
 
-  // Fetch course (with credentials so BE can merge progress)
+  // Fetch course
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -57,19 +54,6 @@ function CoursePage() {
     if (courseId) fetchCourse();
   }, [courseId]);
 
-  // If course has demo video, show it; otherwise keep player empty for CTA card.
-  // useEffect(() => {
-  //   if (course?.demoUrl?.url) {
-  //     setCurrentVideoUrl(course.demoUrl.url);
-  //     setCurrentLessonId(null);
-  //     setNextLesson(null);
-  //   } else {
-  //     setCurrentVideoUrl(null);
-  //     setCurrentLessonId(null);
-  //   }
-  // }, [course]);
-
-  // Find the first playable lesson
   type FlatLesson = {
     id: string;
     title: string;
@@ -82,7 +66,6 @@ function CoursePage() {
     const secs = course?.sections ?? [];
 
     for (const sec of secs) {
-      // nếu có items thì dùng items theo thứ tự
       if (Array.isArray(sec.items) && sec.items.length) {
         for (const it of sec.items) {
           if (it?.kind !== 'lesson') continue;
@@ -96,8 +79,6 @@ function CoursePage() {
         }
         continue;
       }
-
-      // nếu không có items, dùng lessons
       if (Array.isArray(sec.lessons) && sec.lessons.length) {
         for (const l of sec.lessons) {
           const url = l?.videoUrl?.url;
@@ -113,34 +94,31 @@ function CoursePage() {
     return out;
   }, [course]);
 
-  // ==== NEW: bài đầu tiên đúng chuẩn ====
+  // First playable lesson (prefer uncompleted)
   const firstPlayable = useMemo(() => {
-    // ưu tiên bài CHƯA hoàn thành + có video
     const uncompleted = flatLessons.find(x => !x.isCompleted && x.url);
     if (uncompleted) return uncompleted;
-
-    // fallback: bài đầu tiên có video
     return flatLessons.find(x => x.url) ?? null;
   }, [flatLessons]);
 
-  // ==== UPDATE: CTA lesson ưu tiên nextLesson, rồi firstPlayable ====
+  // CTA priority: nextLesson -> firstPlayable
   const ctaLesson = nextLesson ?? firstPlayable;
 
-  // Optimistic mark as completed
-  // ==== UPDATE: cho phép set true/false để rollback chính xác ====
+  // ✅ Tiêu đề luôn là tên KHÓA HỌC (không dùng tên lesson)
+  const courseTitle = course?.name || '';
+
+  // Optimistic mark as completed (with rollback)
   const markLessonCompleted = (lessonId: string, completed = true) => {
     setCourse((prev: any) => {
       if (!prev) return prev;
 
       const sections = prev.sections.map((sec: any) => {
-        // update lessons
         const updatedLessons = Array.isArray(sec.lessons)
           ? sec.lessons.map((l: any) =>
             l._id === lessonId ? { ...l, isCompleted: completed } : l
           )
           : sec.lessons;
 
-        // update items
         const updatedItems = Array.isArray(sec.items)
           ? sec.items.map((item: any) => {
             if (item.kind === 'lesson' && item._id === lessonId) {
@@ -156,8 +134,9 @@ function CoursePage() {
         return { ...sec, lessons: updatedLessons, items: updatedItems };
       });
 
-      const countLessons = (s: any) => (s.lessons?.length || 0);
-      const countCompleted = (s: any) => (s.lessons?.filter((l: any) => l.isCompleted).length || 0);
+      const countLessons = (s: any) => s.lessons?.length || 0;
+      const countCompleted = (s: any) =>
+        s.lessons?.filter((l: any) => l.isCompleted).length || 0;
 
       const totalLessons = sections.reduce((a: number, s: any) => a + countLessons(s), 0);
       const totalCompleted = sections.reduce((a: number, s: any) => a + countCompleted(s), 0);
@@ -172,14 +151,12 @@ function CoursePage() {
     });
   };
 
-
-  // ==== REPLACE: findNextLesson bằng phiên bản dựa trên flatLessons ====
+  // Find next lesson with video
   const findNextLesson = (lessonId?: string | null) => {
     if (!lessonId) return null;
     const idx = flatLessons.findIndex(x => x.id === lessonId);
     if (idx === -1) return null;
 
-    // tìm phần tử kế tiếp có video
     for (let i = idx + 1; i < flatLessons.length; i++) {
       const n = flatLessons[i];
       if (n?.url) return { id: n.id, url: n.url, title: n.title };
@@ -187,13 +164,10 @@ function CoursePage() {
     return null;
   };
 
-
   // ReactPlayer progress
   const handleProgress = async (state: { played: number }) => {
     if (state.played >= 0.8 && currentLessonId && !hasUpdatedProgress.current) {
       hasUpdatedProgress.current = true;
-
-      // Optimistic update
       markLessonCompleted(currentLessonId, true);
 
       try {
@@ -203,24 +177,15 @@ function CoursePage() {
           { withCredentials: true }
         );
 
-        // (tuỳ chọn) đồng bộ lại từ server nếu cần
-        // const res = await fetch(...);
-        // const data = await res.json();
-        // if (data.success) setCourse(data.course);
-
-        // CHỈ chuẩn bị nextLesson, KHÔNG auto navigate, KHÔNG ẩn player
         const n = findNextLesson(currentLessonId);
         setNextLesson(n);
-        // ❌ bỏ dòng setCurrentVideoUrl(null);
       } catch (error) {
         console.error('Failed to update progress:', error);
-        // rollback nếu cần
         markLessonCompleted(currentLessonId, false);
         hasUpdatedProgress.current = false;
       }
     }
   };
-
 
   const handleLessonClick = (url: string, lessonId: string) => {
     setCurrentVideoUrl(url);
@@ -244,98 +209,106 @@ function CoursePage() {
           {/* LEFT: Player / CTA */}
           <div className="w-full lg:w-[65%] space-y-10">
             {currentVideoUrl ? (
-              <div className="relative aspect-video w-full rounded-xl overflow-hidden shadow-md">
-                <ReactPlayer
-                  url={currentVideoUrl}
-                  controls
-                  width="100%"
-                  height="100%"
-                  onProgress={handleProgress}
-                  config={{ file: { attributes: { controlsList: 'nodownload' } } }}
-                />
+              <>
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden shadow-md">
+                  <ReactPlayer
+                    url={currentVideoUrl}
+                    controls
+                    width="100%"
+                    height="100%"
+                    onProgress={handleProgress}
+                    config={{ file: { attributes: { controlsList: 'nodownload' } } }}
+                  />
 
-                {/* CTA nổi khi đã đủ 80%: KHÔNG auto navigate */}
-                <AnimatePresence>
-                  {nextLesson?.url && (
-                    <motion.div
-                      key="next-up-cta"
-                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.98 }}
-                      transition={{ duration: 0.25, ease: 'easeOut' }}
-                      className="absolute bottom-3 right-3 flex gap-2"
-                      aria-live="polite"
-                    >
-                      <motion.button
-                        onClick={() => {
-                          setCurrentVideoUrl(nextLesson.url);
-                          setCurrentLessonId(nextLesson.id);
-                          setNextLesson(null);
-                          hasUpdatedProgress.current = false;
-                        }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                       bg-emerald-600 text-white shadow-md"
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.98 }}
-                        // nhịp “pulse” nhẹ để thu hút
-                        animate={{
-                          boxShadow: [
-                            "0 0 0 0 rgba(16,185,129,0.0)",
-                            "0 0 0 8px rgba(16,185,129,0.15)",
-                            "0 0 0 0 rgba(16,185,129,0.0)",
-                          ],
-                        }}
-                        transition={{ duration: 1.6, repeat: Infinity, repeatType: "loop", repeatDelay: 1.1 }}
-                        title={`Next up: ${nextLesson.title}`}
+                  {/* CTA nổi khi đã đủ 80% */}
+                  <AnimatePresence>
+                    {nextLesson?.url && (
+                      <motion.div
+                        key="next-up-cta"
+                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className="absolute bottom-3 right-3 flex gap-2"
+                        aria-live="polite"
                       >
-                        {/* chấm xanh nháy nhẹ */}
-                        <motion.span
-                          className="inline-block w-2 h-2 rounded-full bg-white/90"
-                          animate={{ scale: [1, 1.25, 1], opacity: [0.9, 1, 0.9] }}
-                          transition={{ duration: 1.2, repeat: Infinity }}
-                        />
-                        <span className="truncate max-w-[240px]">Next up: {nextLesson.title}</span>
-                      </motion.button>
+                        <motion.button
+                          onClick={() => {
+                            setCurrentVideoUrl(nextLesson.url);
+                            setCurrentLessonId(nextLesson.id);
+                            setNextLesson(null);
+                            hasUpdatedProgress.current = false;
+                          }}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 text-white shadow-md"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.98 }}
+                          animate={{
+                            boxShadow: [
+                              '0 0 0 0 rgba(16,185,129,0.0)',
+                              '0 0 0 8px rgba(16,185,129,0.15)',
+                              '0 0 0 0 rgba(16,185,129,0.0)',
+                            ],
+                          }}
+                          transition={{ duration: 1.6, repeat: Infinity, repeatType: 'loop', repeatDelay: 1.1 }}
+                          title={`Next up: ${nextLesson.title}`}
+                        >
+                          <motion.span
+                            className="inline-block w-2 h-2 rounded-full bg-white/90"
+                            animate={{ scale: [1, 1.25, 1], opacity: [0.9, 1, 0.9] }}
+                            transition={{ duration: 1.2, repeat: Infinity }}
+                          />
+                          <span className="truncate max-w-[240px]">Next up: {nextLesson.title}</span>
+                        </motion.button>
 
-                      <motion.button
-                        onClick={() => setNextLesson(null)}
-                        className="inline-flex items-center px-2 py-1.5 rounded-lg text-xs
-                       bg-white/85 backdrop-blur border border-white/60 text-gray-700"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        title="Hide suggestion"
-                      >
-                        Dismiss
-                      </motion.button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                        <motion.button
+                          onClick={() => setNextLesson(null)}
+                          className="inline-flex items-center px-2 py-1.5 rounded-lg text-xs bg-white/85 backdrop-blur border border-white/60 text-gray-700"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          title="Hide suggestion"
+                        >
+                          Dismiss
+                        </motion.button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* ✅ TIÊU ĐỀ KHÓA HỌC dưới player (không dùng tên lesson) */}
+                <motion.div
+                  key={`course-title-${course?._id || 'course'}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  className="mt-3"
+                  aria-live="polite"
+                >
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 leading-snug line-clamp-2">
+                    {courseTitle}
+                  </h1>
+                </motion.div>
+              </>
             ) : (
+                <div className="w-full">
                 <div className="w-full aspect-video rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center p-6">
                   <div className="flex flex-col items-center text-center">
-                    <div className="mb-3 animate-pulse">
-                      <div className="w-14 h-14 rounded-full bg-gray-200" />
-                    </div>
-
+                      <div className="mb-3 animate-pulse" />
                     <p className="text-gray-600 mb-3">
-                      {nextLesson
-                        ? 'Great job! Ready for the next lesson?'
-                        : course?.name
-                          ? 'This course has no demo video.'
-                          : 'Loading course...'}
-                    </p>
-
+                        {nextLesson ? 'Great job! Ready for the next lesson?' : courseTitle}
+                      </p>
                     <button
                       disabled={!ctaLesson?.url}
                       onClick={startCtaLesson}
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
                       ${ctaLesson?.url
                         ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        }`}
                     >
                       {ctaLesson?.title ? `Start: ${ctaLesson.title}` : 'No video lesson available yet'}
                     </button>
+                  </div>
                   </div>
               </div>
             )}

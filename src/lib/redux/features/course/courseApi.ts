@@ -141,14 +141,6 @@ export const courseApi = createApi({
         return [...baseTags, ...latestTag];
       },
     }),
-    saveCurriculum: builder.mutation<ApiResponse<null>, { courseId: string; sections: any[] }>({
-      query: ({ courseId, sections }) => ({
-        url: `/courses/${courseId}/sections`,
-        method: 'POST',
-        body: sections,
-      }),
-      invalidatesTags: (result, error, { courseId }) => [{ type: 'Course', id: courseId }],
-    }),
     deleteCourse: builder.mutation<ApiResponse<void>, string>({
       query: id => ({
         url: `/courses/delete-course/${id}`,
@@ -279,7 +271,6 @@ export const {
   useGetTopCoursesQuery,
   useGetTopViewingQuery,
   useGetUserCoursesQuery,
-  useSaveCurriculumMutation,
   useCreateCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
