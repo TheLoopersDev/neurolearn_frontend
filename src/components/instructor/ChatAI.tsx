@@ -261,7 +261,10 @@ export default function ChatAI() {
   }, [startAutoTranscribe]);
 
   const canSend = useMemo(() => !!prompt.trim() && !loading, [prompt, loading]);
-
+  const handleSendClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    if (canSend) onSubmit();
+  };
   const onSubmit = useCallback(async (overridePrompt?: string) => {
     try {
       setLoading(true);
@@ -431,9 +434,15 @@ export default function ChatAI() {
             }
           }}
         />
-        <button onClick={onSubmit} disabled={!canSend} className="disabled:opacity-50">
+        <button
+          type="button"
+          onClick={handleSendClick}
+          disabled={!canSend}
+          className="disabled:opacity-50"
+        >
           <Image src="/assets/icons/send.svg" alt="Send" width={30} height={30} />
         </button>
+
       </div>
 
       {/* Footnote about blob urls
