@@ -260,6 +260,18 @@ export const courseApi = createApi({
         };
       },
     }),
+    getAllAssignedCourses: builder.query<ApiResponse<Course[]>, void>({
+      query: () => '/courses/assigned/my-course',
+      providesTags: ['Course'],
+      transformResponse: (response: ApiResponse<Course[]>) => {
+        console.log('Assigned courses response:', response);
+
+        return {
+          success: response.success,
+          data: response.data,
+        };
+      },
+    }),
   }),
 });
 
@@ -283,4 +295,5 @@ export const {
   usePublishCourseMutation,
   useUnpublishCourseMutation,
   useGetAllPurchasedCoursesQuery,
+  useGetAllAssignedCoursesQuery,
 } = courseApi;

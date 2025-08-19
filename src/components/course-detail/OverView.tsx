@@ -5,7 +5,7 @@ interface OverViewProps {
   overview?: string;
 }
 
-export default function OverView({ title = '', overview = '' }: OverViewProps) {
+export default function OverView({ title, overview}: OverViewProps) {
   return (
     <div className="max-w-full p-4 bg-white rounded-2xl shadow-md border border-gray-200 mx-auto w-[395px]">
       <div className="flex justify-between items-start mb-3">
