@@ -4,15 +4,15 @@ import { useState } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import ChatAI from './ChatAI';
-import QnA from './QnA';
-import NotificationPanel from './NotificationPanel';
+// import QnA from './QnA';
+// import NotificationPanel from './NotificationPanel';
 import EvaluatePanel from './EvaluatePanel';
 import { Course } from '@/types/course';
 
 const tabs = [
   { id: 'chat', label: 'Chat.AI', icon: '/assets/icons/chat.svg' },
-  { id: 'qa', label: 'Q&A', icon: '/assets/icons/qa.svg' },
-  { id: 'notification', label: 'Notification', icon: '/assets/icons/notification.svg' },
+  // { id: 'qa', label: 'Q&A', icon: '/assets/icons/qa.svg' },
+  // { id: 'notification', label: 'Notification', icon: '/assets/icons/notification.svg' },
   { id: 'evaluate', label: 'Evaluate', icon: '/assets/icons/black-star.svg' },
 ];
 
@@ -47,8 +47,8 @@ export default function TabMenu({ course }: TabMenuProps) {
       {/* Tab content area */}
       <div className="mt-4 h-[524px] overflow-y-auto pr-2">
         {activeTab === 'chat' && <ChatAI />}
-        {activeTab === 'qa' && <QnA />}
-        {activeTab === 'notification' && <NotificationPanel />}
+        {/* {activeTab === 'qa' && <QnA />}
+        {activeTab === 'notification' && <NotificationPanel />} */}
         {activeTab === 'evaluate' && <EvaluatePanel courseId={course._id} reviews={course.reviews} />}
         {activeTab !== 'lesson' && activeTab !== 'chat' && activeTab !== 'qa' && activeTab !== 'notification' && activeTab !== 'evaluate' &&(
           <div className="p-4 bg-white rounded-b-xl shadow text-[#6B6B6B]">
