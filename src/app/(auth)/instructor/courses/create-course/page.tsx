@@ -4,6 +4,7 @@ import CourseCreationForm from "./_components/step1/CourseCreationForm";
 import { Course } from "@/types/course";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import Loading from "@/components/common/Loading";
 
 export default function CreateCoursePage() {
     const [formData, setFormData] = useState<Partial<Course>>({});
@@ -24,7 +25,7 @@ export default function CreateCoursePage() {
       }, [ready, role, router]);
     
       // While checking/redirecting, render nothing (or your <Loading/>)
-      if (!ready || role !== 'instructor') return null;
+      if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
     return (
         <CourseCreationForm
             isEdit={false} 
