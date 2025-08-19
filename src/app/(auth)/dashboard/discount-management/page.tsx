@@ -14,6 +14,8 @@ import DiscountCard from '@/components/discount/DiscountCard';
 import DiscountForm from '@/components/discount/DiscountForm';
 import { Discount, CreateDiscountRequest } from '@/types/discount';
 import Loading from '@/components/common/Loading';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
 const DiscountManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,7 +25,21 @@ const DiscountManagementPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
   const { toast } = useToast();
+ const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
 
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
   const queryParams = {
     page: currentPage,
     limit: 6,
@@ -114,7 +130,8 @@ const DiscountManagementPage = () => {
   };
 
   const isFormLoading = isCreating || isUpdating;
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return null;
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
