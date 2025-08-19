@@ -1,17 +1,36 @@
 'use client';
 
 import Sidebar from '@/components/dashboard/Sidebar';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not instructor
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'instructor') {
+      router.replace('/'); // send non-instructor to home
+    }
+  }, [ready, role, router]);
+
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'instructor') return null;
+
   return (
     <div className="flex justify-center min-h-screen">
       <div className="flex min-h-screen w-full max-w-7xl">
-        {/* Sidebar chiếm 1/6 */}
         <div className="w-1/6 mt-6">
           <Sidebar />
         </div>
-        {/* Nội dung chiếm 5/6 */}
         <div className="w-5/6 p-6">{children}</div>
       </div>
     </div>

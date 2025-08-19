@@ -18,6 +18,8 @@ import { StatusBadge } from '@/components/review-common';
 import { useToast } from '@/hooks/use-toast';
 import SearchCourseRequest from './_components/SearchCourseRequest';
 import Loading from '@/components/common/Loading';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
 
 // Modal Component using createPortal
 const CoursePreviewModal: React.FC<{
@@ -139,6 +141,22 @@ const CourseManagementSystem: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
+
 
   // API call
   const { data, isLoading, isError } = useGetCoursesQuery();
@@ -306,7 +324,8 @@ const CourseManagementSystem: React.FC = () => {
       />
     );
   };
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'instructor') return null;
   if (isLoading) return <Loading message="Loading courses..." className="min-h-screen" />;
   if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
 

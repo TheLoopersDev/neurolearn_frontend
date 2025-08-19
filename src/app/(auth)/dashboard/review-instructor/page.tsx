@@ -6,6 +6,8 @@ import { Dialog } from '@headlessui/react';
 import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 import SearchInstructorRequest from './_components/SearchInstructorRequest';
 import Loading from '@/components/common/Loading';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
 
 interface InstructorData {
@@ -40,7 +42,21 @@ const ReviewInstructorPage = () => {
   const [isInstructorLoading, setIsInstructorLoading] = useState(false);
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
 
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
 
 
   // API call for instructor verification requests
@@ -171,6 +187,9 @@ const ReviewInstructorPage = () => {
       });
     }
   };
+
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return null;
 
   return (
     <div className="min-h-screen">
