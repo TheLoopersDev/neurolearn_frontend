@@ -17,9 +17,9 @@ export default function CourseCard({ course }: any) {
         className="group block bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow overflow-hidden"
       >
         {/* HEADER: Thumbnail + (Category + Title) */}
-        <div className="flex items-start p-5 gap-4">
+        <div className="flex items-start p-6 gap-5">
           {/* Thumbnail */}
-          <div className="relative w-40 h-20 flex-shrink-0">
+          <div className="relative w-44 h-24 flex-shrink-0">
             <Image
               src={course?.course?.thumbnail?.url}
               alt={course?.course?.name || 'Course thumbnail'}
@@ -29,13 +29,13 @@ export default function CourseCard({ course }: any) {
             />
           </div>
           {/* Content */}
-          <div className="flex flex-col w-full ">
+          <div className="flex flex-col w-full space-y-2">
             {/* Row 1: Category (left) + Invite Icon (right) */}
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-1">
-                <span className=" text-lg font-semibold text-black leading-snug">
-                  {course?.course?.name?.split(' ').slice(0, 4).join(' ') +
-                    (course?.course?.name?.split(' ').length > 4 ? '...' : '')}
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-1 flex-1 pr-2">
+                <span className="text-lg font-semibold text-black leading-tight line-clamp-2">
+                  {course?.course?.name?.split(' ').slice(0, 6).join(' ') +
+                    (course?.course?.name?.split(' ').length > 6 ? '...' : '')}
                 </span>
               </div>
               <button
@@ -49,20 +49,22 @@ export default function CourseCard({ course }: any) {
                 <Image src="/assets/icons/invite.svg" alt="Invite Icon" height={40} width={40} />
               </button>
             </div>
-            {/* Row 2: Course Name */}
-            <h3 className="text-sm text-gray-400 leading-snug">
-              {course?.course?.description?.split(' ').slice(0, 10).join(' ') +
-                (course?.course?.description?.split(' ').length > 10 ? '...' : '')}
-            </h3>
+            {/* Row 2: Course Description */}
+            <div className="mt-1">
+              <h3 className="text-sm text-gray-400 leading-relaxed line-clamp-2">
+                {course?.course?.description?.split(' ').slice(0, 12).join(' ') +
+                  (course?.course?.description?.split(' ').length > 12 ? '...' : '')}
+              </h3>
+            </div>
           </div>
         </div>
         {/* BODY: Info Row, Avatars, Progress */}
-        <div className="px-5 pb-5 flex flex-col gap-4">
+        <div className="px-6 pb-6 flex flex-col gap-4">
           {/* Info Row */}
           <div className="flex items-center justify-between text-sm text-gray-500 gap-2">
             {/* Date / Courses / Count */}
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Clock size={16} />
                 <span>Total Licenses: {totalLicenses}</span>
               </div>

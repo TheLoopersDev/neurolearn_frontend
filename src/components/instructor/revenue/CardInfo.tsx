@@ -2,8 +2,8 @@ import React from 'react';
 import { Copy } from 'lucide-react';
 import { CardInfoProps } from '@/types/income';
 import { useGetMyCreditCardQuery } from '@/lib/redux/features/bank/bankApi';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '@/lib/redux/store';
 
 // UI Component - keeps the existing beautiful design
 const CardInfoUI: React.FC<CardInfoProps> = ({
@@ -55,17 +55,14 @@ const CardInfoUI: React.FC<CardInfoProps> = ({
 // Data-connected component that fetches from API
 export const CardInfo: React.FC = () => {
   // Get auth state to check if user is logged in
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth);
 
   // Fetch user's credit card info
   const {
     data: creditCardData,
     isLoading,
     error
-  } = useGetMyCreditCardQuery(undefined, {
-    // Only fetch if user is authenticated
-    skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
-  });
+  } = useGetMyCreditCardQuery();
 
 
 

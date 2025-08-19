@@ -6,9 +6,10 @@ import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusiness
 import { useToast } from '@/hooks/use-toast';
 import BusinessCard from '@/components/business/BusinessCard';
 import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
+import BusinessRequestCard from './_components/BusinessRequestCard';
 import { Business } from '@/types/business';
 import Loading from '@/components/common/Loading';
-import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/review-common';
 import { useSelector } from 'react-redux';
@@ -228,10 +229,7 @@ const BusinessRequestsPage = () => {
     }
   }, [searchTerm, activeTab]);
 
-  const handleView = (request: any) => {
-    setSelected(request);
-    setOpen(true);
-  };
+  // removed unused handleView
 
   const handleViewBusinessDetails = (business: Business) => {
     setSelectedBusiness(business);
@@ -364,78 +362,28 @@ const BusinessRequestsPage = () => {
 
         {activeTab === 'request' ? (
           <>
-            {/* Table Container */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">User</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Company Name</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide text-center">Action</div>
-              </div>
-              {/* Table Body */}
-              <div className="divide-y divide-gray-50">
-                {isRequestLoading ? (
-                  <Loading message="Loading requests..." size="sm" className="py-8" />
-                ) : !requestData?.success || requests.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                      {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
+            {/* Business Request Cards Container */}
+            <div className="space-y-6">
+              {isRequestLoading ? (
+                <Loading message="Loading requests..." size="sm" className="py-12" />
+              ) : !requestData?.success || requests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
                   </div>
                 ) : (
                   currentRequests.map((request: any, index: number) => (
-                    <div key={request._id || request.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                      {/* User */}
-                      <div className="col-span-3 flex items-center gap-3">
-                        <Image
-                          src={request.userId?.avatar?.url || request.userId?.avatar || "/assets/images/avatar.png"}
-                          alt="avatar"
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
-                        />
-                        <div>
-                          <div className="font-semibold text-gray-900">{request.userId?.name || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{request.userId?.email || 'N/A'}</div>
-                        </div>
-                      </div>
-                      {/* Company Name */}
-                      <div className="col-span-3 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.userId?.businessInfo?.businessId?.name || 'N/A'}</span>
-                      </div>
-                      {/* Request Date */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
-                      </div>
-                      {/* Status */}
-                      <div className="col-span-1 flex items-center justify-center">
-                        <StatusBadge status={request.status || 'pending'} />
-                      </div>
-                      {/* Action */}
-                      <div className="col-span-3 flex items-center justify-center gap-2">
-                        <button
-                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                          onClick={() => handleView(request)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-                          onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                          onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <BusinessRequestCard
+                      key={request._id || request.id}
+                      business={request}
+                      index={index}
+                      onPreview={() => {
+                        setSelected(request);
+                        setOpen(true);
+                      }}
+                      onReject={() => handleApproveOrReject(request._id, 'reject')}
+                    />
                   ))
-                )}
-              </div>
+              )}
             </div>
             <PaginationComponent />
             {/* Business Request Modal using createPortal */}
