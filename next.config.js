@@ -37,6 +37,14 @@ const nextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/be/:path*',
+        destination: 'https://api-academix.site/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
