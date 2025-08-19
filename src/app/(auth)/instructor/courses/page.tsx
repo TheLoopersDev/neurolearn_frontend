@@ -45,7 +45,9 @@ export default function CoursesPage() {
                     onSearchChange={handleSearchChange}
                 />
                 <div className="flex w-full sm:w-auto justify-center sm:justify-end mt-4 sm:mt-0">
-                    <Button onClick={handleOpenCreateCourse} label="New Course" />
+                    <div className="flex gap-2">
+                        <Button onClick={handleOpenCreateCourse} label="New Course" />
+                    </div>
                 </div>
             </div>
             <CourseCardGrid searchTerm={searchTerm} />

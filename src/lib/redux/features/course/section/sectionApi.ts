@@ -17,6 +17,7 @@ export interface SectionDetail extends Section {
 }
 
 export type ApiResponse<T> = {
+  _id: string;
   success: boolean;
   data: T;
   message?: string;
