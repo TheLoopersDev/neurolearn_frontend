@@ -3,7 +3,10 @@
 
 import React from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { GripVertical, BookOpen, HelpCircle, Pencil, Trash2 } from "lucide-react";
+import {
+    GripVertical, BookOpen, HelpCircle, Pencil, Trash2, CheckCircle2,
+    FileText,
+} from "lucide-react";
 import { Button } from "@/components/common/ui/Button2";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -15,12 +18,29 @@ import {
     useDeleteLessonMutation,
 } from "@/lib/redux/features/course/section/lesson/lessonApi";
 import { useModal } from "@/context/ModalContext";
-// Nếu muốn xoá hẳn quiz:
-// import { useDeleteQuizMutation, useUpdateQuizMutation } from "@/lib/redux/features/quiz/quizApi";
 
 type MixedItem =
     | { kind: "lesson"; _id: string; order: number; title?: string; payload: any }
     | { kind: "quiz"; _id: string; order: number; name?: string; payload: any };
+
+// Badge chỉ dựa trên isPublished
+const PublishBadge: React.FC<{ published: boolean }> = ({ published }) => {
+    const cls = published
+        ? "text-green-700 bg-green-50 ring-1 ring-green-200"
+        : "text-gray-700 bg-gray-100 ring-1 ring-gray-200";
+    const Icon = published ? CheckCircle2 : FileText;
+    const label = published ? "Published" : "Draft";
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}
+            title={label}
+        >
+            <Icon size={14} />
+            {label}
+        </span>
+    );
+};
 
 export default function SectionContentList({
     section,
@@ -37,7 +57,74 @@ export default function SectionContentList({
 
     const [updateLesson] = useUpdateLessonMutation();
     const [deleteLesson] = useDeleteLessonMutation();
-    // const [deleteQuiz] = useDeleteQuizMutation();
+
+    // 🔹 Helper nhỏ trong file: chuẩn hóa lỗi từ RTK/BE và bắn toast
+    const showApiError = (err: any, fallback = "Request failed") => {
+        let message = fallback;
+        let details: string[] = [];
+
+        const toArray = (val: any): string[] => {
+            if (!val) return [];
+            if (Array.isArray(val)) {
+                return val
+                    .map((x) =>
+                        typeof x === "string" ? x : x?.msg || x?.message || x?.error || ""
+                    )
+                    .filter(Boolean);
+            }
+            if (typeof val === "object") {
+                const out: string[] = [];
+                for (const [k, v] of Object.entries(val)) {
+                    if (Array.isArray(v)) v.forEach((s) => out.push(`${k}: ${s}`));
+                    else if (typeof v === "string") out.push(`${k}: ${v}`);
+                }
+                return out;
+            }
+            if (typeof val === "string") return [val];
+            return [];
+        };
+
+        // RTK FetchBaseQueryError: { status, data }
+        if (err && typeof err === "object" && "status" in err) {
+            const data = (err as any).data;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || err?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+        // SerializedError | Error | string | object tự do
+        else if (err instanceof Error) {
+            message = err.message || fallback;
+        } else if (typeof err === "string") {
+            message = err;
+        } else if (err && typeof err === "object") {
+            const data = (err as any).data ?? err;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+
+        toast({
+            title: "Error",
+            description:
+                details.length > 0 ? (
+                    <ul className="list-disc pl-4">
+                        {details.map((d, i) => (
+                            <li key={i}>{d}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <span>{message}</span>
+                ),
+            variant: "destructive",
+            duration: 6000,
+        });
+    };
 
     const handleReorder = async (result: DropResult) => {
         if (!result.destination) return;
@@ -54,7 +141,7 @@ export default function SectionContentList({
             await onRefetch?.();
             toast({ title: "Success", description: "Items reordered successfully", variant: "success" });
         } catch (error) {
-            toast({ title: "Error", description: "Failed to reorder items", variant: "destructive" });
+            showApiError(error, "Failed to reorder items");
             console.error(error);
         }
     };
@@ -70,14 +157,13 @@ export default function SectionContentList({
                         await onRefetch?.();
                         toast({ title: "Success", description: "Lesson updated successfully", variant: "success" });
                     } catch (error) {
-                        toast({ title: "Error", description: "Failed to update lesson", variant: "destructive" });
+                        showApiError(error, "Failed to update lesson");
                         console.error(error);
                     }
                 },
             });
         } else {
             // TODO: mở modal edit quiz riêng
-            // showModal("addEditQuiz", { quiz: item.payload, onSubmit: ... })
             toast({ title: "Todo", description: "Hook up quiz edit flow", variant: "default" });
         }
     };
@@ -85,9 +171,7 @@ export default function SectionContentList({
     const handleDelete = (item: MixedItem) => {
         showModal("actionConfirm", {
             title: `Delete ${item.kind === "quiz" ? "Quiz" : "Lesson"}`,
-            description: `Are you sure you want to delete "${item.kind === "quiz"
-                ? item.payload?.name ?? item.name
-                : item.payload?.title ?? item.title
+            description: `Are you sure you want to delete "${item.kind === "quiz" ? item.payload?.name ?? item.name : item.payload?.title ?? item.title
                 }"?`,
             confirmText: "Delete",
             cancelText: "Cancel",
@@ -107,23 +191,19 @@ export default function SectionContentList({
                     await onRefetch?.();
                     toast({
                         title: "Success",
-                        description: `${item.kind === "quiz" ? "Quiz" : "Lesson"
-                            } deleted successfully`,
+                        description: `${item.kind === "quiz" ? "Quiz" : "Lesson"} deleted successfully`,
                         variant: "success",
                     });
                 } catch (err) {
                     console.error(err);
-                    toast({
-                        title: "Error",
-                        description: `Failed to delete ${item.kind === "quiz" ? "quiz" : "lesson"
-                            }`,
-                        variant: "destructive",
-                    });
+                    showApiError(
+                        err,
+                        `Failed to delete ${item.kind === "quiz" ? "quiz" : "lesson"}`
+                    );
                 }
             },
         });
     };
-
 
     return (
         <div className="space-y-4">
@@ -134,14 +214,22 @@ export default function SectionContentList({
             <DragDropContext onDragEnd={handleReorder}>
                 <Droppable droppableId={`section-items-${section._id}`}>
                     {(provided) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2 bg-secondary/30 rounded-lg p-2">
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="space-y-2 bg-secondary/30 rounded-lg p-2"
+                        >
                             {items.length === 0 ? (
                                 <div className="text-center py-4 text-sm text-gray-600">
                                     No items yet. Add a lesson or attach a quiz!
                                 </div>
                             ) : (
                                 items.map((item, index) => (
-                                    <Draggable draggableId={`${item.kind}-${item._id}`} index={index} key={`${item.kind}-${item._id}`}>
+                                    <Draggable
+                                        draggableId={`${item.kind}-${item._id}`}
+                                        index={index}
+                                        key={`${item.kind}-${item._id}`}
+                                    >
                                         {(drag) => (
                                             <div
                                                 ref={drag.innerRef}
@@ -150,21 +238,36 @@ export default function SectionContentList({
                                             >
                                                 <div className="flex items-center justify-between p-3">
                                                     <div className="flex items-center gap-3 flex-1">
-                                                        <div {...drag.dragHandleProps} className="text-gray-400 hover:text-gray-600 cursor-grab">
+                                                        <div
+                                                            {...drag.dragHandleProps}
+                                                            className="text-gray-400 hover:text-gray-600 cursor-grab"
+                                                        >
                                                             <GripVertical size={18} />
                                                         </div>
 
                                                         {item.kind === "lesson" ? (
-                                                            <div className="flex items-center gap-2 flex-1">
+                                                            <div className="flex items-center gap-2 flex-1 min-w-0">
                                                                 <BookOpen size={16} className="text-gray-600" />
-                                                                <span className="text-gray-600">{item.payload?.title ?? item.title}</span>
+
+                                                                {/* ✅ Badge publish cho lesson */}
+                                                                <PublishBadge published={!!(item.payload?.isPublished ?? (item as any)?.isPublished)} />
+
+                                                                <span
+                                                                    className="text-gray-600 truncate"
+                                                                    title={item.payload?.title ?? item.title}
+                                                                >
+                                                                    {item.payload?.title ?? item.title}
+                                                                </span>
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-2 flex-1">
+                                                                <div className="flex items-center gap-2 flex-1 min-w-0">
                                                                 <HelpCircle size={16} className="text-gray-600" />
-                                                                <span className="text-gray-600">{item.payload?.name ?? item.name}</span>
+                                                                    <span className="text-gray-600 truncate" title={item.payload?.name ?? item.name}>
+                                                                        {item.payload?.name ?? item.name}
+                                                                    </span>
                                                             </div>
                                                         )}
+
                                                     </div>
 
                                                     <div className="flex gap-2">

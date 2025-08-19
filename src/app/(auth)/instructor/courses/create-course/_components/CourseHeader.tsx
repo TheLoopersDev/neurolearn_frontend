@@ -7,11 +7,10 @@ import tag from "@/public/assets/dashboard/course/tag.svg";
 import {
     courseApi,
     useDeleteCourseMutation,
-    usePublishCourseMutation,
+    // usePublishCourseMutation,
     useUnpublishCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
-// ❌ remove toast
-// import { toast } from "@/hooks/use-toast";
+
 import { useModal } from "@/context/ModalContext";
 import { useDispatch } from "react-redux";
 
@@ -26,7 +25,7 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
     thumbnailImage, category, title, courseId,
 }) => {
     const [deleteCourse, { error: deleteError, isLoading: isDeleting }] = useDeleteCourseMutation();
-    const [publishCourse, { isLoading: isPublishing }] = usePublishCourseMutation();
+    // const [publishCourse, { isLoading: isPublishing }] = usePublishCourseMutation();
     const [unpublishCourse, { isLoading: isUnpublishing }] = useUnpublishCourseMutation();
     const { showModal } = useModal();
     const dispatch = useDispatch();
@@ -63,24 +62,24 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
         }
     };
 
-    const handlePublish = async () => {
-        try {
-            await publishCourse(courseId).unwrap();
-            showModal("actionConfirm", {
-                title: "Published",
-                description: "Course published successfully!",
-                confirmTextLoading: "Closing…",
-                variant: "primary",
-            });
-        } catch (err) {
-            showModal("actionConfirm", {
-                title: "Publish failed",
-                description: "Failed to publish course.",
-                confirmTextLoading: "Closing…",
-                variant: "destructive",
-            });
-        }
-    };
+    // const handlePublish = async () => {
+    //     try {
+    //         await publishCourse(courseId).unwrap();
+    //         showModal("actionConfirm", {
+    //             title: "Published",
+    //             description: "Course published successfully!",
+    //             confirmTextLoading: "Closing…",
+    //             variant: "primary",
+    //         });
+    //     } catch (err) {
+    //         showModal("actionConfirm", {
+    //             title: "Publish failed",
+    //             description: "Failed to publish course.",
+    //             confirmTextLoading: "Closing…",
+    //             variant: "destructive",
+    //         });
+    //     }
+    // };
 
     const handleUnpublish = async () => {
         try {
@@ -133,17 +132,17 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({
                                     onConfirm: handleDelete,  // sẽ mở success/error modal sau khi chạy
                                 })
                             }
-                            onPublish={() =>
-                                showModal("actionConfirm", {
-                                    title: "Publish Course",
-                                    description: "Do you want to publish this course?",
-                                    confirmText: isPublishing ? "Publishing…" : "Publish",
-                                    confirmTextLoading: "Publishing…",
-                                    cancelText: "Cancel",
-                                    variant: "primary",
-                                    onConfirm: handlePublish,
-                                })
-                            }
+                            // onPublish={() =>
+                            //     showModal("actionConfirm", {
+                            //         title: "Publish Course",
+                            //         description: "Do you want to publish this course?",
+                            //         confirmText: isPublishing ? "Publishing…" : "Publish",
+                            //         confirmTextLoading: "Publishing…",
+                            //         cancelText: "Cancel",
+                            //         variant: "primary",
+                            //         onConfirm: handlePublish,
+                            //     })
+                            // }
                             onUnpublish={() =>
                                 showModal("actionConfirm", {
                                     title: "Unpublish Course",

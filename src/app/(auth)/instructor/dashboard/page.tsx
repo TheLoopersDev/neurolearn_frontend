@@ -47,8 +47,8 @@ export default function InstructorDashboard() {
     if (!courseId) return;
     router.push(
       status === 'draft'
-        ? `/dashboard/courses/edit-course/${courseId}`
-        : `/dashboard/courses/${courseId}`
+        ? `/instructor/courses/edit-course/${courseId}`
+        : `/instructor/courses/${courseId}`
     );
   };
 

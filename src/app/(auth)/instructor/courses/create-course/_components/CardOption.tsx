@@ -142,7 +142,7 @@ const CardOption: React.FC<CardOptionProps> = ({
                                 animate="visible"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className={`block w-full z-[9999] text-left px-4 py-2 text-sm font-semibold rounded-xl transition ${item.color}`}
+                                className={`block w-full z-[9999] text-left px-4 py-2 text-sm font-semibold rounded-xl transition box-shadow ${item.color}`}
 
                             >
                                 {item.label}
