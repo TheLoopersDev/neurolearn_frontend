@@ -1,4 +1,6 @@
 // app/(auth)/dashboard/create-quiz/builder/page.tsx
+'use client';
+
 import QuizBuilderPage from '@/app/(auth)/instructor/quizzes/_components/QuizBuilderPage'; // Điều chỉnh đường dẫn
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
