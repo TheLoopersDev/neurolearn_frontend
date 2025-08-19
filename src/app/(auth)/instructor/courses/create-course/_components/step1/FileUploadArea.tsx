@@ -113,7 +113,7 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
   };
 
   return (
-    <section className="flex items-center p-6 bg-white rounded-3xl w-full">
+    <section className="flex flex-col p-6 bg-white rounded-3xl w-full">
       <button
         type="button"
         className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer text-left p-0 ${isDragOver ? 'bg-blue-50' : ''
@@ -124,7 +124,9 @@ export function FileUploadArea({ thumbnail, setThumbnail }: FileUploadAreaProps)
         onClick={handleFileSelect}
         aria-label="Upload image area"
       >
+        {/* ✅ Attach the ref so click opens the file dialog */}
         <input
+          ref={fileInputRef}
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml"
           onChange={handleChange}
