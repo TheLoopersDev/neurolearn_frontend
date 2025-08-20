@@ -50,7 +50,7 @@ const WithdrawalsPage = () => {
   useEffect(() => {
     if (!ready) return;
     if (role !== 'admin') {
-      router.replace('/'); // send non-admin to home
+      // router.replace('/'); // send non-admin to home
     }
   }, [ready, role, router]);
 

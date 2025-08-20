@@ -54,6 +54,7 @@ const ReviewCoursePage: React.FC = () => {
     // Redirect when not instructor
     useEffect(() => {
         if (!ready) return;
+        if (role === undefined) return;
         if (role !== 'instructor') {
             router.replace('/'); // send non-instructor to home
         }

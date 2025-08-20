@@ -32,8 +32,9 @@ export default function InstructorDashboard() {
     // Redirect when not instructor
     useEffect(() => {
       if (!ready) return;
+      if (role === undefined) return;
       if (role !== 'instructor') {
-        router.replace('/'); // send non-instructor to home
+       router.replace('/'); // send non-instructor to home
       }
     }, [ready, role, router]);
   

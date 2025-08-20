@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Redirect when not instructor
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'instructor') {
       router.replace('/'); // send non-instructor to home
     }
