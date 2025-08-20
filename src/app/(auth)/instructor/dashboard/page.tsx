@@ -17,6 +17,7 @@ import {
   useGetCourseStatsQuery,
   useGetStudentStatsQuery,
 } from '@/lib/redux/features/course/courseApi';
+import Loading from '@/components/common/Loading';
 
 export default function InstructorDashboard() {
   const { user } = useSelector((state: any) => state.auth);
@@ -99,7 +100,7 @@ export default function InstructorDashboard() {
     },
   ];
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'instructor') return null;
+  if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="flex h-full">
       <div className="w-full overflow-y-auto">

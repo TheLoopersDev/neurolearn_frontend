@@ -7,44 +7,87 @@ import CourseContent from '@/components/instructor/CourseContent';
 import ReactPlayer from 'react-player';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import Loading from '@/components/common/Loading';
 
 function CoursePage() {
-  const { id: courseId } = useParams();
+  const { id: rawCourseId } = useParams();
+  const courseId = Array.isArray(rawCourseId) ? rawCourseId[0] : (rawCourseId as string | undefined);
   const router = useRouter();
+
+  // Purchase gate
   const [isPurchased, setIsPurchased] = useState<boolean | null>(null);
+  const [isCheckingPurchase, setIsCheckingPurchase] = useState(true);
 
   useEffect(() => {
     if (!courseId) return;
     let cancelled = false;
+    const controller = new AbortController();
 
+    setIsCheckingPurchase(true);
     axios
       .get(`${process.env.NEXT_PUBLIC_SERVER_URI}/courses/${courseId}/is-purchased`, {
         withCredentials: true,
+        signal: controller.signal,
       })
-      .then(res => {
+      .then((res) => {
         if (!cancelled) setIsPurchased(!!res?.data?.isPurchased);
       })
       .catch(() => {
         if (!cancelled) setIsPurchased(false);
+      })
+      .finally(() => {
+        if (!cancelled) setIsCheckingPurchase(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [courseId]);
+
+  // Redirect if not purchased
   useEffect(() => {
     if (isPurchased === false) {
       router.replace('/courses');
     }
   }, [isPurchased, router]);
 
+  // Course data
   const [course, setCourse] = useState<any>(null);
+  const [isFetchingCourse, setIsFetchingCourse] = useState(true);
 
+  useEffect(() => {
+    if (!courseId || isPurchased !== true) return;
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        setIsFetchingCourse(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/course-data/${courseId}`,
+          { credentials: 'include', cache: 'no-store', signal: controller.signal as any }
+        );
+        const data = await res.json();
+        if (!controller.signal.aborted && data.success) setCourse(data.course);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Failed to fetch course:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsFetchingCourse(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [courseId, isPurchased]);
+
+  // --- player & progress ---
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [nextLesson, setNextLesson] = useState<{ id: string; url: string; title: string } | null>(null);
-
   const hasUpdatedProgress = useRef(false);
 
-  // Notify other components when video/lesson changes
+  // notify other components when video/lesson changes
   const prevUrlRef = useRef<string | null>(null);
   const prevLessonRef = useRef<string | null>(null);
   useEffect(() => {
@@ -63,27 +106,10 @@ function CoursePage() {
     }
   }, [currentVideoUrl, currentLessonId]);
 
-  // Fetch course
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/course-data/${courseId}`,
-          { credentials: 'include', cache: 'no-store' }
-        );
-        const data = await res.json();
-        if (data.success) setCourse(data.course);
-      } catch (error) {
-        console.error('Failed to fetch course:', error);
-      }
-    };
-    if (courseId) fetchCourse();
-  }, [courseId]);
-
   type FlatLesson = {
     id: string;
     title: string;
-    url?: any;
+    url?: string | undefined;
     isCompleted?: boolean;
   };
 
@@ -95,7 +121,7 @@ function CoursePage() {
       if (Array.isArray(sec.items) && sec.items.length) {
         for (const it of sec.items) {
           if (it?.kind !== 'lesson') continue;
-          const url = it?.payload?.videoUrl?.url;
+          const url: string | undefined = it?.payload?.videoUrl?.url;
           out.push({
             id: String(it._id),
             title: String(it.title ?? it.payload?.title ?? ''),
@@ -107,7 +133,7 @@ function CoursePage() {
       }
       if (Array.isArray(sec.lessons) && sec.lessons.length) {
         for (const l of sec.lessons) {
-          const url = l?.videoUrl?.url;
+          const url: string | undefined = l?.videoUrl?.url;
           out.push({
             id: String(l._id),
             title: String(l.title ?? ''),
@@ -120,29 +146,22 @@ function CoursePage() {
     return out;
   }, [course]);
 
-  // First playable lesson (prefer uncompleted)
   const firstPlayable = useMemo(() => {
-    const uncompleted = flatLessons.find(x => !x.isCompleted && x.url);
+    const uncompleted = flatLessons.find((x) => !x.isCompleted && x.url);
     if (uncompleted) return uncompleted;
-    return flatLessons.find(x => x.url) ?? null;
+    return flatLessons.find((x) => x.url) ?? null;
   }, [flatLessons]);
 
-  // CTA priority: nextLesson -> firstPlayable
   const ctaLesson = nextLesson ?? firstPlayable;
-
-  // ✅ Tiêu đề luôn là tên KHÓA HỌC (không dùng tên lesson)
   const courseTitle = course?.name || '';
 
-  // Optimistic mark as completed (with rollback)
   const markLessonCompleted = (lessonId: string, completed = true) => {
     setCourse((prev: any) => {
       if (!prev) return prev;
 
-      const sections = prev.sections.map((sec: any) => {
+      const sections = prev.sections?.map((sec: any) => {
         const updatedLessons = Array.isArray(sec.lessons)
-          ? sec.lessons.map((l: any) =>
-            l._id === lessonId ? { ...l, isCompleted: completed } : l
-          )
+          ? sec.lessons.map((l: any) => (l._id === lessonId ? { ...l, isCompleted: completed } : l))
           : sec.lessons;
 
         const updatedItems = Array.isArray(sec.items)
@@ -161,11 +180,10 @@ function CoursePage() {
       });
 
       const countLessons = (s: any) => s.lessons?.length || 0;
-      const countCompleted = (s: any) =>
-        s.lessons?.filter((l: any) => l.isCompleted).length || 0;
+      const countCompleted = (s: any) => s.lessons?.filter((l: any) => l.isCompleted).length || 0;
 
-      const totalLessons = sections.reduce((a: number, s: any) => a + countLessons(s), 0);
-      const totalCompleted = sections.reduce((a: number, s: any) => a + countCompleted(s), 0);
+      const totalLessons = sections?.reduce((a: number, s: any) => a + countLessons(s), 0) ?? 0;
+      const totalCompleted = sections?.reduce((a: number, s: any) => a + countCompleted(s), 0) ?? 0;
 
       const progress = {
         totalLessons,
@@ -177,10 +195,9 @@ function CoursePage() {
     });
   };
 
-  // Find next lesson with video
   const findNextLesson = (lessonId?: string | null) => {
     if (!lessonId) return null;
-    const idx = flatLessons.findIndex(x => x.id === lessonId);
+    const idx = flatLessons.findIndex((x) => x.id === lessonId);
     if (idx === -1) return null;
 
     for (let i = idx + 1; i < flatLessons.length; i++) {
@@ -190,7 +207,6 @@ function CoursePage() {
     return null;
   };
 
-  // ReactPlayer progress
   const handleProgress = async (state: { played: number }) => {
     if (state.played >= 0.8 && currentLessonId && !hasUpdatedProgress.current) {
       hasUpdatedProgress.current = true;
@@ -222,12 +238,18 @@ function CoursePage() {
 
   const startCtaLesson = () => {
     if (!ctaLesson) return;
-    setCurrentVideoUrl(ctaLesson.url);
+    setCurrentVideoUrl(ctaLesson.url!);
     setCurrentLessonId(ctaLesson.id);
     setNextLesson(null);
     hasUpdatedProgress.current = false;
   };
-  if (isPurchased === false) return <div className="w-full py-20" />; 
+
+  // ---- RENDER GATES ----
+  if (isPurchased === false) return <div className="w-full py-20" />;
+
+  const loading = isCheckingPurchase || (isPurchased === true && isFetchingCourse);
+  if (loading) return <Loading message="Loading..." className="min-h-screen" />;
+
   return (
     <div className="w-full py-20">
       <div className="w-full">
@@ -246,7 +268,7 @@ function CoursePage() {
                     config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                   />
 
-                  {/* CTA nổi khi đã đủ 80% */}
+                  {/* CTA when 80% */}
                   <AnimatePresence>
                     {nextLesson?.url && (
                       <motion.div
@@ -300,7 +322,7 @@ function CoursePage() {
                   </AnimatePresence>
                 </div>
 
-                {/* ✅ TIÊU ĐỀ KHÓA HỌC dưới player (không dùng tên lesson) */}
+                {/* Course title under player */}
                 <motion.div
                   key={`course-title-${course?._id || 'course'}`}
                   initial={{ opacity: 0, y: 6 }}
@@ -327,10 +349,7 @@ function CoursePage() {
                       disabled={!ctaLesson?.url}
                       onClick={startCtaLesson}
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
-                      ${ctaLesson?.url
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                        }`}
+                      ${ctaLesson?.url ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
                     >
                       {ctaLesson?.title ? `Start: ${ctaLesson.title}` : 'No video lesson available yet'}
                     </button>
@@ -345,7 +364,7 @@ function CoursePage() {
           {/* RIGHT: Content list */}
           <div className="w-full lg:w-[35%] space-y-6">
             <CourseContent
-              courseId={Array.isArray(courseId) ? courseId[0] : (courseId as string) || ''}
+              courseId={courseId || ''}
               sections={course?.sections}
               onLessonClick={handleLessonClick}
               progress={course?.progress}
