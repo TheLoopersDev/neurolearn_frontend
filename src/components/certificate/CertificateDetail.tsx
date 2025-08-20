@@ -14,6 +14,7 @@ interface CertificateDetailProps {
 const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) => {
     const [showModal, setShowModal] = React.useState(false);
     const [userAvatar, setUserAvatar] = React.useState<string>('/assets/images/avatar-default.png');
+    const isGeneratingRef = React.useRef(false);
 
     React.useEffect(() => {
         const fetchUserAvatar = async () => {
@@ -51,6 +52,85 @@ const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) =>
             </div>
         );
     }
+
+    const handleDownload = async () => {
+        if (!certificate || isGeneratingRef.current) return;
+        try {
+            isGeneratingRef.current = true;
+            const backgroundSrc = '/assets/images/certificate.png';
+
+            // Desired logical canvas size based on the UI image size
+            const width = 648;
+            const height = 456;
+
+            // Create canvas with DPR scaling for sharper output
+            const scale = typeof window !== 'undefined' ? Math.max(2, Math.min(3, Math.floor(window.devicePixelRatio || 2))) : 2;
+            const canvas = document.createElement('canvas');
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.scale(scale, scale);
+
+            // Load background image
+            const bgImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+                const img = new window.Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = backgroundSrc;
+            });
+
+            // Draw background to fit canvas
+            ctx.drawImage(bgImage, 0, 0, width, height);
+
+            // Draw recipient name centered
+            const name = certificate.userName || 'Recipient';
+
+            // Compute a font size that fits nicely
+            let fontSize = 44; // starting point close to tailwind text-4xl
+            const maxTextWidth = width * 0.8;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#111111';
+
+            const setFont = (size: number) => {
+                ctx.font = `600 ${size}px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial`;
+            };
+
+            setFont(fontSize);
+            while (ctx.measureText(name).width > maxTextWidth && fontSize > 20) {
+                fontSize -= 2;
+                setFont(fontSize);
+            }
+
+            // Subtle shadow for readability similar to CSS drop-shadow
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 2;
+
+            const centerX = width / 2;
+            const centerY = height / 2 + 16; // a bit lower to mimic mt-8
+            ctx.fillText(name, centerX, centerY);
+
+            // Reset shadow (not strictly necessary)
+            ctx.shadowColor = 'transparent';
+
+            // Create PNG and trigger download
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            const safeName = name.replace(/[^\w\-]+/g, '_');
+            link.download = `${safeName}_certificate.png`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error('Failed to generate certificate image', e);
+        } finally {
+            isGeneratingRef.current = false;
+        }
+    };
 
     return (
         <div className="relative">
@@ -110,7 +190,7 @@ const CertificateDetail: React.FC<CertificateDetailProps> = ({ certificate }) =>
                         <button onClick={() => setShowModal(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold shadow hover:bg-blue-700 transition w-1/2">
                             <Image src="/assets/icons/share.svg" alt='Share' width={30} height={30} /> Share certificate
                         </button>
-                        <button className="flex items-center justify-center gap-2 bg-gray-200 text-blue-700 px-5 py-2 rounded-xl font-semibold shadow hover:bg-gray-200 transition w-1/2">
+                        <button onClick={handleDownload} className="flex items-center justify-center gap-2 bg-gray-200 text-blue-700 px-5 py-2 rounded-xl font-semibold shadow hover:bg-gray-200 transition w-1/2">
                             <Image src="/assets/icons/download.svg" alt='Download' width={30} height={30} /> Download Certificate
                         </button>
                     </div>
