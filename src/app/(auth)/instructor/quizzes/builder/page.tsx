@@ -20,7 +20,7 @@ export default function NewQuizPage() {
   useEffect(() => {
     if (!ready) return;
     if (role !== 'instructor') {
-      router.replace('/'); // send non-instructor to home
+      // router.replace('/'); // send non-instructor to home
     }
   }, [ready, role, router]);
 

@@ -167,6 +167,7 @@ const CourseManagementSystem: React.FC = () => {
   // Redirect when not admin
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'admin') {
       router.replace('/'); // send non-admin to home
     }

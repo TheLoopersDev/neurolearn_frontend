@@ -27,6 +27,7 @@ export default function UserDashboard() {
   // Redirect when not user
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'user') {
       router.replace('/'); // send non-user to home
     }
