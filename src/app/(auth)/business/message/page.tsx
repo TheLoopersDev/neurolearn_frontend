@@ -349,16 +349,23 @@ const BusinessMessagePage: React.FC = () => {
           />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-            <div className="text-center">
-              <span className="text-gray-400">
-                {usersLoading ? 'Loading users...' : 'Loading chat...'}
-              </span>
-              {retryCount > 0 && (
-                <p className="text-xs text-gray-300 mt-2">
-                  Retrying... ({retryCount}/3)
-                </p>
+              {usersLoading ? (
+                <div className="text-center">
+                  <span className="text-gray-400">Loading users...</span>
+                  {retryCount > 0 && (
+                    <p className="text-xs text-gray-300 mt-2">Retrying... ({retryCount}/3)</p>
+                  )}
+                </div>
+              ) : chatRooms.length === 0 ? (
+                <div className="text-center p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">No conversations yet</h3>
+                  <p className="text-sm text-gray-500">Create your first chat to start messaging</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <span className="text-gray-400">Loading chat...</span>
+                </div>
               )}
-            </div>
           </div>
         )}
       </div>

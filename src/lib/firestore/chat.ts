@@ -54,6 +54,7 @@ export interface ChatRoom {
   // Optional group fields
   isGroup?: boolean;
   groupName?: string;
+  businessId?: string; // ID của business cho group chat
   createdAt: Timestamp;
 }
 
@@ -383,4 +384,178 @@ export const backfillDisplayNames = async (userId: string, userNames: Record<str
   });
   
   await batch.commit();
+};
+
+// Business group chat management functions
+
+// Tạo hoặc lấy business group chat
+export const getOrCreateBusinessGroupChat = async (
+  businessId: string,
+  businessName: string,
+  adminId: string,
+  employeeIds: string[],
+  employeeNames: Record<string, string> = {}
+): Promise<string> => {
+  const chatRoomsRef = collection(db, 'chatRooms');
+  
+  // Tìm business group chat đã tồn tại
+  const q = query(
+    chatRoomsRef,
+    where('businessId', '==', businessId),
+    where('isGroup', '==', true)
+  );
+  
+  const querySnapshot = await getDocs(q);
+  
+  if (!querySnapshot.empty) {
+    // Nếu đã có business group chat, cập nhật participants nếu cần
+    const existingChat = querySnapshot.docs[0];
+    const existingData = existingChat.data() as ChatRoom;
+    const currentParticipants = existingData.participants || [];
+    
+    // Thêm employee mới nếu chưa có
+    const newParticipants = [...new Set([...currentParticipants, ...employeeIds])];
+    
+    if (newParticipants.length !== currentParticipants.length) {
+      await updateDoc(existingChat.ref, {
+        participants: newParticipants,
+        updatedAt: serverTimestamp() as Timestamp
+      });
+    }
+    
+    return existingChat.id;
+  }
+  
+  // Tạo business group chat mới
+  const allParticipants = [adminId, ...employeeIds];
+  const participantUsers = allParticipants.map(id => ({
+    _id: id,
+    name: employeeNames[id] || `User ${id.slice(-4)}`,
+    email: '',
+    avatar: null
+  }));
+  
+  const newBusinessGroupChat: Omit<ChatRoom, 'id'> & { 
+    isGroup: boolean; 
+    participantUsers: any[];
+    businessId: string;
+  } = {
+    participants: allParticipants,
+    participantUsers,
+    createdAt: serverTimestamp() as Timestamp,
+    lastMessageTime: serverTimestamp() as Timestamp,
+    isGroup: true,
+    groupName: `${businessName} Team`,
+    businessId: businessId,
+    displayNameFor: {}
+  };
+  
+  const docRef = await addDoc(chatRoomsRef, newBusinessGroupChat);
+  
+  // Tạo tin nhắn chào mừng cho business group chat
+  try {
+    const welcomeMessage: Omit<ChatMessage, 'id'> = {
+      senderId: adminId,
+      receiverId: 'system',
+      content: `Chào mừng đến với ${businessName} Team! Đây là nơi để team trao đổi và cộng tác.`,
+      timestamp: serverTimestamp() as Timestamp,
+      type: 'text',
+      read: false,
+      reactions: [],
+      senderInfo: {
+        name: 'System',
+        email: '',
+        avatar: null
+      }
+    };
+    
+    const messagesRef = collection(db, `chatRooms/${docRef.id}/messages`);
+    await addDoc(messagesRef, welcomeMessage);
+    
+    // Cập nhật last message
+    await updateDoc(docRef, {
+      lastMessage: welcomeMessage,
+      lastMessageTime: welcomeMessage.timestamp,
+    });
+  } catch (error) {
+    console.error('Error creating welcome message:', error);
+  }
+  
+  return docRef.id;
+};
+
+// Thêm employee vào business group chat
+export const addEmployeeToBusinessGroupChat = async (
+  businessId: string,
+  employeeId: string,
+  employeeName: string
+): Promise<void> => {
+  const chatRoomsRef = collection(db, 'chatRooms');
+  
+  // Tìm business group chat
+  const q = query(
+    chatRoomsRef,
+    where('businessId', '==', businessId),
+    where('isGroup', '==', true)
+  );
+  
+  const querySnapshot = await getDocs(q);
+  
+  if (!querySnapshot.empty) {
+    const chatRoom = querySnapshot.docs[0];
+    const chatData = chatRoom.data() as ChatRoom;
+    
+    // Kiểm tra xem employee đã có trong chat chưa
+    if (!chatData.participants?.includes(employeeId)) {
+      const currentParticipants = chatData.participants || [];
+      const currentParticipantUsers = chatData.participantUsers || [];
+      
+      // Thêm employee mới
+      const newParticipants = [...currentParticipants, employeeId];
+      const newParticipantUsers = [
+        ...currentParticipantUsers,
+        {
+          _id: employeeId,
+          name: employeeName,
+          email: '',
+          avatar: null
+        }
+      ];
+      
+      await updateDoc(chatRoom.ref, {
+        participants: newParticipants,
+        participantUsers: newParticipantUsers,
+        updatedAt: serverTimestamp() as Timestamp
+      });
+      
+      // Tạo tin nhắn thông báo employee mới được thêm vào
+      try {
+        const notificationMessage: Omit<ChatMessage, 'id'> = {
+          senderId: 'system',
+          receiverId: 'system',
+          content: `${employeeName} đã được thêm vào team.`,
+          timestamp: serverTimestamp() as Timestamp,
+          type: 'text',
+          read: false,
+          reactions: [],
+          senderInfo: {
+            name: 'System',
+            email: '',
+            avatar: null
+          }
+        };
+        
+        const messagesRef = collection(db, `chatRooms/${chatRoom.id}/messages`);
+        await addDoc(messagesRef, notificationMessage);
+        
+        // Cập nhật last message
+        await updateDoc(chatRoom.ref, {
+          lastMessage: notificationMessage,
+          lastMessageTime: notificationMessage.timestamp,
+        });
+      } catch (error) {
+        console.error('Error creating notification message:', error);
+      }
+    }
+  }
 };

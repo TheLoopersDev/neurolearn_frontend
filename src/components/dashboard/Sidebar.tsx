@@ -87,6 +87,7 @@ const Sidebar = () => {
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
       { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },
+      { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
   };

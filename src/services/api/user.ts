@@ -1,7 +1,7 @@
 // src/services/api/user.ts
 import { User } from '@/types/user';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:8000';
 
 /**
  * Lấy thông tin của người dùng đang đăng nhập.

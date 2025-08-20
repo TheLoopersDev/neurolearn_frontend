@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useGetBankInfoQuery, useAddCreditCardMutation } from '@/lib/redux/features/bank/bankApi';
 import { BankInfo as ApiBankInfo } from '@/types/creditCard';
 import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
+import { useToast } from '@/hooks/use-toast';
 
 interface BankInfo {
     id: string;
@@ -30,8 +31,9 @@ interface AddBankCardModalProps {
 }
 
 const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  const { toast } = useToast();
+  // Visibility and backdrop are handled by the global ModalContainer.
+  // Keep only minimal state inside this component.
   const [cardNumber, setCardNumber] = useState('');
   const [bankName, setBankName] = useState('');
   const [bankShortName, setBankShortName] = useState(''); // Thêm state để lưu shortName
@@ -58,34 +60,18 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
       }));
   }, [bankApiData]);
 
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
-  const closeModal = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      onClose();
-    }, 300);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      closeModal();
-    }
-  };
+  const closeModal = () => onClose();
 
   const handleSubmit = async () => {
     if (!cardNumber || !bankName || !nameCard) {
-      alert('Please fill in all fields');
+      toast({ title: 'Missing information', description: 'Please fill in all fields.', variant: 'destructive' });
       return;
     }
 
     // Check if user is authenticated (for session-based auth, check user object)
     if (!user || (typeof user === 'object' && !(user as { _id?: string })?._id)) {
       setSubmitError('Please login to add a credit card.');
-      alert('Please login to add a credit card.');
+      toast({ title: 'Authentication required', description: 'Please login to add a credit card.', variant: 'destructive' });
       return;
     }
 
@@ -98,7 +84,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
         cardType: bankShortName || bankName
       }).unwrap();
 
-      alert('Card added successfully!');
+      toast({ title: 'Card added', description: 'Your bank card has been added successfully.', variant: 'success' });
       closeModal();
     } catch (e: unknown) {
       console.error('Error adding card:', e);
@@ -113,7 +99,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
       }
 
       setSubmitError(errorMessage);
-      alert(errorMessage);
+      toast({ title: 'Add card failed', description: errorMessage, variant: 'destructive' });
     }
   };
 
@@ -159,28 +145,7 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
   };
 
   return (
-    <div
-      className={`fixed inset-0 bg-black/50 z-[9999] transition-opacity duration-300 ${
-        isVisible && !isClosing ? 'opacity-100' : 'opacity-0'
-      }`}
-      style={{
-        pointerEvents: isClosing ? 'none' : 'auto',
-        visibility: isVisible || isClosing ? 'visible' : 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-      tabIndex={-1}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) closeModal();
-      }}
-      onKeyDown={handleKeyDown}
-    >
-      <div 
+    <div 
         className="bg-white rounded-xl w-full shadow-sm"
         style={{
           maxWidth: '28rem',
@@ -320,7 +285,6 @@ const AddBankCardModal = ({ onClose }: AddBankCardModalProps) => {
               )}
               {isAddingCard ? 'Adding...' : 'Add Card'}
             </button>
-          </div>
         </div>
       </div>
     </div>

@@ -3,9 +3,10 @@ import { Plus, Trash2 } from 'lucide-react';
 import { CreditCard } from '@/components/instructor/revenue/CreditCard';
 import { CardInfo } from '@/components/instructor/revenue/CardInfo';
 import { useModal } from '@/context/ModalContext';
+import { useToast } from '@/hooks/use-toast';
 import { useGetMyCreditCardQuery, useDeleteCreditCardMutation } from '@/lib/redux/features/bank/bankApi';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/redux/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '@/lib/redux/store';
 
 interface CardSectionProps {
   onAddCard?: () => void;
@@ -14,19 +15,17 @@ interface CardSectionProps {
 export const CardSection: React.FC<CardSectionProps> = ({ onAddCard }) => {
   const { showModal } = useModal();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   // Get auth state to check if user is logged in
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth);
 
   // Fetch user's credit card info để check có card hay không
   const {
     data: creditCardData,
     isLoading,
     error
-  } = useGetMyCreditCardQuery(undefined, {
-    // Only fetch if user is authenticated
-    skip: !user || (typeof user === 'object' && !(user as { _id?: string })?._id)
-  });
+  } = useGetMyCreditCardQuery();
 
   // Delete card mutation
   const [deleteCreditCard] = useDeleteCreditCardMutation();
@@ -37,22 +36,24 @@ export const CardSection: React.FC<CardSectionProps> = ({ onAddCard }) => {
   const handleDeleteCard = async () => {
     if (!creditCardData?.data) return;
 
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this credit card? This action cannot be undone.'
-    );
-
-    if (!confirmed) return;
-
-    setIsDeleting(true);
-    try {
-      await deleteCreditCard().unwrap();
-      alert('Credit card deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting card:', error);
-      alert('Failed to delete credit card. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    showModal('actionConfirm', {
+      title: 'Delete card',
+      description: 'Are you sure you want to delete this credit card? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'destructive',
+      onConfirm: async () => {
+        setIsDeleting(true);
+        try {
+          await deleteCreditCard().unwrap();
+          toast({ title: 'Deleted', description: 'Credit card deleted successfully.', variant: 'success' });
+        } catch (error) {
+          console.error('Error deleting card:', error);
+          toast({ title: 'Delete failed', description: 'Failed to delete credit card. Please try again.', variant: 'destructive' });
+        } finally {
+          setIsDeleting(false);
+        }
+      },
+    });
   };
 
   return (

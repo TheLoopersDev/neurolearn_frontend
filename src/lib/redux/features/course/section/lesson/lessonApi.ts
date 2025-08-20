@@ -52,7 +52,7 @@ export const lessonApi = createApi({
       providesTags: ['Lesson'],
     }),
     getLessonDetail: builder.query<ApiResponse<LessonDetail>, string>({
-      query: lessonId => `/lesson/detail/${lessonId}`,
+      query: lessonId => `/lessons/detail/${lessonId}`,
       providesTags: (result, error, id) => [{ type: 'Lesson', id }],
     }),
 
