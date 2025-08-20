@@ -67,7 +67,7 @@ export default function EditCoursePage() {
         );
     }
     // While checking/redirecting, render nothing (or your <Loading/>)
-    if (!ready || role !== 'instructor') return null;
+    if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
     if (error) return <div className="text-red-500">Error loading course</div>;
 
     if (course?.isPublished == true) {

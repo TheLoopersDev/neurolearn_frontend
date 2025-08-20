@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import InstructorListPage from './_components/InstructorListPage';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import Loading from '@/components/common/Loading';
 
 export default function InstructorsPage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function InstructorsPage() {
         }
       }, [ready, role, router]);
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'admin') return null;
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className=" ">
       <InstructorListPage />;

@@ -8,7 +8,9 @@ import { useSelector } from 'react-redux';
 import { useToast } from '@/hooks/use-toast';
 import Loading from '@/components/common/Loading';
 import { CommonPagination } from '@/components/common/ui';
-
+import { removeMemberFromGroup } from '@/lib/firestore/chat';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const EmployeePage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -54,6 +56,30 @@ const EmployeePage = () => {
     fetchEmployees();
   }, [businessId]);
 
+  // Hàm xóa employee khỏi business group chat
+  const removeEmployeeFromBusinessChat = async (employeeId: string) => {
+    try {
+      // Tìm business group chat
+      const chatRoomsRef = collection(db, 'chatRooms');
+      const q = query(
+        chatRoomsRef,
+        where('businessId', '==', businessId),
+        where('isGroup', '==', true)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const chatRoom = querySnapshot.docs[0];
+        await removeMemberFromGroup(chatRoom.id, employeeId);
+        console.log('Employee removed from business group chat');
+      }
+    } catch (error) {
+      console.error('Error removing employee from business chat:', error);
+      // Không hiển thị lỗi cho user vì việc xóa employee vẫn thành công
+    }
+  };
+
   const handleDeleteEmployee = async (id: string) => {
     try {
       await axios.delete(
@@ -62,9 +88,13 @@ const EmployeePage = () => {
           withCredentials: true,
         }
       );
+
+      // Xóa employee khỏi business group chat
+      await removeEmployeeFromBusinessChat(id);
+
       toast({
         title: 'Success',
-        description: 'Employee has been removed',
+        description: 'Employee has been removed from both business and group chat',
         variant: 'success',
       });
 

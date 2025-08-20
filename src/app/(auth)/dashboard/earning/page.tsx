@@ -60,7 +60,7 @@ const WithdrawDashboard: React.FC = () => {
     return <Loading message="Loading earnings..." className="min-h-screen" />;
   }
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'instructor') return null;
+  if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="min-h-screen" >
       <main className="max-w-6xl mx-auto">
