@@ -61,7 +61,7 @@ const ReviewInstructorPage = () => {
 
 
   // API call for instructor verification requests
-  const { data: requestData, isLoading: isRequestLoading } = useGetPendingRequestsQuery({
+  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
     type: 'instructor_verification'
   });
 
@@ -176,7 +176,7 @@ const ReviewInstructorPage = () => {
           variant: 'success',
         });
         setCurrentPage(1);
-        // refetch(); // This line was removed as per the new_code, as the refetch logic was moved to the API slice.
+        await refetch();
       } else {
         throw new Error(result.message || 'Failed to process request');
       }

@@ -319,7 +319,7 @@ const CourseManagementSystem: React.FC = () => {
     try {
       await handleRequest({ type: 'course_approval', requestId, action }).unwrap();
       setCurrentPage(1);
-      // refetch(); // This line was removed as per the edit hint
+      await refetch();
       toast({
         title: action === 'approve' ? 'Course Approved' : 'Request Rejected',
         description: `${action === 'approve' ? 'The course request has been approved.' : 'The course request has been rejected successfully.'}`,

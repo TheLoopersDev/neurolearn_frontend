@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
 import { useFirestoreChat } from '@/hooks/useFirestoreChat';
+import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
 import { ChatRoom } from '@/components/chat';
 import BusinessChatList from '@/components/chat/BusinessChatList';
 import { backfillDisplayNames } from '@/lib/firestore/chat';
@@ -18,6 +19,7 @@ const BusinessMessagePage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const { user: firebaseUser, signInAnonymouslyIfNeeded } = useFirebaseAuth();
 
   // Parse current user
   const currentUser = typeof user === 'string' ? JSON.parse(user || '{}') : user;
@@ -49,8 +51,29 @@ const BusinessMessagePage: React.FC = () => {
   const prevChatRoomId = useRef<string | null>(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
   const [selectedChatRoomId, setSelectedChatRoomId] = useState<string | null>(null);
-  const [forceRefresh, setForceRefresh] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Define callbacks before any early returns to satisfy Hooks rules
+  const handleSendMessage = useCallback(async (receiverId: string, content: string, type?: 'text' | 'image' | 'file', replyTo?: any) => {
+    try {
+      if (!firebaseUser) await signInAnonymouslyIfNeeded();
+      await sendMessage(receiverId, content, type || 'text', replyTo);
+    } catch (e) { /* ignore */ }
+  }, [firebaseUser, signInAnonymouslyIfNeeded, sendMessage]);
+
+  const handleSendReaction = useCallback(async (messageId: string, emoji: string) => {
+    try {
+      if (!firebaseUser) await signInAnonymouslyIfNeeded();
+      await sendReaction(messageId, emoji);
+    } catch (e) { /* ignore */ }
+  }, [firebaseUser, signInAnonymouslyIfNeeded, sendReaction]);
+
+  // Đảm bảo mock user được tạo khi component mount
+  useEffect(() => {
+    if (firebaseAvailable && !firebaseUser) {
+      signInAnonymouslyIfNeeded().catch(() => { });
+    }
+  }, [firebaseAvailable, firebaseUser]);
 
   // Fetch all users whenever chatRooms thay đổi (đảm bảo user mới được cập nhật)
   useEffect(() => {
@@ -58,56 +81,30 @@ const BusinessMessagePage: React.FC = () => {
     setUsersLoading(true);
     const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/related-users?userId=${currentUserId}`;
     fetch(url, {
-      credentials: 'include', // Thêm credentials để đảm bảo cookies được gửi
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
     })
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
       })
       .then(data => {
-        console.log('Related users data:', data);
         const users = data.users || [];
         setAllUsers(users);
-
-        // Backfill displayNameFor for existing rooms
         if (users.length > 0 && currentUserId) {
           const userNames: Record<string, string> = {};
-          users.forEach((user: any) => {
-            userNames[user._id] = user.name;
-          });
-
-          backfillDisplayNames(currentUserId, userNames).catch(console.error);
+          users.forEach((user: any) => { userNames[user._id] = user.name; });
+          backfillDisplayNames(currentUserId, userNames).catch(() => { });
         }
       })
-      .catch(error => {
-        console.error('Error fetching related users:', error);
-        // Fallback: thử fetch tất cả users nếu related-users fail
+      .catch(() => {
         const fallbackUrl = `${process.env.NEXT_PUBLIC_SERVER_URI}/chats/users`;
-        return fetch(fallbackUrl, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        return fetch(fallbackUrl, { credentials: 'include', headers: { 'Content-Type': 'application/json' } })
           .then(res => res.json())
-          .then(data => {
-            console.log('Fallback users data:', data);
-            setAllUsers(data.users || []);
-          })
-          .catch(fallbackError => {
-            console.error('Fallback error:', fallbackError);
+          .then(data => setAllUsers(data.users || []))
+          .catch(() => {
             setAllUsers([]);
-            // Retry sau 3 giây nếu cả 2 API đều fail
-            if (retryCount < 3) {
-              setTimeout(() => {
-                setRetryCount(prev => prev + 1);
-              }, 3000);
-            }
+            if (retryCount < 3) setTimeout(() => setRetryCount(prev => prev + 1), 3000);
           });
       })
       .finally(() => setUsersLoading(false));
@@ -115,168 +112,74 @@ const BusinessMessagePage: React.FC = () => {
 
   // Reset retry count khi users được load thành công
   useEffect(() => {
-    if (allUsers.length > 0 && retryCount > 0) {
-      setRetryCount(0);
-    }
+    if (allUsers.length > 0 && retryCount > 0) setRetryCount(0);
   }, [allUsers.length, retryCount]);
 
-  // Helper function để lấy user info với fallback tốt hơn
-  const getUserInfo = (userId: string) => {
-    const user = allUsers.find(u => String(u._id) === String(userId));
-    if (user) {
-      return user;
-    }
-
-    // Nếu không tìm thấy trong allUsers, thử fetch từ API
-    // Đây là fallback cho trường hợp user mới được thêm vào group
-    return {
-      _id: userId,
-      name: `User ${userId.slice(-4)}`, // Fallback với 4 ký tự cuối của ID
-      email: '',
-      avatar: { url: '/assets/images/avatar-default.png' }
-    };
-  };
-
-  // Helper: Map ChatRoom to Chat (for UI compatibility)
-  const mapChatRoomToChat = function (room: any): any {
+  // Map ChatRoom -> Chat (UI)
+  const mapChatRoomToChat = useCallback((room: any): any => {
+    if (!room) return null;
     if (room.isGroup) {
-      // Debug: Log group chat room data
-      console.log('Mapping group chat room:', {
-        id: room.id,
-        groupName: room.groupName,
-        participants: room.participants,
-        participantUsers: room.participantUsers,
-        isGroup: room.isGroup
-      });
-
-      // Sử dụng participantUsers từ Firestore nếu có, fallback về API nếu không có
-      let members;
-      if (room.participantUsers && room.participantUsers.length > 0) {
-        // Sử dụng thông tin user từ Firestore
-        members = room.participantUsers.map((user: any) => ({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar
-        }));
-      } else {
-        // Fallback: sử dụng API như cũ
-        members = room.participants.map((id: string) => {
-          const userRaw = getUserInfo(id);
-          const preferredName = room.displayNameFor?.[id] || userRaw.name;
-          return { ...userRaw, name: preferredName };
-        });
-      }
-
-      return {
-        _id: room.id,
-        members,
-        isGroup: true,
-        groupName: room.groupName || 'Business Group',
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: '/assets/images/avatar-default.png',
-      };
-    } else {
-      // 1-1 chat: sử dụng participantUsers từ Firestore nếu có
-      let otherUser;
-      if (room.participantUsers && room.participantUsers.length > 0) {
-        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-        const userFromFirestore = room.participantUsers.find((u: any) => String(u._id) === String(otherId));
-        if (userFromFirestore) {
-          otherUser = {
-            _id: userFromFirestore._id,
-            name: userFromFirestore.name,
-            email: userFromFirestore.email,
-            avatar: userFromFirestore.avatar
+      const members = (room.participants || []).map((participantId: string) => {
+        const userFromAPI = allUsers.find(u => String(u._id) === String(participantId));
+        if (userFromAPI) {
+          return {
+            _id: userFromAPI._id,
+            name: userFromAPI.name,
+            email: userFromAPI.email,
+            avatar: userFromAPI.avatar || { url: '/assets/images/avatar-default.png' }
           };
         }
-      }
-
-      // Fallback về API nếu không có participantUsers
-      if (!otherUser) {
-        const otherId = room.participants.find((id: string) => String(id) !== String(currentUserId));
-        const otherUserRaw = getUserInfo(otherId);
-        const preferredName = room.displayNameFor?.[currentUserId] || otherUserRaw.name;
-        otherUser = { ...otherUserRaw, name: preferredName };
-      }
-
-      return {
-        _id: room.id,
-        members: [otherUser],
-        isGroup: false,
-        groupName: undefined,
-        messages: [],
-        lastMessage: room.lastMessage,
-        unreadCount: 0,
-        avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png',
-        displayName: otherUser.name
-      };
+        return { _id: participantId, name: `User ${participantId.slice(-4)}`, email: '', avatar: { url: '/assets/images/avatar-default.png' } };
+      });
+      return { _id: room.id, members, isGroup: true, groupName: room.groupName || 'Business Group', messages: [], lastMessage: room.lastMessage, unreadCount: 0, avatar: '/assets/images/avatar-default.png' };
     }
-  };
+    const otherId = (room.participants || []).find((id: string) => String(id) !== String(currentUserId));
+    if (!otherId) return null;
+    const otherUserFromAPI = allUsers.find(u => String(u._id) === String(otherId));
+    const otherUser = otherUserFromAPI ? {
+      _id: otherUserFromAPI._id,
+      name: otherUserFromAPI.name,
+      email: otherUserFromAPI.email,
+      avatar: otherUserFromAPI.avatar || { url: '/assets/images/avatar-default.png' }
+    } : { _id: otherId, name: `User ${otherId.slice(-4)}`, email: '', avatar: { url: '/assets/images/avatar-default.png' } };
+    return { _id: room.id, members: [otherUser], isGroup: false, groupName: undefined, messages: [], lastMessage: room.lastMessage, unreadCount: 0, avatar: otherUser?.avatar?.url || '/assets/images/avatar-default.png', displayName: otherUser.name };
+  }, [currentUserId, allUsers]);
 
-  // Khi chọn chat mới, set loading và clear messages cũ
+  // Chọn chat
   const handleSelectChat = useCallback(async (chatRoomId: string) => {
-    if (activeChatRoomIdHook && activeChatRoomIdHook !== chatRoomId) {
-      leaveChat();
-    }
-
+    if (activeChatRoomIdHook && activeChatRoomIdHook !== chatRoomId) leaveChat();
     setIsChatLoading(true);
     setSelectedChatRoomId(chatRoomId);
     dispatch(setActiveChat(chatRoomId));
     setActiveChatRoomId(chatRoomId);
-
     await joinChat(chatRoomId);
     prevChatRoomId.current = chatRoomId;
-
-    // Force refresh để đảm bảo messages được load lại
-    setForceRefresh(prev => prev + 1);
+    setIsChatLoading(false);
   }, [activeChatRoomIdHook, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
 
-  // Khi messages thay đổi hoặc activeChatRoomId đổi, tắt loading
-  useEffect(() => {
-    if (isChatLoading && messages && messages.length >= 0) {
-      setIsChatLoading(false);
-    }
-  }, [messages, activeChatRoomIdHook, isChatLoading]);
-
-  // Auto-select first chat if none selected, hoặc chọn phòng chat mới nhất có lastMessage chưa đọc
+  // Auto-select
   useEffect(() => {
     if (chatRooms.length > 0 && !hasAutoSelected) {
       const activeRoomStillExists = chatRooms.some(room => room.id === activeChatRoomIdHook);
       if (!activeChatRoomIdHook || !activeRoomStillExists) {
-        const unreadRoom = chatRooms.find(room => {
-          return room.lastMessage && room.lastMessage.receiverId === currentUserId && !room.lastMessage.read;
-        });
-        if (unreadRoom) {
-          handleSelectChat(unreadRoom.id!);
-          setHasAutoSelected(true);
-        } else {
+        const unreadRoom = chatRooms.find(room => room.lastMessage && room.lastMessage.receiverId === currentUserId && !room.lastMessage.read);
+        if (unreadRoom) { handleSelectChat(unreadRoom.id!); setHasAutoSelected(true); }
+        else {
           const sortedRooms = [...chatRooms].sort((a, b) => {
-            const aTime = a.lastMessageTime || a.createdAt;
-            const bTime = b.lastMessageTime || b.createdAt;
+            const aTime = a.lastMessageTime || a.createdAt; const bTime = b.lastMessageTime || b.createdAt;
             return bTime?.toMillis?.() - aTime?.toMillis?.();
           });
-          if (sortedRooms.length > 0) {
-            handleSelectChat(sortedRooms[0].id!);
-            setHasAutoSelected(true);
-          }
+          if (sortedRooms.length > 0) { handleSelectChat(sortedRooms[0].id!); setHasAutoSelected(true); }
         }
       }
     }
-    // Reset flag nếu chatRooms thay đổi hoàn toàn (ví dụ reload)
-    if (chatRooms.length === 0 && hasAutoSelected) {
-      setHasAutoSelected(false);
-    }
+    if (chatRooms.length === 0 && hasAutoSelected) setHasAutoSelected(false);
   }, [chatRooms, activeChatRoomIdHook, handleSelectChat, currentUserId, hasAutoSelected]);
 
   if (!currentUserId) {
     return (
       <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
-        <div className="text-center">
-          <p className="text-gray-500">Please log in to access business messages</p>
-        </div>
+        <div className="text-center"><p className="text-gray-500">Please log in to access business messages</p></div>
       </div>
     );
   }
@@ -284,47 +187,21 @@ const BusinessMessagePage: React.FC = () => {
   if (!firebaseAvailable) {
     return (
       <div className="h-[calc(100vh-var(--header-height,80px))] flex items-center justify-center bg-[#F7F8FA]">
-        <div className="text-center">
-          <p className="text-gray-500">Chat feature is not available</p>
-        </div>
+        <div className="text-center"><p className="text-gray-500">Chat feature is not available</p></div>
       </div>
     );
   }
 
-  // Sử dụng selectedChatRoomId thay vì activeChatRoomIdHook để UI
   const currentActiveChatId = selectedChatRoomId || activeChatRoomIdHook;
-
-  // Wrapper for sendMessage to support reply parameter
-  const handleSendMessage = async (receiverId: string, content: string, type?: 'text' | 'image' | 'file', replyTo?: any) => {
-    try {
-      console.log('Sending message:', { receiverId, content, type, replyTo });
-      await sendMessage(receiverId, content, type || 'text', replyTo);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
-  };
-
-  // Handle send reaction
-  const handleSendReaction = async (messageId: string, emoji: string) => {
-    try {
-      console.log('Sending reaction:', { messageId, emoji });
-      await sendReaction(messageId, emoji);
-    } catch (error) {
-      console.error('Failed to send reaction:', error);
-    }
-  };
 
   return (
     <div className="h-[calc(100vh-var(--header-height,80px))] flex flex-col rounded-2xl overflow-hidden bg-[#F7F8FA]">
-      {/* Header */}
       <div className="p-4 bg-white border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-900">Business Messages</h1>
         <p className="text-gray-600">Manage communications with your team and customers</p>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex gap-5 py-5">
-        {/* Chat List */}
         <BusinessChatList
           chats={chatRooms.map(mapChatRoomToChat)}
           activeChatId={currentActiveChatId}
@@ -332,10 +209,9 @@ const BusinessMessagePage: React.FC = () => {
           currentUserId={currentUserId}
         />
 
-        {/* Chat Room */}
         {(!usersLoading && currentActiveChatId && !isChatLoading) ? (
           <ChatRoom
-            key={`${currentActiveChatId}-${forceRefresh}`} // Force re-render khi chat thay đổi
+            key={currentActiveChatId}
             chat={chatRooms.find(room => room.id === currentActiveChatId) ? mapChatRoomToChat(chatRooms.find(room => room.id === currentActiveChatId)) : null}
             currentUserId={currentUserId}
             messages={messages}
@@ -352,9 +228,7 @@ const BusinessMessagePage: React.FC = () => {
               {usersLoading ? (
                 <div className="text-center">
                   <span className="text-gray-400">Loading users...</span>
-                  {retryCount > 0 && (
-                    <p className="text-xs text-gray-300 mt-2">Retrying... ({retryCount}/3)</p>
-                  )}
+                  {retryCount > 0 && (<p className="text-xs text-gray-300 mt-2">Retrying... ({retryCount}/3)</p>)}
                 </div>
               ) : chatRooms.length === 0 ? (
                 <div className="text-center p-6">

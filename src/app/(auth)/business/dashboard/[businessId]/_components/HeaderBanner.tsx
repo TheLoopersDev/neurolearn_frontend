@@ -1,8 +1,12 @@
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { Button } from '@/components/common/ui/Button2'; // 1. Import Button component của bạn
+import { Button } from '@/components/common/ui/Button2';
 
-export default function HeaderBanner() {
+interface HeaderBannerProps {
+  businessId: string;
+}
+
+export default function HeaderBanner({}: HeaderBannerProps) {
   return (
     <div className="relative overflow-hidden rounded-xl bg-primary p-8 text-white">
       {/* Background Image & Gradient */}
