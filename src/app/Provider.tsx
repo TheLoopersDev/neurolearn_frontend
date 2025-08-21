@@ -12,8 +12,10 @@ interface ProviderProps {
 
 export function Providers({ children }: ProviderProps) {
   return (
-    <SessionProvider refetchOnWindowFocus = { false } refetchWhenOffline = { false }>
-      <ReduxProvider store={store}>{children}</ReduxProvider>
+      <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
+      <ReduxProvider store={store}>
+        {children}
+      </ReduxProvider>
     </SessionProvider>
   );
 }

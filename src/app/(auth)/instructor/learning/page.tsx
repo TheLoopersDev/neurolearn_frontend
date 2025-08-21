@@ -27,8 +27,9 @@ export default function LearningPage() {
     // Redirect when not instructor
     useEffect(() => {
         if (!ready) return;
+        if (role === undefined) return;
         if (role !== 'instructor') {
-            router.replace('/'); // send non-instructor to home
+         router.replace('/'); // send non-instructor to home
         }
     }, [ready, role, router]);
 
@@ -71,7 +72,7 @@ export default function LearningPage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     // While checking/redirecting, render nothing (or your <Loading/>)
-    if (!ready || role !== 'instructor') return null;
+    if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
     return (
         <div className="min-h-screen space-y-6">
             {/* Top: Search always visible */}

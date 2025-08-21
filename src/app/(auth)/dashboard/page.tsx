@@ -18,6 +18,21 @@ export default function UserDashboard() {
 
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not user
+  useEffect(() => {
+    if (!ready) return;
+    if (role === undefined) return;
+    if (role !== 'user') {
+      router.replace('/'); // send non-user to home
+    }
+  }, [ready, role, router]);
+
 
   // Redirect admin to course requests page
   useEffect(() => {
@@ -128,6 +143,8 @@ export default function UserDashboard() {
   if (user?.role === 'admin') {
     return <Loading message="Redirecting..." className="min-h-screen" />;
   }
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'user') return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
     <div className="flex h-full overflow-x-hidden">

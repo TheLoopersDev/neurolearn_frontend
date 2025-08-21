@@ -4,6 +4,7 @@ import Sidebar from '@/components/dashboard/Sidebar';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import Loading from '@/components/common/Loading';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,13 +18,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Redirect when not instructor
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'instructor') {
       router.replace('/'); // send non-instructor to home
     }
   }, [ready, role, router]);
 
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'instructor') return null;
+  if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
     <div className="flex justify-center min-h-screen">

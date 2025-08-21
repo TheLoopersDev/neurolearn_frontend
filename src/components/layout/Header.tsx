@@ -17,6 +17,7 @@ import ExploreDropdown from '../home/ExploreDropdown';
 import { Skeleton } from '../common/ui/Skeleton';
 import defaultCourseImage from '@/public/assets/images/default-course.png';
 import defaultInstructorImage from '@/public/assets/images/default-avatar.png';
+import { useSession } from 'next-auth/react';
 
 const Header: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -33,6 +34,7 @@ const Header: React.FC = () => {
   const reduxUser = useSelector((state: RootState) => state.auth.user);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const { status } = useSession(); // 'loading' | 'authenticated' | 'unauthenticated'
 
   interface SearchResults {
     courses: any[];
@@ -150,40 +152,42 @@ const Header: React.FC = () => {
 
   // User section (giữ UI, co giãn kích thước)
   let userSection = null;
-  if (!isLoading) {
-    if (!reduxUser) {
-      userSection = (
-        <div className="flex gap-2">
-          <motion.button
-            onClick={() => showModal('login')}
-            className="w-[96px] h-[44px] sm:w-[124px] sm:h-[56px] bg-white rounded-[120px] text-[14px] sm:text-[16px] font-medium text-[#0D0D0D] hover:bg-gray-100 transition"
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            Log In
-          </motion.button>
-          <motion.button
-            onClick={() => showModal('signup')}
-            className="w-[96px] h-[44px] sm:w-[124px] sm:h-[56px] bg-[#3858F8] rounded-[120px] text-[14px] sm:text-[16px] font-medium text-white hover:bg-blue-700 transition"
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            Sign Up
-          </motion.button>
-        </div>
-      );
-    } else {
-      userSection = (
-        <div className="flex items-center gap-2">
-          <UserDropdown />
-        </div>
-      );
-    }
+  const isSessionLoading = status === 'loading';
+  const isSessionAuthed = status === 'authenticated';
+  if (isSessionLoading || isLoading) {
+    userSection = null; // optionally render skeleton
+  } else if (reduxUser || isSessionAuthed) {
+    userSection = (
+      <div className="flex items-center gap-2">
+        <UserDropdown />
+      </div>
+    );
+  } else {
+    userSection = (
+      <div className="flex gap-2">
+        <motion.button
+          onClick={() => showModal('login')}
+          className="w-[96px] h-[44px] sm:w-[124px] sm:h-[56px] bg-white rounded-[120px] text-[14px] sm:text-[16px] font-medium text-[#0D0D0D] hover:bg-gray-100 transition"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          Log In
+        </motion.button>
+        <motion.button
+          onClick={() => showModal('signup')}
+          className="w-[96px] h-[44px] sm:w-[124px] sm:h-[56px] bg-[#3858F8] rounded-[120px] text-[14px] sm:text-[16px] font-medium text-white hover:bg-blue-700 transition"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Sign Up
+        </motion.button>
+      </div>
+    );
   }
 
   return (

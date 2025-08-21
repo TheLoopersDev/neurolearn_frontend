@@ -32,6 +32,7 @@ const WithdrawDashboard: React.FC = () => {
   // Redirect when not instructor
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'instructor') {
       router.replace('/'); // send non-instructor to home
     }
@@ -68,7 +69,7 @@ const WithdrawDashboard: React.FC = () => {
     return <Loading message="Loading earnings..." className="min-h-screen" />;
   }
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'instructor') return null;
+  if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="min-h-screen" >
       <main className="max-w-6xl mx-auto">

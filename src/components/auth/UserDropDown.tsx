@@ -162,7 +162,7 @@ export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
-  const { data: session } = useSession();
+const { data: session } = useSession(); // status: 'loading' | 'authenticated' | 'unauthenticated'
   const router = useRouter();
   const [socialAuth] = useSocialAuthMutation();
 

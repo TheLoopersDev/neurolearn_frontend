@@ -54,6 +54,7 @@ const ReviewCoursePage: React.FC = () => {
     // Redirect when not instructor
     useEffect(() => {
         if (!ready) return;
+        if (role === undefined) return;
         if (role !== 'instructor') {
             router.replace('/'); // send non-instructor to home
         }
@@ -204,7 +205,7 @@ const ReviewCoursePage: React.FC = () => {
         curriculum,
     };
     // While checking/redirecting, render nothing (or your <Loading/>)
-    if (!ready || role !== 'instructor') return null;
+    if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
     return (
         <div className="min-h-screen bg-white font-sans rounded-xl">
             <div className="mx-auto max-w-6xl shadow-lg">

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function NotFound() {
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-xl text-center">
