@@ -1,0 +1,22 @@
+'use client';
+
+import { Provider as ReduxProvider } from 'react-redux';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { store } from '@/lib/redux/store';
+import { SessionProvider } from 'next-auth/react';
+
+interface ProviderProps {
+  children: React.ReactNode;
+}
+
+const clientId = process.env.AUTH_GOOGLE_ID!;
+
+export function Providers({ children }: ProviderProps) {
+  return (
+    <SessionProvider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <ReduxProvider store={store}>{children}</ReduxProvider>
+      </GoogleOAuthProvider>
+    </SessionProvider>
+  );
+}
