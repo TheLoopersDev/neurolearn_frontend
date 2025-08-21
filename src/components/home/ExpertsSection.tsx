@@ -19,8 +19,8 @@ const ExpertsSection = () => {
     console.error('Error fetching experts:', error);  
     return (
       <section className="py-10">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-medium mb-6">Our Experts</h2>
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-medium mb-6 text-black">Our Experts</h2>
           <div className="text-center text-gray-500">Error loading experts</div>
         </div>
       </section>
@@ -30,8 +30,8 @@ const ExpertsSection = () => {
   if (displayExperts.length === 0) {
     return (
       <section className="py-10">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-medium mb-6">Our Experts</h2>
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-medium mb-6 text-black">Our Experts</h2>
           <div className="text-center text-gray-500">No experts available</div>
         </div>
       </section>
@@ -40,9 +40,9 @@ const ExpertsSection = () => {
 
   return (
     <section className="py-10">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <AnimatedSection variants={fadeIn}>
-          <h2 className="text-4xl mb-8">Our Experts</h2>
+          <h2 className="text-4xl mb-8 text-black">Our Experts</h2>
         </AnimatedSection>
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-3 gap-8"

@@ -408,7 +408,7 @@ export default function BusinessForm() {
                         className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50"
                         disabled={!agree || loading}
                     >
-                        {loading ? 'Đang gửi...' : 'Submit'}
+                        {loading ? 'Submitting...' : 'Submit'}
                     </button>
                 </div>
             </form>
