@@ -57,7 +57,7 @@ const Sidebar = () => {
       ...(user?.businessInfo?.role === 'employee'
         ? [
             {
-              icon: setting,
+              icon: courses,
               label: 'Business Courses',
               path: '/dashboard/assign-course',
             },
