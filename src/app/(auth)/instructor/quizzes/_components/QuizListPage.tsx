@@ -9,7 +9,15 @@ import { Quiz, ManualCreationDetails, AICreationDetails } from './types';
 import QuizCard from './QuizCard';
 import SearchQuiz from './SearchQuiz';
 import Loading from '@/components/common/Loading';
-import { CommonPagination } from '@/components/common/ui';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/common/ui/pagination';
 import {
   useGetAllQuizzesQuery,
   useCreateQuizMutation,
@@ -175,11 +183,72 @@ const QuizListPage: React.FC = () => {
 
       {renderQuizContent()}
 
-      <CommonPagination
-        page={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {totalPages > 1 && (
+        <Pagination className="mt-8 sm:mt-12">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                }}
+                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+
+            {(() => {
+              const pageNumbers: number[] = [];
+              const maxPagesToShow = 3;
+              const half = Math.floor(maxPagesToShow / 2);
+
+              if (totalPages <= maxPagesToShow + 2) {
+                for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+              } else {
+                pageNumbers.push(1);
+                if (currentPage > 1 + half + 1 && totalPages > maxPagesToShow) pageNumbers.push(-1);
+                let start = Math.max(2, currentPage - half);
+                let end = Math.min(totalPages - 1, currentPage + half);
+                if (currentPage - half <= 1) end = Math.min(totalPages - 1, maxPagesToShow);
+                if (currentPage + half >= totalPages) start = Math.max(2, totalPages - maxPagesToShow + 1);
+                for (let i = start; i <= end; i++) pageNumbers.push(i);
+                if (currentPage < totalPages - half - 1 && totalPages > maxPagesToShow) pageNumbers.push(-1);
+                pageNumbers.push(totalPages);
+              }
+
+              return Array.from(new Set(pageNumbers)).map((page, index) => (
+                <PaginationItem key={index}>
+                  {page === -1 ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page as number);
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ));
+            })()}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                }}
+                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };
