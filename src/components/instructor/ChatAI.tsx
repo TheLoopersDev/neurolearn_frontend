@@ -5,6 +5,152 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type ChatMsg = { role: 'user' | 'assistant'; content: string };
 
+// Render assistant answers with basic structure parsing for nicer UI
+function AnswerRenderer({ text }: { text: string }) {
+  // Split text into lines first
+  const lines = useMemo(() => text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0), [text]);
+
+  // Detect inline ordered list within a single paragraph like: "Intro... 1. Item one. 2. Item two. 3. Item three."
+  const inlineOrdered = useMemo(() => {
+    // Need at least 1. and 2. to consider as list
+    if (!/\b1\.\s/.test(text) || !/\b2\.\s/.test(text)) return null;
+    // Capture each numbered item greedily until next number or end
+    const re = /(\d+)\.\s([^]+?)(?=(?:\s\d+\.\s)|$)/g;
+    const items: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+      const body = m[2].trim().replace(/[;,.]+$/, '').trim();
+      if (body) items.push(body);
+    }
+    if (items.length < 2) return null;
+    const firstIdx = text.search(/\b1\.\s/);
+    const lead = text.slice(0, firstIdx).trim();
+    return { lead, items } as { lead: string; items: string[] } | null;
+  }, [text]);
+
+  // Parse into blocks: QA pairs, lists, ordered lists, paragraphs
+  const blocks = useMemo(() => {
+    type Block =
+      | { type: 'qa'; q: string; a: string }
+      | { type: 'list'; items: string[] }
+      | { type: 'olist'; items: string[]; lead?: string }
+      | { type: 'p'; text: string };
+
+    // If inline ordered list detected, short-circuit with lead + ordered list
+    if (inlineOrdered) {
+      const outInline: Block[] = [];
+      if (inlineOrdered.lead) outInline.push({ type: 'p', text: inlineOrdered.lead });
+      outInline.push({ type: 'olist', items: inlineOrdered.items });
+      return outInline;
+    }
+
+    const out: Block[] = [];
+    let i = 0;
+    while (i < lines.length) {
+      const l = lines[i];
+      // Q/A detection
+      if (/^Q:\s*/i.test(l)) {
+        const q = l.replace(/^Q:\s*/i, '').trim();
+        let a = '';
+        if (i + 1 < lines.length && /^A:\s*/i.test(lines[i + 1])) {
+          a = lines[i + 1].replace(/^A:\s*/i, '').trim();
+          i += 2;
+        } else {
+          i += 1;
+        }
+        out.push({ type: 'qa', q, a });
+        continue;
+      }
+
+      // Unordered list detection (consume consecutive list items)
+      if (/^[-*]\s+/.test(l)) {
+        const items: string[] = [];
+        while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^[-*]\s+/, '').trim());
+          i += 1;
+        }
+        out.push({ type: 'list', items });
+        continue;
+      }
+
+      // Ordered list by lines detection (1. 2. ...)
+      if (/^\d+\.\s+/.test(l)) {
+        const items: string[] = [];
+        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^\d+\.\s+/, '').trim());
+          i += 1;
+        }
+        out.push({ type: 'olist', items });
+        continue;
+      }
+
+      // Paragraph (merge consecutive non-empty, non-list, non-Q/A lines into one paragraph)
+      const p: string[] = [l];
+      i += 1;
+      while (
+        i < lines.length &&
+        !/^Q:\s*/i.test(lines[i]) &&
+        !/^A:\s*/i.test(lines[i]) &&
+        !/^[-*]\s+/.test(lines[i]) &&
+        !/^\d+\.\s+/.test(lines[i])
+      ) {
+        p.push(lines[i]);
+        i += 1;
+      }
+      out.push({ type: 'p', text: p.join(' ') });
+    }
+    return out;
+  }, [lines, inlineOrdered]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {blocks.map((b, idx) => {
+        if (b.type === 'qa') {
+          return (
+            <div key={idx} className="bg-white/70 rounded-xl p-3 text-sm border border-[#E5E7EB]">
+              {b.q && (
+                <div className="mb-2">
+                  <span className="inline-flex items-center gap-2 font-medium text-[#111827]">
+                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-[#EEF0FF] text-[#4F46E5]">Q</span>
+                    {b.q}
+                  </span>
+                </div>
+              )}
+              {b.a && (
+                <div className="leading-relaxed text-[#111827]">
+                  <span className="inline-block text-[10px] px-2 py-0.5 mr-2 rounded-full bg-[#E5F7EE] text-[#10B981] align-top">A</span>
+                  <span>{b.a}</span>
+                </div>
+              )}
+            </div>
+          );
+        }
+        if (b.type === 'list') {
+          return (
+            <ul key={idx} className="list-disc pl-5 text-sm text-[#111827]">
+              {b.items.map((it, i2) => (
+                <li key={i2} className="mb-1">{it}</li>
+              ))}
+            </ul>
+          );
+        }
+        if (b.type === 'olist') {
+          return (
+            <ol key={idx} className="list-decimal pl-5 text-sm text-[#111827]">
+              {b.items.map((it, i2) => (
+                <li key={i2} className="mb-1">{it}</li>
+              ))}
+            </ol>
+          );
+        }
+        return (
+          <p key={idx} className="text-sm text-[#111827] leading-relaxed">{b.text}</p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ChatAI() {
   const [audioUrl, setAudioUrl] = useState<string>("");
   const [prompt, setPrompt] = useState<string>('Summarize this lecture concisely with bullet points.');
@@ -12,9 +158,10 @@ export default function ChatAI() {
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [cachedTranscript, setCachedTranscript] = useState<string>("");
+  const [showFeatures, setShowFeatures] = useState<boolean>(true);
   const lastAudioUrlRef = useRef<string>("");
   const transcribeJobRef = useRef<string>("");
-  const [,setAutoTxLoading] = useState<boolean>(false);
+  const [, setAutoTxLoading] = useState<boolean>(false);
   // Cache transcripts per video URL to avoid redundant transcriptions
   const transcriptCacheRef = useRef<Map<string, string>>(new Map());
 
@@ -114,8 +261,11 @@ export default function ChatAI() {
   }, [startAutoTranscribe]);
 
   const canSend = useMemo(() => !!prompt.trim() && !loading, [prompt, loading]);
-
-  const onSubmit = useCallback(async () => {
+  const handleSendClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    if (canSend) onSubmit();
+  };
+  const onSubmit = useCallback(async (overridePrompt?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -134,7 +284,9 @@ export default function ChatAI() {
         throw new Error('No valid video/audio URL detected (http/https required). If the player uses blob:, please provide a public URL.');
       }
 
-      const userMsg: ChatMsg = { role: 'user', content: prompt };
+      const userPrompt = (overridePrompt ?? prompt).trim();
+      if (!userPrompt) throw new Error('Prompt is empty');
+      const userMsg: ChatMsg = { role: 'user', content: userPrompt };
       setMessages((prev) => [...prev, userMsg]);
 
       let transcriptToUse = cachedTranscript || transcriptCacheRef.current.get(url) || '';
@@ -164,7 +316,7 @@ export default function ChatAI() {
       // Now ask Gemini using cached transcript
       const fd = new FormData();
       fd.append('transcript', transcriptToUse);
-      fd.append('prompt', prompt);
+      fd.append('prompt', userPrompt);
 
       const res = await fetch('/api/ai/summarize', { method: 'POST', body: fd });
       const data = await res.json();
@@ -194,20 +346,49 @@ export default function ChatAI() {
       </div>
 
       {/* Features */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm">
-          <Image src="/assets/icons/summarize.svg" alt="Summarize Icon" width={32} height={32} />
-          <p className="text-sm mt-2">Summarize lectures<br />via AI chatbot</p>
+      {showFeatures && (
+        <div className="flex gap-4 mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              const p = 'Summarize this lecture concisely with bullet points.';
+              setPrompt(p);
+              setShowFeatures(false);
+              onSubmit(p);
+            }}
+            className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm hover:shadow cursor-pointer"
+          >
+            <Image src="/assets/icons/summarize.svg" alt="Summarize Icon" width={32} height={32} />
+            <p className="text-sm mt-2">Summarize lectures<br />via AI chatbot</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const p = 'Answer questions about this lecture. Provide clear, concise explanations.';
+              setPrompt(p);
+              setShowFeatures(false);
+              onSubmit(p);
+            }}
+            className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm hover:shadow cursor-pointer"
+          >
+            <Image src="/assets/icons/chat-ai.svg" alt="chat ai Icon" width={32} height={32} />
+            <p className="text-sm mt-2">Answer lecture<br />questions via AI chatbot</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const p = 'Create quality learning content from this lecture (key points, definitions, and examples).';
+              setPrompt(p);
+              setShowFeatures(false);
+              onSubmit(p);
+            }}
+            className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm hover:shadow cursor-pointer"
+          >
+            <Image src="/assets/icons/content.svg" alt="Content Icon" width={32} height={32} />
+            <p className="text-sm mt-2">Create quality content<br />via AI chatbot</p>
+          </button>
         </div>
-        <div className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm">
-          <Image src="/assets/icons/chat-ai.svg" alt="chat ai Icon" width={32} height={32} />
-          <p className="text-sm mt-2">Answer lecture<br />questions via AI chatbot</p>
-        </div>
-        <div className="flex flex-col items-center bg-[#F7F8FA] rounded-xl p-4 w-1/3 text-center shadow-sm">
-          <Image src="/assets/icons/content.svg" alt="Content Icon" width={32} height={32} />
-          <p className="text-sm mt-2">Create quality content<br />via AI chatbot</p>
-        </div>
-      </div>
+      )}
 
       {/* Chat window */}
       <div className="text-center text-xs text-gray-400 mb-4">{audioUrl ? 'Video source detected' : 'No public (http/https) video detected'}</div>
@@ -221,7 +402,11 @@ export default function ChatAI() {
                 : 'self-start bg-[#EEF0FF] text-[#0D0D0D] px-4 py-2 rounded-2xl max-w-[80%] text-sm'
             }
           >
-            {m.content}
+            {m.role === 'assistant' ? (
+              <AnswerRenderer text={m.content} />
+            ) : (
+              m.content
+            )}
           </div>
         ))}
         {loading && (
@@ -249,9 +434,15 @@ export default function ChatAI() {
             }
           }}
         />
-        <button onClick={onSubmit} disabled={!canSend} className="disabled:opacity-50">
+        <button
+          type="button"
+          onClick={handleSendClick}
+          disabled={!canSend}
+          className="disabled:opacity-50"
+        >
           <Image src="/assets/icons/send.svg" alt="Send" width={30} height={30} />
         </button>
+
       </div>
 
       {/* Footnote about blob urls

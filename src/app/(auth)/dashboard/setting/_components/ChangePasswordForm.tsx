@@ -14,21 +14,13 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ register, error
     <section>
       <h2 className="text-xl font-bold text-gray-800">Change Password</h2>
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-        {/* Field for Old Password */}
-        <FormField
-          label="Old Password"
-          id="oldPassword"
-          type="password"
-          placeholder="Enter current password"
-          {...register('oldPassword')}
-          error={errors.oldPassword?.message}
-        />
         {/* Field for New Password */}
         <FormField
           label="New Password"
           id="newPassword"
           type="password"
-          placeholder="Enter new password"
+          placeholder="new password"
+          autoComplete="new-password"
           {...register('newPassword')}
           error={errors.newPassword?.message}
         />
@@ -37,7 +29,8 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ register, error
           label="Re-Type New password"
           id="retypePassword"
           type="password"
-          placeholder="Re-enter new password"
+          placeholder="retype new password"
+          autoComplete="new-password"
           {...register('retypePassword')}
           error={errors.retypePassword?.message}
         />

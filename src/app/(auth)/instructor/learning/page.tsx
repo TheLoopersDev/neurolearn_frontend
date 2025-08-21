@@ -6,6 +6,8 @@ import LearningCard from './_components/LearningCard';
 import Loading from '@/components/common/Loading';
 import SearchCourse from '@/components/dashboard/SearchCourse';
 import { CommonPagination } from '@/components/common/ui';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -14,6 +16,24 @@ const s = (v: any) => (v == null ? '' : String(v));
 const sa = (v: any) => (Array.isArray(v) ? v.map(s).join(' ') : s(v)); // array → "a b c", non-array → string
 
 export default function LearningPage() {
+    const router = useRouter();
+    const { user } = useSelector((state: any) => state.auth);
+    const role = user?.role;
+    const [ready, setReady] = useState(false);
+
+    // Mark as client-ready to avoid hydration flicker
+    useEffect(() => setReady(true), []);
+
+    // Redirect when not instructor
+    useEffect(() => {
+        if (!ready) return;
+        if (role === undefined) return;
+        if (role !== 'instructor') {
+         router.replace('/'); // send non-instructor to home
+        }
+    }, [ready, role, router]);
+
+
     const { data: courseData, isLoading } = useGetAllPurchasedCoursesQuery();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +71,8 @@ export default function LearningPage() {
     const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
+    // While checking/redirecting, render nothing (or your <Loading/>)
+    if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
     return (
         <div className="min-h-screen space-y-6">
             {/* Top: Search always visible */}

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { skipToken } from '@reduxjs/toolkit/query';
@@ -17,11 +17,28 @@ import {
   useGetCourseStatsQuery,
   useGetStudentStatsQuery,
 } from '@/lib/redux/features/course/courseApi';
+import Loading from '@/components/common/Loading';
 
 export default function InstructorDashboard() {
   const { user } = useSelector((state: any) => state.auth);
   const router = useRouter();
 
+    const role = user?.role;
+    const [ready, setReady] = useState(false);
+  
+    // Mark as client-ready to avoid hydration flicker
+    useEffect(() => setReady(true), []);
+  
+    // Redirect when not instructor
+    useEffect(() => {
+      if (!ready) return;
+      if (role === undefined) return;
+      if (role !== 'instructor') {
+       router.replace('/'); // send non-instructor to home
+      }
+    }, [ready, role, router]);
+  
+    
   // ====== Query data ======
   const { data: latestCourseData, isLoading: isLoadingCourse } = useGetLatestCourseQuery(
     user?._id ?? skipToken
@@ -83,7 +100,8 @@ export default function InstructorDashboard() {
       height: 50,
     },
   ];
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="flex h-full">
       <div className="w-full overflow-y-auto">

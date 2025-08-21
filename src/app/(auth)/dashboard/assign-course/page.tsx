@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/ui/Button2';
 import SearchCourse from '@/components/dashboard/SearchCourse';
 import { CommonPagination } from '@/components/common/ui';
+import { useSelector } from 'react-redux';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -18,6 +19,21 @@ const sa = (v: any) => (Array.isArray(v) ? v.map(s).join(' ') : s(v)); // array 
 export default function LearningPage() {
   const { data: courseData, isLoading } = useGetAllAssignedCoursesQuery();
   const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.businessInfo?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not business
+  useEffect(() => {
+    if (!ready) return;
+    if (!role) return;
+    if (!['employee', 'manager', 'admin'].includes(role)) {
+      router.replace('/'); // send non-business to home
+    }
+  }, [ready, role, router]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +71,9 @@ export default function LearningPage() {
   const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'employee' || 'manager' || 'admin')
+    return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
     <div className="min-h-screen space-y-6">

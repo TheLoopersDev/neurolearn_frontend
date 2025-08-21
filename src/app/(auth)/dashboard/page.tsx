@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -18,6 +18,21 @@ export default function UserDashboard() {
 
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not user
+  useEffect(() => {
+    if (!ready) return;
+    if (role === undefined) return;
+    if (role !== 'user') {
+      router.replace('/'); // send non-user to home
+    }
+  }, [ready, role, router]);
+
 
   // Redirect admin to course requests page
   useEffect(() => {
@@ -128,9 +143,11 @@ export default function UserDashboard() {
   if (user?.role === 'admin') {
     return <Loading message="Redirecting..." className="min-h-screen" />;
   }
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'user') return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-x-hidden">
       <div className="w-full overflow-y-auto">
         <div className="rounded-2xl overflow-hidden w-full">
           <Image
@@ -156,8 +173,8 @@ export default function UserDashboard() {
             isInstructor={!true} 
           />
 
-          <div className="flex gap-6">
-            <div className="w-[50%]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="min-w-0">
               <div className="bg-white rounded-2xl p-4 w-full h-full flex flex-col">
                 {isLoading ? (
                   <Loading message="Loading courses..." size="sm" className="min-h-[200px]" />
@@ -170,10 +187,11 @@ export default function UserDashboard() {
                 )}
               </div>
             </div>
-            <div className="w-[50%]">
+            <div className="min-w-0">
               <UpcomingExam items={data?.upcomingExams || []} />
             </div>
           </div>
+
         </div>
       </div>
     </div>

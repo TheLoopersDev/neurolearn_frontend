@@ -335,15 +335,26 @@ const MessagePage: React.FC = () => {
         />
       ) : (
         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
+            {usersLoading ? (
             <Loading
-              message={usersLoading ? 'Loading users...' : 'Loading chat...'}
+                message="Loading users..."
               size="sm"
               className="min-h-[200px]"
             />
-            {retryCount > 0 && (
-              <p className="text-xs text-gray-300 mt-2">
-                Retrying... ({retryCount}/3)
-              </p>
+            ) : chatRooms.length === 0 ? (
+              <div className="text-center p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-1">No conversations yet</h3>
+                <p className="text-sm text-gray-500">Start a new chat to begin messaging</p>
+              </div>
+            ) : (
+              <Loading
+                message="Loading chat..."
+                size="sm"
+                className="min-h-[200px]"
+              />
+            )}
+            {retryCount > 0 && usersLoading && (
+              <p className="text-xs text-gray-300 mt-2">Retrying... ({retryCount}/3)</p>
             )}
         </div>
       )}
