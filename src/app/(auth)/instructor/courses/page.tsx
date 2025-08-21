@@ -6,6 +6,7 @@ import CourseCardGrid from '@/app/(auth)/instructor/courses/create-course/_compo
 import Button from '@/components/dashboard/Button';
 import SearchCourse from '@/components/dashboard/SearchCourse';
 import { useSelector } from 'react-redux';
+import Loading from '@/components/common/Loading';
 
 export default function CoursesPage() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +21,7 @@ export default function CoursesPage() {
     // Redirect when not instructor
     useEffect(() => {
         if (!ready) return;
+        if (role === undefined) return;
         if (role !== 'instructor') {
             router.replace('/'); // send non-instructor to home
         }
@@ -35,7 +37,7 @@ export default function CoursesPage() {
     }, []);
 
     // While checking/redirecting, render nothing (or your <Loading/>)
-    if (!ready || role !== 'instructor') return null;
+    if (!ready || role !== 'instructor') return <Loading message="Redirecting..." className="min-h-screen" />;
 
     return (
         <div className="w-full">

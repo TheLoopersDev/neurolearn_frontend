@@ -55,7 +55,7 @@ const ReviewInstructorPage = () => {
   useEffect(() => {
     if (!ready) return;
     if (role !== 'admin') {
-      router.replace('/'); // send non-admin to home
+      // router.replace('/'); // send non-admin to home
     }
   }, [ready, role, router]);
 
@@ -190,7 +190,7 @@ const ReviewInstructorPage = () => {
   };
 
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'admin') return null;
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
     <div className="min-h-screen">

@@ -167,6 +167,7 @@ const CourseManagementSystem: React.FC = () => {
   // Redirect when not admin
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'admin') {
       router.replace('/'); // send non-admin to home
     }
@@ -345,7 +346,7 @@ const CourseManagementSystem: React.FC = () => {
     );
   };
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'instructor') return null;
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
   if (isLoading) return <Loading message="Loading courses..." className="min-h-screen" />;
   if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading courses.</div>;
 

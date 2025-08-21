@@ -1,11 +1,7 @@
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 
-type SocialLoginProps = {
-  showFacebook?: boolean;
-};
-
-const SocialLogin = ({ showFacebook = true }: SocialLoginProps) => (
+const SocialLogin = () => (
   <div className="flex justify-center gap-4 mt-2">
     <button className="bg-white p-3 rounded-full hover:bg-gray-200 cursor-pointer">
       <Image
@@ -16,11 +12,6 @@ const SocialLogin = ({ showFacebook = true }: SocialLoginProps) => (
         onClick={() => signIn('google')}
       />
     </button>
-    {showFacebook && (
-      <button className="bg-white p-3 rounded-full hover:bg-gray-200 cursor-pointer">
-        <Image src="/assets/home/facebook.svg" alt="Facebook" width={18} height={18} />
-      </button>
-    )}
   </div>
 );
 export default SocialLogin;

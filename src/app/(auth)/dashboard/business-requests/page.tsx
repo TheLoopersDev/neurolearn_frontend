@@ -199,6 +199,7 @@ const BusinessRequestsPage = () => {
   // Redirect when not admin
   useEffect(() => {
     if (!ready) return;
+    if (role === undefined) return;
     if (role !== 'admin') {
       router.replace('/'); // send non-admin to home
     }
@@ -334,7 +335,7 @@ const BusinessRequestsPage = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'admin') return null;
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
