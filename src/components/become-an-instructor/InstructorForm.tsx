@@ -140,7 +140,7 @@ export default function InstructorForm() {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className="max-w-full mx-auto  p-10 text-sm">
+            <div className="max-w-full mx-auto  py-10 text-sm">
                 <h2 className="text-2xl font-semibold text-black">Instructor Application Form</h2>
                 <p className="text-gray-500 py-4">Complete the information below to submit your instructor profile.</p>
                 <div className='text-black'>

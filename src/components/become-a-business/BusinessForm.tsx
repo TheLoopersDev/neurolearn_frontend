@@ -138,7 +138,7 @@ export default function BusinessForm() {
     };
 
     return (
-        <div className="max-w-full mx-auto  p-10 text-sm">
+        <div className="max-w-full mx-auto  py-10 text-sm">
             <h2 className="text-2xl font-semibold text-black">Company Registration Form</h2>
             <p className="text-gray-500 py-4">Please provide your company details for verification and approval.</p>
             {/* Instructor Info */}
@@ -408,7 +408,7 @@ export default function BusinessForm() {
                         className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50"
                         disabled={!agree || loading}
                     >
-                        {loading ? 'Đang gửi...' : 'Submit'}
+                        {loading ? 'Submitting...' : 'Submit'}
                     </button>
                 </div>
             </form>

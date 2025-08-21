@@ -198,7 +198,7 @@ const Header: React.FC = () => {
       variants={headerVariants}
       style={{ isolation: 'isolate' }}
     >
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 flex justify-between items-center relative">
+      <div className="container mx-auto flex justify-between items-center relative">
         {/* Left: Logo + Explore */}
         <motion.div
           className="flex items-center gap-3 sm:gap-6 md:gap-[24px]"
