@@ -72,7 +72,7 @@ export default function LearningPage() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'employee' || 'manager' || 'admin')
+  if (!ready || !['employee', 'manager', 'admin'].includes(role))
     return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
