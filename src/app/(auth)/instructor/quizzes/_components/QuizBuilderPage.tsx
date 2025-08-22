@@ -65,7 +65,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
   const [currentQuizCreatedAt, setCurrentQuizCreatedAt] = useState<string | undefined>(undefined);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [aiBusy, setAiBusy] = useState(false);
+  const [, setAiBusy] = useState(false);
 
   const {
     data: fetchedQuiz,
@@ -468,7 +468,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
         onSaveQuiz={handleSaveQuiz}
         isEditing={!!currentQuizIdInternal}
         onCreateWithAI={() => setAiModalOpen(true)}
-        aiBusy={aiBusy}
+        // aiBusy={aiBusy}
       />
 
       {/* Quiz Settings Section */}
@@ -617,7 +617,7 @@ const QuizBuilderPage: React.FC<QuizBuilderPageProps> = ({ params }) => {
           open={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
           onConfirm={handleGenerateFromAI}
-          isBusy={aiBusy}
+          // isBusy={aiBusy}
           defaultExamTitle={quizName}
           defaultTopic={quizCategory}
         />

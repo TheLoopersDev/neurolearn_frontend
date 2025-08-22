@@ -7,14 +7,14 @@ interface QuizBuilderHeaderProps {
   onSaveQuiz: () => void; // Đổi tên từ onCreateQuiz cho rõ ràng hơn
   isEditing: boolean; // Để biết nút nên là "Create" hay "Update"
   onCreateWithAI?: () => void; // Tùy chọn
-  aiBusy?: boolean;
+  // aiBusy?: boolean;
 }
 
 const QuizBuilderHeader: React.FC<QuizBuilderHeaderProps> = ({
   onSaveQuiz,
   isEditing,
   onCreateWithAI,
-  aiBusy,
+  // aiBusy,
 }) => {
   return (
     <header className="p-3 sm:p-4 flex items-center justify-between flex-shrink-0 z-10">
