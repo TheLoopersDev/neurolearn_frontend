@@ -47,6 +47,7 @@ const ReviewCoursePage: React.FC = () => {
     const { user } = useSelector((state: any) => state.auth);
     const role = user?.role;
     const [ready, setReady] = useState(false);
+    const didFetch = React.useRef(false);
 
     // Mark as client-ready to avoid hydration flicker
     useEffect(() => setReady(true), []);
@@ -63,29 +64,31 @@ const ReviewCoursePage: React.FC = () => {
 
     // Fetch via the same API used by CoursePage
     React.useEffect(() => {
-        const fetchCourse = async () => {
-            if (!courseId) return;
+        if (!courseId || didFetch.current) return; // ✅ chặn lần 2 ở StrictMode
+        didFetch.current = true;
+
+        (async () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/review/${courseId}`,
-                    { credentials: 'include', cache: 'no-store' }
-                );
-                const data = await res.json();
-                if (data?.success && data?.course) {
-                    setCourse(data.course);
-                } else {
-                    setError('Không thể tải dữ liệu khóa học.');
-                }
-            } catch (e) {
-                console.error(e);
-                setError('Không thể tải dữ liệu khóa học.');
+                const url = `${process.env.NEXT_PUBLIC_SERVER_URI}/courses/review/${encodeURIComponent(String(courseId))}`;
+                const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
+                const json = await res.json();
+
+                const payload =
+                    json?.course ??
+                    json?.courses ??
+                    json?.data?.course ??
+                    (typeof json?.data === 'object' ? json.data : null);
+
+                if (res.ok && payload) setCourse(payload);
+                else setError(json?.message || json?.error || `HTTP ${res.status}`);
+            } catch (e: any) {
+                setError(e?.message || 'Không thể tải dữ liệu khóa học.');
             } finally {
                 setLoading(false);
             }
-        };
-        fetchCourse();
+        })();
     }, [courseId]);
 
     // --- Category name (API returns ID) ---
