@@ -48,19 +48,22 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
         {questions.map(q => (
           <div key={q.id} className="group relative">
             <button
-              type="button" 
               onClick={() => onSelectQuestion(q.id)}
               className={`w-full flex items-start p-3 rounded-lg text-left transition-colors duration-150
-        ${selectedQuestionId === q.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'}`}
+                ${selectedQuestionId === q.id
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'hover:bg-gray-50 text-gray-700'
+                }`}
             >
               <span
                 className={`mr-2.5 pt-0.5 text-xs font-semibold ${selectedQuestionId === q.id ? 'text-blue-600' : 'text-gray-400'}`}
               >
                 {q.number}.
               </span>
-
               <div className="flex-grow min-w-0">
-                <p className={`text-sm font-medium truncate ${selectedQuestionId === q.id ? 'text-blue-700' : 'text-gray-800'}`}>
+                <p
+                  className={`text-sm font-medium truncate ${selectedQuestionId === q.id ? 'text-blue-700' : 'text-gray-800'}`}
+                >
                   {q.textPreview}
                 </p>
                 <div className="flex items-center mt-1 text-xs text-gray-500">
@@ -68,30 +71,22 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
                   <span className="capitalize truncate">{q.type.replace('-', ' ')}</span>
                 </div>
               </div>
-
-              {/* 🔧 ĐỔI button THÀNH span, chặn nổi bọt để không kích hoạt nút ngoài */}
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="More options"
-                className="ml-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); /* TODO: mở menu options ở đây */ }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    /* TODO: mở menu options ở đây */
-                  }
-                }}
+              <button
+                className="ml-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                title="More options"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                 </svg>
-              </span>
+              </button>
             </button>
           </div>
         ))}
-
         {questions.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-4">
             No questions yet. Click &quot;+&quot; to add.

@@ -36,9 +36,15 @@ export default function ClientLayout({ children }: { readonly children: React.Re
   const didBridge = useRef(false);
 
   useEffect(() => {
-    if (status !== 'authenticated') {
+    // Only clear auth when explicitly unauthenticated. Do not clear during 'loading'.
+    if (status === 'unauthenticated') {
       dispatch(setAuthState({ token: null, user: null, isAuthenticated: false }));
       didBridge.current = false;
+      return;
+    }
+
+    if (status !== 'authenticated') {
+      // status === 'loading' → keep current Redux auth to prevent flicker
       return;
     }
 
@@ -132,7 +138,7 @@ export default function ClientLayout({ children }: { readonly children: React.Re
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="p-6"
+                      className=""
                     >
                       <Loading />
                     </m.div>

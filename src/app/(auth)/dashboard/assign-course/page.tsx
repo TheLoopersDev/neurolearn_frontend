@@ -29,12 +29,11 @@ export default function LearningPage() {
   // Redirect when not business
   useEffect(() => {
     if (!ready) return;
-    if (role === undefined) return;
-    if (role !== 'employee' && role !== 'manager' && role !== 'admin') {
+    if (!role) return;
+    if (!['employee', 'manager', 'admin'].includes(role)) {
       router.replace('/'); // send non-business to home
     }
   }, [ready, role, router]);
-
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,7 +72,8 @@ export default function LearningPage() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || (role !== 'employee' && role !== 'manager' && role !== 'admin')) return <Loading message="Redirecting..." className="min-h-screen" />;
+  if (!ready || !['employee', 'manager', 'admin'].includes(role))
+    return <Loading message="Redirecting..." className="min-h-screen" />;
 
   return (
     <div className="min-h-screen space-y-6">

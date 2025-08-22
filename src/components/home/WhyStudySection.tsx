@@ -147,7 +147,7 @@ const WhyStudySection = () => {
 
   return (
     <section className="bg-gray-50 py-20">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <AnimatedSection variants={fadeIn}>
           <h2 className="text-3xl md:text-4xl text-[#0D0D0D] mb-12">
             Why do you study on Academix ?

@@ -33,7 +33,11 @@ interface WithdrawResponse {
   };
 }
 
-export const TransactionHistory: React.FC = () => {
+interface TransactionHistoryProps {
+  refreshKey?: number;
+}
+
+export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshKey }) => {
   const [withdraws, setWithdraws] = useState<WithdrawData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +48,13 @@ export const TransactionHistory: React.FC = () => {
 
   useEffect(() => {
     fetchWithdrawHistory();
-  }, [currentPage, statusFilter]);
+  }, [currentPage, statusFilter, refreshKey]);
+
+  useEffect(() => {
+    if (refreshKey !== undefined) {
+      setCurrentPage(1);
+    }
+  }, [refreshKey]);
 
   const fetchWithdrawHistory = async () => {
     try {

@@ -11,7 +11,7 @@ import Button from '@/components/common/ui/Button';
 
 function BecomeInstructorBusiness() {
     return (
-        <section className={`${layoutStyles.container} mb-20 md:mb-[140px] px-4 sm:px-6`}>
+        <section className={`${layoutStyles.container} mb-20 md:mb-[140px]`}>
             <div className='bg-blue-200 text-black rounded-xl'>
                 <div className="w-full">
                     <div className="flex flex-col md:flex-row gap-6 md:gap-[60px] bg-accent-100 pt-8 md:pt-[71px] pr-4 md:pr-[10px] pb-8 md:pb-[76px] pl-6 md:pl-[80px] relative rounded-xl overflow-hidden">
