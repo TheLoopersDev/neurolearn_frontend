@@ -395,7 +395,7 @@ export default function BusinessForm() {
                 <div className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" id="agree" checked={agree} onChange={() => setAgree(!agree)} />
                     <label htmlFor="agree" className="text-sm">
-                        I have read and agree to the <span className="text-indigo-600 underline">Terms and Privacy Policy</span>.
+                        I have read and agree to the <a href="https://www.termsfeed.com/live/adbfe871-bed3-4318-910d-d4062b3769fc" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline hover:text-indigo-800">Terms and Privacy Policy</a>.
                     </label>
                 </div>
                 {/* Buttons */}
