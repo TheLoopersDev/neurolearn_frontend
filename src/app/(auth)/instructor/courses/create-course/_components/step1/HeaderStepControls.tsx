@@ -69,26 +69,26 @@ export default function HeaderStepControls({
 }: {
     step: 1 | 2;
     onContinue: () => void;
-        onContinueAI?: () => void;
+    onContinueAI?: () => void;
     onBack: () => void;
     onSaveDraft: () => void;
     onPublish: () => void;
     draftSaved: boolean;
-        loading?: {
-            draft?: boolean;
-            continue?: boolean;
-            publish?: boolean;
-            ai?: boolean;
-        };
+    loading?: {
+        draft?: boolean;
+        continue?: boolean;
+        publish?: boolean;
+        ai?: boolean;
+    };
 }) {
     const isStep1 = step === 1;
     const isLoading =
-        (isStep1 && loading?.continue) ||
+        (isStep1 && (loading?.continue || loading?.ai)) ||
         (!isStep1 && loading?.publish) ||
         loading?.draft;
 
     return (
-        <div className="flex flex-col w-full gap-4 mb-6 rounded-2xl p-4">
+        <div className="flex flex-col w-full gap-4 mb-6">
             <div className="flex justify-between items-center mt-2">
                 <div className="text-xs text-gray-500">
                     {step === 1
@@ -146,6 +146,7 @@ export default function HeaderStepControls({
                             "Publish"
                         )}
                     </button>
+
                     {/* Continue with AI (only step 1) */}
                     {isStep1 && onContinueAI && (
                         <button
