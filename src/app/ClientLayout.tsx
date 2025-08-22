@@ -138,7 +138,7 @@ export default function ClientLayout({ children }: { readonly children: React.Re
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="p-6"
+                      className=""
                     >
                       <Loading />
                     </m.div>

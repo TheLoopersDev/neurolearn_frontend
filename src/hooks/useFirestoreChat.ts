@@ -16,6 +16,7 @@ import {
   ChatMessage,
   ChatRoom,
 } from '@/lib/firestore/chat';
+import { useFirebaseAuth } from './useFirebaseAuth';
 
 export const useFirestoreChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -30,6 +31,7 @@ export const useFirestoreChat = () => {
   const messagesSubscriptionRef = useRef<(() => void) | null>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
+  const { user: firebaseUser, signInAnonymouslyIfNeeded } = useFirebaseAuth();
 
   // Helper để lấy userId an toàn
   const getUserId = () => {
@@ -72,16 +74,30 @@ export const useFirestoreChat = () => {
     const userId = getUserId();
     if (!userId) return;
 
-    const unsubscribe = subscribeToChatRooms(userId, rooms => {
-      setChatRooms(rooms);
-    });
+    const setupChatRoomsSubscription = async () => {
+      try {
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
 
-    setUnsubscribeChatRooms(() => unsubscribe);
+        const unsubscribe = subscribeToChatRooms(userId, rooms => {
+          console.log('Chat rooms updated:', rooms.length, 'rooms');
+          setChatRooms(rooms);
+        });
 
-    return () => {
-      if (unsubscribe) unsubscribe();
+        setUnsubscribeChatRooms(() => unsubscribe);
+
+        return () => {
+          if (unsubscribe) unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error setting up chat rooms subscription:', error);
+      }
     };
-  }, [user]);
+
+    setupChatRoomsSubscription();
+  }, [user, firebaseUser]); // Removed signInAnonymouslyIfNeeded from dependencies
 
   // Subscribe to messages when active chat room changes
   useEffect(() => {
@@ -91,30 +107,44 @@ export const useFirestoreChat = () => {
       return;
     }
 
-    // Cleanup previous subscription
-    if (messagesSubscriptionRef.current) {
-      messagesSubscriptionRef.current();
-      messagesSubscriptionRef.current = null;
-    }
+    const setupMessagesSubscription = async () => {
+      try {
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
 
-    // Set current active chat
-    currentActiveChatRef.current = activeChatRoomId;
+        // Cleanup previous subscription
+        if (messagesSubscriptionRef.current) {
+          messagesSubscriptionRef.current();
+          messagesSubscriptionRef.current = null;
+        }
 
-    const unsubscribe = subscribeToMessages(activeChatRoomId, (newMessages) => {
-      // Chỉ update messages nếu vẫn đang ở cùng chat room
-      if (currentActiveChatRef.current === activeChatRoomId) {
-        setMessages(newMessages);
-      }
-    });
+        // Set current active chat
+        currentActiveChatRef.current = activeChatRoomId;
 
-    messagesSubscriptionRef.current = unsubscribe;
+        const unsubscribe = subscribeToMessages(activeChatRoomId, (newMessages) => {
+          // Chỉ update messages nếu vẫn đang ở cùng chat room
+          if (currentActiveChatRef.current === activeChatRoomId) {
+            console.log('Messages updated for chat room:', activeChatRoomId, 'count:', newMessages.length);
+            setMessages(newMessages);
+          }
+        });
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
+        messagesSubscriptionRef.current = unsubscribe;
+
+        return () => {
+          if (unsubscribe) {
+            unsubscribe();
+          }
+        };
+      } catch (error) {
+        console.error('Error setting up messages subscription:', error);
       }
     };
-  }, [activeChatRoomId]);
+
+    setupMessagesSubscription();
+  }, [activeChatRoomId, firebaseUser]); // Removed signInAnonymouslyIfNeeded from dependencies
 
   // Cleanup on unmount
   useEffect(() => {
@@ -145,6 +175,11 @@ export const useFirestoreChat = () => {
         setLoading(true);
         setError(null);
 
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+
         // Lấy thông tin user hiện tại
         const senderInfo = getCurrentUserInfo();
         if (!senderInfo) {
@@ -171,7 +206,7 @@ export const useFirestoreChat = () => {
         setLoading(false);
       }
     },
-    [user, activeChatRoomId, getUserId]
+    [user, activeChatRoomId, firebaseUser] // Removed getUserId and signInAnonymouslyIfNeeded
   );
 
   const sendReactionHandler = useCallback(
@@ -184,13 +219,19 @@ export const useFirestoreChat = () => {
 
       try {
         setError(null);
+        
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await addReaction(activeChatRoomId, messageId, userId, emoji);
       } catch (err) {
         console.error('Error adding reaction:', err);
         setError(err instanceof Error ? err.message : 'Failed to add reaction');
       }
     },
-    [user, activeChatRoomId, getUserId]
+    [user, activeChatRoomId, firebaseUser] // Removed getUserId and signInAnonymouslyIfNeeded
   );
 
   const removeReactionHandler = useCallback(
@@ -203,13 +244,19 @@ export const useFirestoreChat = () => {
 
       try {
         setError(null);
+        
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await removeReaction(activeChatRoomId, messageId, userId, emoji);
       } catch (err) {
         console.error('Error removing reaction:', err);
         setError(err instanceof Error ? err.message : 'Failed to remove reaction');
       }
     },
-    [user, activeChatRoomId, getUserId]
+    [user, activeChatRoomId, firebaseUser] // Removed getUserId and signInAnonymouslyIfNeeded
   );
 
   const joinChat = useCallback(async (chatRoomId: string) => {
@@ -230,12 +277,17 @@ export const useFirestoreChat = () => {
       if (!activeChatRoomId) return;
 
       try {
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await markMessageAsRead(activeChatRoomId, messageId);
       } catch (err) {
         console.error('Failed to mark message as read:', err);
       }
     },
-    [activeChatRoomId]
+    [activeChatRoomId, firebaseUser] // Removed signInAnonymouslyIfNeeded
   );
 
   const deleteMessageHandler = useCallback(
@@ -243,12 +295,17 @@ export const useFirestoreChat = () => {
       if (!activeChatRoomId) return;
 
       try {
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await deleteMessage(activeChatRoomId, messageId);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete message');
       }
     },
-    [activeChatRoomId]
+    [activeChatRoomId, firebaseUser] // Removed signInAnonymouslyIfNeeded
   );
 
   // Group management functions
@@ -261,6 +318,12 @@ export const useFirestoreChat = () => {
 
       try {
         setError(null);
+        
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await updateGroupName(activeChatRoomId, newName);
       } catch (err) {
         console.error('Error updating group name:', err);
@@ -268,7 +331,7 @@ export const useFirestoreChat = () => {
         throw err;
       }
     },
-    [activeChatRoomId]
+    [activeChatRoomId, firebaseUser] // Removed signInAnonymouslyIfNeeded
   );
 
   const addMembersToGroupHandler = useCallback(
@@ -280,14 +343,28 @@ export const useFirestoreChat = () => {
 
       try {
         setError(null);
-        await addMembersToGroup(activeChatRoomId, memberIds);
+        
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        // Chuẩn bị thông tin tên/email để lưu sang participantUsers trong Firestore
+        const memberInfos = memberIds.map(id => {
+          const info = getCurrentUserInfo();
+          if (getUserId() === id && info) {
+            return { _id: id, name: info.name, email: info.email } as any;
+          }
+          return { _id: id } as any;
+        });
+
+        await addMembersToGroup(activeChatRoomId, memberIds as any, memberInfos as any);
       } catch (err) {
         console.error('Error adding members to group:', err);
         setError(err instanceof Error ? err.message : 'Failed to add members to group');
         throw err;
       }
     },
-    [activeChatRoomId]
+    [activeChatRoomId, firebaseUser] // Removed signInAnonymouslyIfNeeded
   );
 
   const removeMemberFromGroupHandler = useCallback(
@@ -299,6 +376,12 @@ export const useFirestoreChat = () => {
 
       try {
         setError(null);
+        
+        // Đảm bảo có mock user cho Firestore
+        if (!firebaseUser) {
+          await signInAnonymouslyIfNeeded();
+        }
+        
         await removeMemberFromGroup(activeChatRoomId, memberId);
       } catch (err) {
         console.error('Error removing member from group:', err);
@@ -306,7 +389,7 @@ export const useFirestoreChat = () => {
         throw err;
       }
     },
-    [activeChatRoomId]
+    [activeChatRoomId, firebaseUser] // Removed signInAnonymouslyIfNeeded
   );
 
   return {

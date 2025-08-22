@@ -6,11 +6,11 @@ interface PublisherCardProps {
   author: {
     name: string;
     email?: string;
+    role?: string;
     avatar?: {
       public_id?: string;
       url?: string;
     };
-    profession?: string;
     description?: string;
     rating?: number;
     reviews?: number;
@@ -24,7 +24,7 @@ export default function PublisherCard({ author, updatedAt }: PublisherCardProps)
   const {
     name,
     avatar,
-    profession,
+    role,
     description,
     rating,
     reviews,
@@ -51,7 +51,7 @@ export default function PublisherCard({ author, updatedAt }: PublisherCardProps)
         </div>
         <div>
           <p className="font-semibold text-gray-800 leading-tight">{name}</p>
-          <p className="text-xs text-gray-500">{profession}</p>
+          <p className="text-xs text-gray-500">{role || 'Instructor'}</p>
         </div>
       </div>
       <p className="text-sm text-gray-700 mb-4 line-clamp-3">{description}</p>

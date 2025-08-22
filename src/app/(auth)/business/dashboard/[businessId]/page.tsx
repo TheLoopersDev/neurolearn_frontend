@@ -9,6 +9,7 @@ import Award from '@/public/assets/business/award.svg';
 import Teacher from '@/public/assets/business/teacher.svg';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Loading from '@/components/common/Loading';
+import { useBusinessGroupChat } from '@/hooks/useBusinessGroupChat';
 
 interface DashboardData {
   totalEmployees: number;
@@ -32,6 +33,9 @@ function DashboardContent({ params }: { params: Promise<{ businessId: string }> 
   const [error, setError] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string>('');
 
+  // Sử dụng hook để tự động tạo business group chat
+  const { error: groupChatError } = useBusinessGroupChat(businessId);
+
   useEffect(() => {
     const getParams = async () => {
       try {
@@ -44,6 +48,13 @@ function DashboardContent({ params }: { params: Promise<{ businessId: string }> 
     };
     getParams();
   }, [params]);
+
+  // Log group chat status
+  useEffect(() => {
+    if (groupChatError) {
+      console.warn('Business group chat error:', groupChatError);
+    }
+  }, [groupChatError]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,12 +86,6 @@ function DashboardContent({ params }: { params: Promise<{ businessId: string }> 
         console.error('Error fetching dashboard data:', err);
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
         setError(errorMessage);
-
-        // Log additional info for debugging
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Business ID:', businessId);
-          console.log('API URL:', process.env.NEXT_PUBLIC_SERVER_URI);
-        }
       } finally {
         setLoading(false);
       }
@@ -152,7 +157,7 @@ function DashboardContent({ params }: { params: Promise<{ businessId: string }> 
   return (
     <div className="min-h-screen bg-secondary">
       <div className="mx-auto max-w-7xl space-y-6">
-        <HeaderBanner />
+        <HeaderBanner businessId={businessId} />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {statData.map(stat => (
