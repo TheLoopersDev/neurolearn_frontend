@@ -1,26 +1,26 @@
 export interface BusinessEmployee {
   _id: string;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   avatar?: string;
-  role: string;
+  role?: string;
 }
 
 export interface BusinessCourse {
   _id: string;
-  name: string;
-  thumbnail: {
+  name?: string;
+  thumbnail?: {
     url: string;
   };
-  price: number;
-  isPublished: boolean;
+  price?: number;
+  isPublished?: boolean;
 }
 
 export interface BusinessCreator {
   _id: string;
-  name: string;
-  email: string;
-  avatar: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
 }
 
 export interface Business {
@@ -31,9 +31,9 @@ export interface Business {
   address: string;
   businessSector: string;
   isVerified: boolean;
-  createdBy: BusinessCreator;
-  employees: BusinessEmployee[];
-  courses: BusinessCourse[];
+  createdBy?: BusinessCreator;
+  employees?: BusinessEmployee[];
+  courses?: BusinessCourse[];
   createdAt: string;
 }
 
