@@ -25,7 +25,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, onViewDetails }) 
           <div className="flex items-center gap-3">
             <div className="relative">
               <img 
-                src={business.createdBy.avatar || '/assets/images/avatar-default.png'} 
+                src={business.createdBy?.avatar || '/assets/images/avatar-default.png'} 
                 alt={business.businessName}
                 className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
               />
@@ -69,11 +69,11 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, onViewDetails }) 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <div className="text-lg font-bold text-gray-900">{business.employees.length}</div>
+            <div className="text-lg font-bold text-gray-900">{business.employees?.length || 0}</div>
             <div className="text-xs text-gray-500">Employees</div>
           </div>
           <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <div className="text-lg font-bold text-gray-900">{business.courses.length}</div>
+            <div className="text-lg font-bold text-gray-900">{business.courses?.length || 0}</div>
             <div className="text-xs text-gray-500">Courses</div>
           </div>
         </div>
