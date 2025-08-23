@@ -67,7 +67,7 @@ export default function CourseDetailsPage() {
             {/* Course Detail */}
             <CourseDetail course={course} />
             {/* Course Content */}
-            <CourseContent sections={course.sections as ISection[]} />
+            <CourseContent sections={course.sections as ISection[]} showVideo={false} />
             {/* Reviews */}
             <Review reviews={course.reviews as IReview[]} />
           </div>

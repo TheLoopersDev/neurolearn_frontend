@@ -26,7 +26,10 @@ const VideoModal: React.FC<{
   };
 
   const modalContent = (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/80 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+    <div
+      className="fixed inset-0 backdrop-blur-sm bg-black/80 flex items-center justify-center z-[9999] p-4"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-xl font-bold text-gray-900">{lessonTitle}</h3>
@@ -63,7 +66,13 @@ const VideoModal: React.FC<{
   return createPortal(modalContent, document.body);
 };
 
-export default function CourseContent({ sections }: { sections: ISection[] }) {
+export default function CourseContent({
+  sections,
+  showVideo = true, // 👈 thêm cờ
+}: {
+  sections: ISection[];
+  showVideo?: boolean;
+}) {
   const [openSections, setOpenSections] = useState<number[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<{
     url: string;
@@ -77,10 +86,11 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
   };
 
   const handleLessonClick = (lesson: ILesson) => {
+    if (!showVideo) return; // 👈 không cho mở modal nếu tắt
     if (lesson.videoUrl?.url) {
       setSelectedVideo({
         url: lesson.videoUrl.url,
-        title: lesson.title
+        title: lesson.title,
       });
     }
   };
@@ -111,7 +121,8 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
                   {totalLessons} lectures
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform ${openSections.includes(sectionKey) ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 transition-transform ${openSections.includes(sectionKey) ? 'rotate-180' : ''
+                    }`}
                 />
               </div>
             </button>
@@ -121,10 +132,18 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
                 {section.lessons?.map((lesson: ILesson, idx: number) => (
                   <div
                     key={idx}
-                    className={`flex justify-between items-center px-4 py-2 hover:bg-gray-50 transition-colors ${lesson.videoUrl?.url ? 'cursor-pointer group' : ''
+                    className={`flex justify-between items-center px-4 py-2 hover:bg-gray-50 transition-colors ${showVideo && lesson.videoUrl?.url
+                      ? 'cursor-pointer group'
+                      : ''
                       }`}
-                    onClick={() => lesson.videoUrl?.url && handleLessonClick(lesson)}
-                    title={lesson.videoUrl?.url ? 'Click to watch video' : 'No video available'}
+                    onClick={() =>
+                      showVideo && lesson.videoUrl?.url && handleLessonClick(lesson)
+                    }
+                    title={
+                      showVideo && lesson.videoUrl?.url
+                        ? 'Click to watch video'
+                        : 'No video available'
+                    }
                   >
                     <div className="flex items-center gap-2 h-[40px]">
                       <span className="p-2">
@@ -147,12 +166,14 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
                           Preview
                         </span>
                       )}
-                      {lesson.videoUrl?.url && (
+                      {lesson.videoUrl?.url && showVideo && (
                         <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded">
                           Video
                         </span>
                       )}
-                      <span>{lesson.videoLength ? `${lesson.videoLength}m` : '--'}</span>
+                      <span>
+                        {lesson.videoLength ? `${lesson.videoLength}m` : '--'}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -163,12 +184,14 @@ export default function CourseContent({ sections }: { sections: ISection[] }) {
       })}
 
       {/* Video Modal */}
-      <VideoModal
-        isOpen={!!selectedVideo}
-        onClose={closeVideoModal}
-        videoUrl={selectedVideo?.url || ''}
-        lessonTitle={selectedVideo?.title || ''}
-      />
+      {showVideo && (
+        <VideoModal
+          isOpen={!!selectedVideo}
+          onClose={closeVideoModal}
+          videoUrl={selectedVideo?.url || ''}
+          lessonTitle={selectedVideo?.title || ''}
+        />
+      )}
     </div>
   );
 }
