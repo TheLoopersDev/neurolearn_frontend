@@ -32,7 +32,7 @@ const traits = [
 export default function PersonalityTestSection() {
   return (
     <section className="py-10">
-      <div className="container mx-auto px-4 flex flex-col gap-[60px]">
+      <div className="container mx-auto flex flex-col gap-[60px]">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
           <h2 className="text-[54px] leading-[64px] text-[#0D0D0D] max-w-[648px] font-normal">

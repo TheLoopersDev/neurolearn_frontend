@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import axios from 'axios';
 import fse from 'fs-extra';
+import mammoth from 'mammoth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -89,6 +90,7 @@ export async function POST(req: NextRequest) {
       const subtitle = String(form.get('subtitle') || '');
       const description = String(form.get('description') || '');
       const overview = String(form.get('overview') || '');
+      const topics = String(form.get('topics') || '');
       const level = String(form.get('level') || '');
       const duration = String(form.get('duration') || '');
 
@@ -99,11 +101,31 @@ export async function POST(req: NextRequest) {
         if (file) {
           const fileName = (file as any)?.name || '';
           const fileType = (file as any)?.type || '';
+          const lowerName = typeof fileName === 'string' ? fileName.toLowerCase() : '';
           const isText = typeof fileType === 'string' && fileType.startsWith('text/');
-          const isTxtExt = typeof fileName === 'string' && fileName.toLowerCase().endsWith('.txt');
+          const isTxtExt = lowerName.endsWith('.txt');
+          const isPdf = fileType === 'application/pdf' || lowerName.endsWith('.pdf');
+          const isDocx =
+            fileType ===
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            lowerName.endsWith('.docx');
+
           if (isText || isTxtExt) {
             const raw = await file.text();
             docText = String(raw).slice(0, 20000);
+          } else if (isPdf) {
+            try {
+              const { default: pdfParse } = await import('pdf-parse');
+              const buf = Buffer.from(await file.arrayBuffer());
+              const parsed = await pdfParse(buf);
+              docText = String(parsed.text || '').slice(0, 20000);
+            } catch {
+              // If pdf-parse fails to load in this environment, ignore PDF content gracefully
+            }
+          } else if (isDocx) {
+            const buf = Buffer.from(await file.arrayBuffer());
+            const result = await mammoth.extractRawText({ buffer: buf });
+            docText = String(result.value || '').slice(0, 20000);
           }
         }
       } catch {
@@ -113,7 +135,7 @@ export async function POST(req: NextRequest) {
       // Force strict JSON output
       const sys = `You are generating a course curriculum. Respond with STRICT JSON only that matches this TypeScript type, nothing else (no prose):\n\ninterface Curriculum { sections: Array<{ title: string; description?: string; lessons: Array<{ title: string; isFree?: boolean }> }> }\n\nConstraints:\n- 4 to 8 sections depending on duration.\n- 2 to 6 lessons per section.\n- Titles should be concise.\n- Use isFree=true for 1-2 intro lessons.\n- Do not include any fields other than those in the interface.\n`;
 
-      const userCtx = `Title: ${title}\nSubtitle: ${subtitle}\nLevel: ${level}\nDuration (minutes): ${duration}\nDescription: ${description}\nOverview: ${overview}${docText ? `\n\nDOCUMENT CONTENT (use as primary source):\n${docText}` : ''}`;
+      const userCtx = `Title: ${title}\nSubtitle: ${subtitle}\nLevel: ${level}\nTopics: ${topics}\nDuration (minutes): ${duration}\nDescription: ${description}\nOverview: ${overview}${docText ? `\n\nDOCUMENT CONTENT (use as primary source):\n${docText}` : ''}`;
 
       const geminiRes = await fetch(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
@@ -191,13 +213,31 @@ export async function POST(req: NextRequest) {
         if (file) {
           const fileName = (file as any)?.name || '';
           const fileType = (file as any)?.type || '';
+          const lowerName = typeof fileName === 'string' ? fileName.toLowerCase() : '';
           const isText = typeof fileType === 'string' && fileType.startsWith('text/');
-          const isTxtExt = typeof fileName === 'string' && fileName.toLowerCase().endsWith('.txt');
+          const isTxtExt = lowerName.endsWith('.txt');
+          const isPdf = fileType === 'application/pdf' || lowerName.endsWith('.pdf');
+          const isDocx =
+            fileType ===
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            lowerName.endsWith('.docx');
+
           if (isText || isTxtExt) {
-            // Next.js File supports .text() in Node runtime
             const raw = await file.text();
-            // Trim excessively long content to keep prompt manageable
             docText = String(raw).slice(0, 12000);
+          } else if (isPdf) {
+            try {
+              const { default: pdfParse } = await import('pdf-parse');
+              const buf = Buffer.from(await file.arrayBuffer());
+              const parsed = await pdfParse(buf);
+              docText = String(parsed.text || '').slice(0, 12000);
+            } catch {
+              // ignore parse failure
+            }
+          } else if (isDocx) {
+            const buf = Buffer.from(await file.arrayBuffer());
+            const result = await mammoth.extractRawText({ buffer: buf });
+            docText = String(result.value || '').slice(0, 12000);
           }
         }
       } catch {

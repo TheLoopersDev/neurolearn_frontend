@@ -9,10 +9,7 @@ import {
     useUpdateCourseMutation,
 } from "@/lib/redux/features/course/courseApi";
 import { useCreateCourseApprovalRequestMutation } from "@/lib/redux/features/request/requestApi";
-import {
-    useGetAllSectionsQuery,
-    useCreateSectionMutation,
-} from "@/lib/redux/features/course/section/sectionApi";
+import { useGetAllSectionsQuery, useCreateSectionMutation } from "@/lib/redux/features/course/section/sectionApi";
 import { useCreateLessonMutation } from "@/lib/redux/features/course/section/lesson/lessonApi";
 import HeaderStepControls from "./HeaderStepControls";
 import { CourseInformationForm } from "./CourseInformationForm";
@@ -38,7 +35,6 @@ interface Props {
     courseId?: string | null;
     isEdit: boolean;
 }
-
 // =========================
 // Small header (benefit-like)
 // =========================
@@ -195,17 +191,14 @@ function CoursePackageEditor({
 export default function CourseCreationForm({ formData, setFormData, courseId: propCourseId }: Props) {
     const router = useRouter();
     const { toast } = useToast();
-
     const [step, setStep] = useState<1 | 2>(1);
     const [courseId, setCourseId] = useState<string | null>(propCourseId || null);
     const [errors, setErrors] = useState<Record<string, string>>({});
-
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isContinuing, setIsContinuing] = useState(false);
     const [isContinuingAI, setIsContinuingAI] = useState(false);
     const [draftSaved, setDraftSaved] = useState(false);
-
     // Optional document to guide AI curriculum generation
     const [curriculumDoc, setCurriculumDoc] = useState<File | null>(null);
     const docInputRef = useRef<HTMLInputElement | null>(null);
@@ -226,7 +219,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     };
     const handleDocClick = () => {
         docInputRef.current?.click();
-    };
+    };    
     const handleDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         setCurriculumDoc(f || null);
@@ -241,7 +234,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const [createCourseApprovalRequest] = useCreateCourseApprovalRequestMutation();
     const [createSection] = useCreateSectionMutation();
     const [createLesson] = useCreateLessonMutation();
-
     // Normalize API errors and show toast
     const showApiError = (err: any, fallback = "Request failed") => {
         let message = fallback;
@@ -355,6 +347,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             thumbnail: typeof data.thumbnail === "object" ? data.thumbnail : undefined,
             demoUrl: data.demoUrl || undefined,
             duration: data.duration || 0,
+            topics: Array.isArray(data.tags) ? data.tags : [],
             benefits: Array.isArray(data.benefits) ? data.benefits : [],
             prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites : [],
             isFree: data.isFree || false,
@@ -379,10 +372,8 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
         if (!getId(data.category)) errs.category = "Category is required";
         if (!getId(data.level)) errs.level = "Skill level is required";
         if (!data.description?.trim()) errs.description = "Description is required";
-        if (data.price == null || data.price < 0)
-            errs.price = "Price is required and must be >= 0";
-        if (!data.duration || data.duration <= 0)
-            errs.duration = "Duration must be greater than 0";
+        if (data.price == null || data.price < 0) errs.price = "Price is required and must be >= 0";
+        if (!data.duration || data.duration <= 0) errs.duration = "Duration must be greater than 0";
 
         const thumbnailUrl =
             typeof data.thumbnail === "string" ? data.thumbnail : data.thumbnail?.url;
@@ -409,7 +400,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             if (detailErrors.length)
                 errs.coursePackage = "Please review package fields.";
         }
-
         setErrors(errs);
         return errs;
     };
@@ -467,7 +457,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const handlePublishCourse = async () => {
         const errs = validateForm();
         if (Object.keys(errs).length > 0) return showValidationToast(errs);
-
         if (!courseId) {
             await handleSaveDraft();
             if (!courseId) return;
@@ -480,13 +469,13 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             const sections = "data" in fetch ? ((fetch as any).data?.data || []) : [];
 
             if (!sections.length || !sections.some((s: any) => s.lessons?.length)) {
-                toast({
-                    title: "Error",
-                    description: "Course needs at least 1 section & lesson.",
-                    variant: "destructive",
-                });
-                return;
-            }
+                    toast({
+                        title: "Error",
+                        description: "Course needs at least 1 section & lesson.",
+                        variant: "destructive",
+                    });
+                    return;
+                }
 
             // Update course before sending request
             const basePayload = { ...getPayload(), isDraft: false } as any;
@@ -529,7 +518,6 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
     const handleContinue = async () => {
         const errs = validateForm();
         if (Object.keys(errs).length > 0) return showValidationToast(errs);
-
         setIsContinuing(true);
         try {
             if (!courseId) {
@@ -547,11 +535,9 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
             setIsContinuing(false);
         }
     };
-
     const handleContinueAI = async () => {
         const errs = validateForm();
         if (Object.keys(errs).length > 0) return showValidationToast(errs);
-
         setIsContinuingAI(true);
         try {
             let id = courseId;
@@ -607,18 +593,18 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                 if (!secId) continue;
                 if (Array.isArray(section.lessons)) {
                     for (const lesson of section.lessons) {
-                        await (createLesson as any)({
-                            courseId: id,
-                            sectionId: secId,
-                            data: {
-                                title: lesson.title || "Lesson",
-                                isFree: lesson.isFree ?? false,
-                                isPublished: false,
-                            },
-                        }).unwrap();
+                            await (createLesson as any)({
+                                courseId: id,
+                                sectionId: secId,
+                                data: {
+                                    title: lesson.title || "Lesson",
+                                    isFree: lesson.isFree ?? false,
+                                    isPublished: false,
+                                },
+                            }).unwrap();
+                        }
                     }
                 }
-            }
 
             toast({
                 title: "AI Curriculum generated",
@@ -649,12 +635,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                         onSaveDraft={handleSaveDraft}
                         onPublish={handlePublishCourse}
                         draftSaved={draftSaved}
-                        loading={{
-                            continue: isContinuing,
-                            draft: isSavingDraft,
-                            publish: isPublishing,
-                            ai: isContinuingAI,
-                        }}
+                        loading={{ continue: isContinuing, draft: isSavingDraft, publish: isPublishing, ai: isContinuingAI }}
                     />
 
                     {step === 1 && (
@@ -673,33 +654,20 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                                     }}
                                 />
                             </div>
-
                             <div className="flex flex-col gap-6 w-2/5 ">
-                                {/* Thumbnail uploader (keeps its own styling) */}
                                 <FileUploadArea
-                                    thumbnail={
-                                        typeof (formData as any).thumbnail === "object"
-                                            ? ((formData as any).thumbnail as any)
-                                            : null
-                                    }
+                                    thumbnail={typeof formData.thumbnail === "object" ? formData.thumbnail : null}
                                     setThumbnail={(val) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            thumbnail: typeof val === "string" ? { url: val } : val,
-                                        }))
+                                        setFormData((prev) => ({ ...prev, thumbnail: typeof val === "string" ? { url: val } : val }))
                                     }
                                 />
-
-                                {/* AI document upload card */}
+                                {/* Optional curriculum source document for AI */}
                                 <div className="w-full bg-white rounded-3xl p-6 shadow-sm">
                                     <div className="font-medium mb-2">Curriculum source document (optional)</div>
-                                    <p className="text-xs text-gray-500 mb-2">
-                                        Provide a TXT / PDF / DOCX to guide AI when generating the course curriculum.
-                                    </p>
+                                    <p className="text-xs text-gray-500 mb-2">Provide a TXT / PDF / DOCX to guide AI when generating the course curriculum.</p>
                                     <button
                                         type="button"
-                                        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer text-left p-0 ${isDocDragOver ? "bg-blue-50" : ""
-                                            }`}
+                                        className={`flex flex-col justify-center items-center rounded-xl border-2 border-blue-600 border-dashed w-full h-64 cursor-pointer text-left p-0 ${isDocDragOver ? 'bg-blue-50' : ''}`}
                                         onDragOver={handleDocDragOver}
                                         onDragLeave={handleDocDragLeave}
                                         onDrop={handleDocDrop}
@@ -717,39 +685,17 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                                             tabIndex={-1}
                                         />
                                         <div className="flex flex-col gap-2 items-center text-center pointer-events-none px-4">
-                                            <svg
-                                                width="40"
-                                                height="40"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path
-                                                    d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-                                                    stroke="#2563eb"
-                                                    strokeWidth="1.5"
-                                                />
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#2563eb" strokeWidth="1.5" />
                                                 <path d="M14 2V8H20" stroke="#2563eb" strokeWidth="1.5" />
-                                                <path
-                                                    d="M8 13H16"
-                                                    stroke="#2563eb"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                />
-                                                <path
-                                                    d="M8 17H12"
-                                                    stroke="#2563eb"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                />
+                                                <path d="M8 13H16" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" />
+                                                <path d="M8 17H12" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" />
                                             </svg>
                                             <p className="text-sm leading-5 text-neutral-500">
                                                 Drag and drop or <span className="font-bold text-blue-600">Choose File</span> (max 10MB)
                                             </p>
                                             {curriculumDoc && (
-                                                <div className="text-xs text-gray-600 truncate w-full">
-                                                    Selected: {curriculumDoc.name}
-                                                </div>
+                                                <div className="text-xs text-gray-600 truncate w-full">Selected: {curriculumDoc.name}</div>
                                             )}
                                         </div>
                                     </button>
@@ -766,6 +712,7 @@ export default function CourseCreationForm({ formData, setFormData, courseId: pr
                             </div>
                         </section>
                     )}
+
 
                     {step === 2 && courseId && (
                         <section className="w-full max-w-4xl mx-auto mt-8">

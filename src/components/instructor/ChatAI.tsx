@@ -261,11 +261,8 @@ export default function ChatAI() {
   }, [startAutoTranscribe]);
 
   const canSend = useMemo(() => !!prompt.trim() && !loading, [prompt, loading]);
-  const handleSendClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    e.preventDefault();
-    if (canSend) onSubmit();
-  };
-  const onSubmit = useCallback(async (overridePrompt?: string) => {
+
+  const onSubmit = useCallback(async (overridePrompt?: unknown) => {
     try {
       setLoading(true);
       setError(null);
@@ -284,7 +281,8 @@ export default function ChatAI() {
         throw new Error('No valid video/audio URL detected (http/https required). If the player uses blob:, please provide a public URL.');
       }
 
-      const userPrompt = (overridePrompt ?? prompt).trim();
+      const raw = typeof overridePrompt === 'string' ? overridePrompt : prompt;
+      const userPrompt = raw.trim();
       if (!userPrompt) throw new Error('Prompt is empty');
       const userMsg: ChatMsg = { role: 'user', content: userPrompt };
       setMessages((prev) => [...prev, userMsg]);
@@ -434,15 +432,9 @@ export default function ChatAI() {
             }
           }}
         />
-        <button
-          type="button"
-          onClick={handleSendClick}
-          disabled={!canSend}
-          className="disabled:opacity-50"
-        >
+        <button onClick={() => onSubmit()} disabled={!canSend} className="disabled:opacity-50">
           <Image src="/assets/icons/send.svg" alt="Send" width={30} height={30} />
         </button>
-
       </div>
 
       {/* Footnote about blob urls

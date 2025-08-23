@@ -44,7 +44,7 @@ export default function CourseDetailsPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-20 py-20">
+    <div className="w-full py-20">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-20">
           {/* LEFT COLUMN */}
@@ -67,7 +67,7 @@ export default function CourseDetailsPage() {
             {/* Course Detail */}
             <CourseDetail course={course} />
             {/* Course Content */}
-            <CourseContent sections={course.sections as ISection[]} />
+            <CourseContent sections={course.sections as ISection[]} showVideo={false} />
             {/* Reviews */}
             <Review reviews={course.reviews as IReview[]} />
           </div>

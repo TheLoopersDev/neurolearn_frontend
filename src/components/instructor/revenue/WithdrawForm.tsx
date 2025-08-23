@@ -9,9 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 interface WithdrawFormProps {
   totalRevenue: string;
   maxWithdrawAmount: number;
+  onSuccess?: () => void;
 }
 
-export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWithdrawAmount }) => {
+export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWithdrawAmount, onSuccess }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [withdraw, { isLoading }] = useWithDrawApiMutation();
@@ -42,6 +43,9 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWit
         toast({ title: 'Withdrawal requested', description: 'Your withdrawal request has been sent.', variant: 'success' });
         setAmount('');
         setReason('');
+        try {
+          onSuccess?.();
+        } catch { }
       } else {
         toast({ title: 'Withdrawal failed', description: result.message || 'Withdrawal failed.', variant: 'destructive' });
       }
