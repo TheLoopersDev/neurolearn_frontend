@@ -15,7 +15,8 @@ import { useSelector } from 'react-redux';
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
 
-  const { data, isLoading, isError } = useGetTotalIncomeQuery();
+  const { data, isLoading, isError, refetch } = useGetTotalIncomeQuery();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const income = useMemo(() => {
     return data?.income ?? 0;
@@ -45,6 +46,13 @@ const WithdrawDashboard: React.FC = () => {
     showModal('addBankCard');
   };
 
+  const handleWithdrawSuccess = async () => {
+    try {
+      await refetch();
+    } catch { }
+    setRefreshKey(prev => prev + 1);
+  };
+
   // Tính toán các giá trị
   const serviceFee = income * 0.1; // 10% của total income
   const currentBalance = income - serviceFee; // Số tiền có thể rút
@@ -71,6 +79,7 @@ const WithdrawDashboard: React.FC = () => {
             <WithdrawForm
               totalRevenue={errorMessage ? errorMessage : formatCurrency(income)}
               maxWithdrawAmount={currentBalance}
+              onSuccess={handleWithdrawSuccess}
             />
 
             <BalanceOverview
@@ -86,7 +95,7 @@ const WithdrawDashboard: React.FC = () => {
           />
         </div>
 
-        <TransactionHistory />
+        <TransactionHistory refreshKey={refreshKey} />
       </main>
     </div>
   );

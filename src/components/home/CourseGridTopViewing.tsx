@@ -31,7 +31,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
     console.error('Error fetching courses:', error);
     return (
       <div className="py-10 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">Error loading courses</div>
         </div>
@@ -42,7 +42,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
   if (courses.length === 0) {
     return (
       <div className="py-10 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">No courses available</div>
         </div>
@@ -52,7 +52,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
 
   return (
     <div className="py-10">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <AnimatedSection variants={fadeIn}>
           <h2 className="text-4xl md:text-4xl text-[#0D0D0D] mb-6">{title}</h2>
         </AnimatedSection>
@@ -73,7 +73,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
             </motion.div>
           ))}
           <div
-            className="text-blue cursor-pointer hover:underline"
+            className="text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white rounded-lg p-2 w-25"
             onClick={() => router.push('/courses?page=1')}
           >
             View More

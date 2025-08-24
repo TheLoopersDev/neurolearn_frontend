@@ -27,7 +27,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
     });
 
     const core = nf.format(value);
-    const suffix = isVND ? " $" : " VNĐ";
+    const suffix = isVND ? " VNĐ" : " $";
     return core + suffix;
   };
 

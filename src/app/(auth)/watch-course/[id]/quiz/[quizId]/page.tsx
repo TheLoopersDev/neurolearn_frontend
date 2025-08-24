@@ -1,21 +1,28 @@
+// app/watch-course/[id]/quiz/[quizId]/page.tsx (ví dụ đường dẫn)
+// Code tiếng Anh, comment tiếng Việt
+
 'use client';
 
 import { useParams } from 'next/navigation';
 import KnowledgeCheckAssignment from '../KnowledgeCheckAssignment';
 
-const QuizPage = () => {
-    const params = useParams();
-    const quizId = params?.quizId as string;
+// 🔒 Container cố định: đồng bộ với KnowledgeCheckAssignment (1319px)
+const PAGE_CONTAINER = 'mx-auto w-full max-w-[1319px] px-4 md:px-6';
+
+export default function QuizPage() {
+    // Lấy quizId an toàn, không làm vỡ type
+    const { quizId } = useParams() as { quizId?: string };
 
     return (
-        <div className="w-full py-20">
-            <div className="flex flex-col lg:flex-row gap-20 px-4 sm:px-6 lg:px-20">
-
-                {quizId ? <KnowledgeCheckAssignment /> : <p>Loading quiz...</p>}
+        <main className="w-full py-10">
+            {/* KHÓA chiều rộng & căn giữa; không dùng flex ở đây để tránh ảnh hưởng layout bên trong */}
+            <div className={PAGE_CONTAINER}>
+                {quizId ? (
+                    <KnowledgeCheckAssignment />
+                ) : (
+                    <p className="text-center text-slate-600">Loading quiz...</p>
+                )}
             </div>
-        </div>
-
+        </main>
     );
-};
-
-export default QuizPage;
+}

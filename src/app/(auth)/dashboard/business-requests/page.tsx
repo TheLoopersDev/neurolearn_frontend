@@ -31,11 +31,20 @@ const BusinessRequestModal: React.FC<{
     }
   };
 
+  // Prepare data similar to "Show more" details in card
+  const businessData = selected?.data || {};
+  const userData = selected?.userId || {};
+  const representativeData = businessData?.representative || {};
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
   const modalContent = (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
-          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || selected?.userId?.name || 'N/A'}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || businessData?.businessName || selected?.userId?.name || 'N/A'}</h3>
         </div>
         {/* Business Request Content */}
         <div className="p-6">
@@ -47,59 +56,153 @@ const BusinessRequestModal: React.FC<{
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
                 <div className="flex items-center gap-4 mb-4">
                   <Image
-                    src={selected?.userId?.avatar?.url || selected?.userId?.avatar || "/assets/images/avatar.png"}
-                    alt={selected?.userId?.name}
+                    src={userData?.avatar?.url || userData?.avatar || "/assets/images/avatar.png"}
+                    alt={userData?.name}
                     width={80}
                     height={80}
                     className="w-20 h-20 rounded-full object-cover"
                   />
                   <div>
-                    <div className="font-semibold text-lg">{selected?.userId?.name || 'N/A'}</div>
-                    <div className="text-gray-500">{selected?.userId?.email || 'N/A'}</div>
-                    <div className="text-sm text-gray-400">User ID: {selected?.userId?._id || 'N/A'}</div>
+                    <div className="font-semibold text-lg">{userData?.name || 'N/A'}</div>
+                    <div className="text-gray-500">{userData?.email || 'N/A'}</div>
+                    <div className="text-sm text-gray-400">User ID: {userData?._id || 'N/A'}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Business Information */}
+              {/* Registration Details (mirrors "Show more") */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h4>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-gray-500 text-sm">Company Name:</span>
-                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?.name || 'N/A'}</div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Registration Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Business Information */}
+                  <div className="space-y-3 text-sm">
+                    <div className="font-semibold text-gray-900 text-base">Business Information</div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Name:</span>
+                      <span>{businessData?.businessName || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Sector:</span>
+                      <span className="capitalize">{businessData?.businessSector || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Email:</span>
+                      <span>{businessData?.email || 'N/A'}</span>
+                    </div>
+                    {businessData?.taxCode && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Tax Code:</span>
+                        <span>{businessData.taxCode}</span>
+                      </div>
+                    )}
+                    {businessData?.address && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Address:</span>
+                        <span>{businessData.address}</span>
+                      </div>
+                    )}
+                    {selected?.businessId && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Business ID:</span>
+                        <span className="font-mono text-xs">{selected.businessId}</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Representative and Account Owner */}
                   <div>
-                    <span className="text-gray-500 text-sm">Business Role:</span>
-                    <div className="font-semibold">{selected?.userId?.businessInfo?.role ? selected.userId.businessInfo.role.charAt(0).toUpperCase() + selected.userId.businessInfo.role.slice(1) : 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Business ID:</span>
-                    <div className="font-semibold">{selected?.userId?.businessInfo?.businessId?._id || 'N/A'}</div>
+                    <div className="space-y-3 text-sm">
+                      <div className="font-semibold text-gray-900 text-base">Representative Details</div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Name:</span>
+                        <span>{representativeData?.name || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Email:</span>
+                        <span>{representativeData?.email || 'N/A'}</span>
+                      </div>
+                      {representativeData?.phone && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Phone:</span>
+                          <span>{representativeData.phone}</span>
+                        </div>
+                      )}
+                      {representativeData?.address && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Address:</span>
+                          <span>{representativeData.address}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h5 className="font-medium text-gray-800 text-sm mb-2">Account Owner</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Name:</span>
+                          <span>{userData?.name || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Email:</span>
+                          <span>{userData?.email || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Role:</span>
+                          <span className="capitalize">{userData?.role || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Verified:</span>
+                          <span className={userData?.isVerified ? 'text-green-600' : 'text-orange-600'}>
+                            {userData?.isVerified ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Social Links */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Facebook:</span>
-                    <span className="font-medium">{selected?.userId?.socialLinks?.facebook || 'Not provided'}</span>
+                {/* Description & Documents */}
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 text-base">Description</h4>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      {businessData?.description || 'No description provided.'}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Twitter:</span>
-                    <span className="font-medium">{selected?.userId?.socialLinks?.twitter || 'Not provided'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">LinkedIn:</span>
-                    <span className="font-medium">{selected?.userId?.socialLinks?.linkedin || 'Not provided'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Instagram:</span>
-                    <span className="font-medium">{selected?.userId?.socialLinks?.instagram || 'Not provided'}</span>
-                  </div>
+                  {businessData?.logo && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-700">Business Logo:</div>
+                      <div className="relative w-24 h-24">
+                        <Image
+                          src={businessData.logo}
+                          alt="Business Logo"
+                          width={96}
+                          height={96}
+                          className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {Array.isArray(businessData?.docImages) && businessData.docImages.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-700">Business Documents:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {businessData.docImages.map((doc: string, index: number) => (
+                          <div key={index} className="relative">
+                            <Image
+                              src={doc}
+                              alt={`Document ${index + 1}`}
+                              width={150}
+                              height={100}
+                              className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                            />
+                            <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                              Doc {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -123,6 +226,29 @@ const BusinessRequestModal: React.FC<{
                     <div className="font-semibold">
                       <StatusBadge status={selected?.status || 'pending'} />
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Summary */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Summary</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Request Type</span>
+                    <span className="font-semibold">{selected?.type?.replace('_', ' ') || 'Business'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Status</span>
+                    <span className={`font-semibold ${selected?.status === 'approved' ? 'text-green-600' : selected?.status === 'rejected' ? 'text-red-600' : 'text-orange-600'}`}>{selected?.status || 'Pending'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Business Sector</span>
+                    <span className="font-semibold capitalize">{businessData?.businessSector || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Created</span>
+                    <span className="font-semibold">{selected?.createdAt ? formatDate(selected.createdAt) : 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -241,6 +367,8 @@ const BusinessRequestsPage = () => {
     try {
       await handleRequest({ type: 'business_verification', requestId, action }).unwrap();
       setCurrentPage(1);
+      // Refresh data to get latest status
+      await refetch();
       toast({
         title: action === 'approve' ? 'Request Approved' : 'Request Rejected',
         description: action === 'approve'

@@ -7,14 +7,14 @@ import { slideUp } from '@/utils/animations';
 
 const VideoSection = () => {
   return (
-    <section className="py-20 px-4">
-      <div className="container mx-auto px-4 flex flex-col gap-9">
+    <section className="py-20">
+      <div className="container mx-auto flex flex-col gap-9">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12">
           {/* Left title */}
           <AnimatedSection variants={slideUp}>
             <motion.h2
-              className="text-4xl mb-2"
+              className="text-4xl mb-2 text-black"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >

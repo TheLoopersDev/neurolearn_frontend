@@ -1,4 +1,6 @@
 // watch-course/[id]/quiz/results/QuestionResultsList.tsx
+// Đồng bộ width & chip với QuestionList để hai bên khớp tuyệt đối
+
 import React from 'react';
 import { QuestionResultItemData } from '@/types/quiz';
 import { Card } from '../ui/Card';
@@ -8,13 +10,18 @@ type ResultWithId = QuestionResultItemData & { __resultId: string };
 interface QuestionResultsListProps {
   results: ResultWithId[];
   onQuestionSelect: (questionId: string) => void;
-  selectedQuestionId: string | null; // giữ nguyên chữ ký props (không dùng đến trong UI này)
+  selectedQuestionId: string | null;
 }
+
+/** Width chuẩn giống QuestionList */
+const SIDE_PANEL_WIDTH =
+  'shrink-0 w-full sm:w-[320px] md:w-[360px] lg:w-[380px] xl:w-[400px]';
 
 export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
   results,
   onQuestionSelect,
 }) => {
+  // Gom số câu, tránh đè số duplicate
   const rawNumbers = results.map((it) =>
     Number((it as any)?.questionData?.questionNumber ?? it?.questionNumber)
   );
@@ -29,16 +36,17 @@ export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
   };
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${SIDE_PANEL_WIDTH}`}>
       <div className="flex flex-col gap-6">
-        <div className="text-2xl font-semibold text-[#3858F8] leading-7">Question list</div>
+        <div className="text-2xl font-semibold leading-7 text-[#3858F8]">Question list</div>
 
-        <div className="grid grid-cols-4 gap-3">
+        {/* 4 cột, chip 56x56 giống QuestionList */}
+        <div className="grid grid-cols-4 place-items-center gap-3">
           {results.map((item, idx) => {
             const itemId = item.__resultId;
             const displayNumber = getDisplayNumber(idx);
 
-            // Màu nền / chữ theo status giống cách bạn đang làm
+            // Màu nền / chữ theo status
             let bg = '';
             let txt = 'text-white';
             switch (item.status) {
@@ -65,10 +73,8 @@ export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
                   if (e.key === 'Enter' || e.key === ' ') onQuestionSelect(itemId);
                 }}
                 className={`
-                  flex items-center justify-center
-                  w-14 h-14 rounded-lg text-xl font-medium leading-6
-                  cursor-pointer transition-all duration-200 ease-in-out
-                  hover:opacity-80
+                  flex h-14 w-14 items-center justify-center rounded-lg text-xl font-medium
+                  transition-all duration-150 ease-in-out hover:opacity-80
                   ${bg} ${txt}
                 `}
               >

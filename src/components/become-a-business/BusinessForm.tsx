@@ -138,7 +138,7 @@ export default function BusinessForm() {
     };
 
     return (
-        <div className="max-w-full mx-auto  p-10 text-sm">
+        <div className="max-w-full mx-auto  py-10 text-sm">
             <h2 className="text-2xl font-semibold text-black">Company Registration Form</h2>
             <p className="text-gray-500 py-4">Please provide your company details for verification and approval.</p>
             {/* Instructor Info */}
@@ -395,7 +395,7 @@ export default function BusinessForm() {
                 <div className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" id="agree" checked={agree} onChange={() => setAgree(!agree)} />
                     <label htmlFor="agree" className="text-sm">
-                        I have read and agree to the <span className="text-indigo-600 underline">Terms and Privacy Policy</span>.
+                        I have read and agree to the <a href="https://www.termsfeed.com/live/adbfe871-bed3-4318-910d-d4062b3769fc" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline hover:text-indigo-800">Terms and Privacy Policy</a>.
                     </label>
                 </div>
                 {/* Buttons */}
@@ -408,7 +408,7 @@ export default function BusinessForm() {
                         className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50"
                         disabled={!agree || loading}
                     >
-                        {loading ? 'Đang gửi...' : 'Submit'}
+                        {loading ? 'Submitting...' : 'Submit'}
                     </button>
                 </div>
             </form>
