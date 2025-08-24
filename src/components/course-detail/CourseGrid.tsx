@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { Course } from '@/types/course';
 import CourseCard from '@/components/common/CourseCard';
@@ -16,12 +16,9 @@ const CourseGrid = ({ title }: CourseGridProps) => {
   const { data, isLoading, error } = useGetTopCoursesQuery();
   const router = useRouter();
 
-
   // Get courses from response
 
-  const courses = data?.success && Array.isArray(data.courses)
-    ? data.courses.slice(0, 3)
-    : [];
+  const courses = data?.success && Array.isArray(data.courses) ? data.courses.slice(0, 3) : [];
 
   if (isLoading) {
     return <Loading title={title} />;
@@ -61,14 +58,10 @@ const CourseGrid = ({ title }: CourseGridProps) => {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: true, margin: '-50px' }}
         >
           {courses.map((course: Course, index: number) => (
-            <motion.div
-              key={course._id}
-              variants={fadeIn}
-              transition={{ delay: index * 0.1 }}
-            >
+            <motion.div key={course._id} variants={fadeIn} transition={{ delay: index * 0.1 }}>
               <CourseCard course={course} />
             </motion.div>
           ))}
