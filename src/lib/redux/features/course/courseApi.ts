@@ -63,7 +63,7 @@ export const courseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Course'],
+  tagTypes: ['Lesson', 'Section', 'Course'],
   endpoints: builder => ({
     getCourses: builder.query<ApiResponse<Course[]>, void>({
       query: () => '/courses',
@@ -140,14 +140,6 @@ export const courseApi = createApi({
 
         return [...baseTags, ...latestTag];
       },
-    }),
-    saveCurriculum: builder.mutation<ApiResponse<null>, { courseId: string; sections: any[] }>({
-      query: ({ courseId, sections }) => ({
-        url: `/courses/${courseId}/sections`,
-        method: 'POST',
-        body: sections,
-      }),
-      invalidatesTags: (result, error, { courseId }) => [{ type: 'Course', id: courseId }],
     }),
     deleteCourse: builder.mutation<ApiResponse<void>, string>({
       query: id => ({
@@ -268,6 +260,18 @@ export const courseApi = createApi({
         };
       },
     }),
+    getAllAssignedCourses: builder.query<ApiResponse<Course[]>, void>({
+      query: () => '/courses/assigned/my-course',
+      providesTags: ['Course'],
+      transformResponse: (response: ApiResponse<Course[]>) => {
+        console.log('Assigned courses response:', response);
+
+        return {
+          success: response.success,
+          data: response.data,
+        };
+      },
+    }),
   }),
 });
 
@@ -279,7 +283,6 @@ export const {
   useGetTopCoursesQuery,
   useGetTopViewingQuery,
   useGetUserCoursesQuery,
-  useSaveCurriculumMutation,
   useCreateCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
@@ -292,4 +295,5 @@ export const {
   usePublishCourseMutation,
   useUnpublishCourseMutation,
   useGetAllPurchasedCoursesQuery,
+  useGetAllAssignedCoursesQuery,
 } = courseApi;

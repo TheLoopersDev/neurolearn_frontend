@@ -44,7 +44,7 @@ export default function CourseDetailsPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-20 py-20">
+    <div className="w-full py-20">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-20">
           {/* LEFT COLUMN */}
@@ -63,14 +63,11 @@ export default function CourseDetailsPage() {
             <h2 className="text-2xl font-bold text-black mb-4">Description</h2>
             <div className="text-gray-700 text-base leading-relaxed space-y-4 mb-6">
               <p>{course?.description || 'No description provided by instructor.'}</p>
-              <a href="#" className="inline-block text-blue-600 font-medium hover:bg-blue-600 hover:text-white rounded p-1">
-                View all &gt;
-              </a>
             </div>
             {/* Course Detail */}
             <CourseDetail course={course} />
             {/* Course Content */}
-            <CourseContent sections={course.sections as ISection[]} />
+            <CourseContent sections={course.sections as ISection[]} showVideo={false} />
             {/* Reviews */}
             <Review reviews={course.reviews as IReview[]} />
           </div>
@@ -79,7 +76,7 @@ export default function CourseDetailsPage() {
             <CourseCard course={course} />
             <Rating rating={course.rating as number} />
             <PublisherCard author={course.publisher} updatedAt={course.updatedAt ? new Date(course.updatedAt) : undefined} />
-            <OverView title={course.name} overview={course.overview} topics={course.tags || []} sectionsCount={course.sections?.length || 0} />
+            <OverView title={course.name} overview={course.overview} />
             {/* Learners are viewing */}
           </div>
         </div>

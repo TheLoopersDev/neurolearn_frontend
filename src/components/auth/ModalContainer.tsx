@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useModal } from '@/context/ModalContext';
 import LoginForm from './LoginForm';
 import SignUpForm from './SignUpForm';
@@ -25,6 +25,8 @@ import CreateQuizModal from '@/app/(auth)/instructor/quizzes/_components/CreateQ
 
 export default function ModalContainer() {
   const { modalType, hideModal, modalData } = useModal();
+  // Busy state dedicated for createQuiz modal flow
+  const [createQuizBusy, setCreateQuizBusy] = useState(false);
   const renderModalContent = () => {
     switch (modalType) {
       case 'login':
@@ -118,10 +120,17 @@ export default function ModalContainer() {
           <CreateQuizModal
             key="createQuiz"
             isOpen
-            onClose={hideModal}
-            onSubmit={(details) => {
-              modalData?.onSubmit?.(details);
-              hideModal();
+            onClose={createQuizBusy ? () => { } : hideModal}
+            isBusy={createQuizBusy}
+            onSubmit={async (details) => {
+              try {
+                setCreateQuizBusy(true);
+                // Support both sync and async submitters
+                await Promise.resolve(modalData?.onSubmit?.(details));
+                hideModal();
+              } finally {
+                setCreateQuizBusy(false);
+              }
             }}
           />
         );
@@ -177,8 +186,8 @@ export default function ModalContainer() {
             }}
             onClick={(e) => e.stopPropagation()}
             className={`relative w-full rounded-3xl flex items-center justify-center min-h-fit ${modalType === 'createChat' || modalType === 'groupSettings'
-                ? 'max-w-md'
-                : 'max-w-5xl'
+              ? 'max-w-md'
+              : 'max-w-5xl'
               }`}
           >
             {renderModalContent()}

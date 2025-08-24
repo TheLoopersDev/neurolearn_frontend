@@ -28,7 +28,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
     console.error('Error fetching courses:', error);
     return (
       <div className="py-10 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">Error loading courses</div>
         </div>
@@ -39,7 +39,7 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
   if (courses.length === 0) {
     return (
       <div className="py-10 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6">{title}</h2>
           <div className="text-center text-gray-500">No courses available</div>
         </div>
@@ -86,7 +86,6 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
               <CourseCard course={course} />
             </motion.div>
           ))}
-          {/* Loại bỏ "View More" khỏi đây vì nó đã được di chuyển lên trên */}
         </motion.div>
       </div>
     </div>

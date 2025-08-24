@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Business } from '@/types/business';
 
 interface BusinessDetailsModalProps {
@@ -20,7 +21,7 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
     });
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -42,7 +43,7 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
           <div className="flex items-start gap-6 mb-8">
             <div className="relative">
               <img 
-                src={business.createdBy.avatar || '/assets/images/avatar-default.png'} 
+                src={business.createdBy?.avatar || '/assets/images/avatar-default.png'} 
                 alt={business.businessName}
                 className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
               />
@@ -93,11 +94,11 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
               <h3 className="text-lg font-semibold text-gray-900">Statistics</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{business.employees.length}</div>
+                  <div className="text-2xl font-bold text-blue-600">{business.employees?.length || 0}</div>
                   <div className="text-sm text-gray-600">Employees</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{business.courses.length}</div>
+                  <div className="text-2xl font-bold text-green-600">{business.courses?.length || 0}</div>
                   <div className="text-sm text-gray-600">Courses</div>
                 </div>
               </div>
@@ -117,19 +118,19 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Created By</h3>
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <img 
-                src={business.createdBy.avatar || '/assets/images/avatar-default.png'} 
-                alt={business.createdBy.name}
+                src={business.createdBy?.avatar || '/assets/images/avatar-default.png'}
+                alt={business.createdBy?.name || 'Unknown'}
                 className="w-12 h-12 rounded-full object-cover"
               />
               <div>
-                <div className="font-medium text-gray-900">{business.createdBy.name}</div>
-                <div className="text-sm text-gray-500">{business.createdBy.email}</div>
+                <div className="font-medium text-gray-900">{business.createdBy?.name || 'Unknown'}</div>
+                <div className="text-sm text-gray-500">{business.createdBy?.email || 'No email'}</div>
               </div>
             </div>
           </div>
 
           {/* Employees */}
-          {business.employees.length > 0 && (
+          {business.employees && business.employees.length > 0 && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Employees ({business.employees.length})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -137,12 +138,12 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
                   <div key={employee._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <img 
                       src={employee.avatar || '/assets/images/avatar-default.png'} 
-                      alt={employee.name}
+                      alt={employee.name || 'Employee'}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <div className="font-medium text-sm text-gray-900">{employee.name}</div>
-                      <div className="text-xs text-gray-500">{employee.role}</div>
+                      <div className="font-medium text-sm text-gray-900">{employee.name || 'Unknown Employee'}</div>
+                      <div className="text-xs text-gray-500">{employee.role || 'No Role'}</div>
                     </div>
                   </div>
                 ))}
@@ -158,21 +159,21 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
           )}
 
           {/* Courses */}
-          {business.courses.length > 0 && (
+          {business.courses && business.courses.length > 0 && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Courses ({business.courses.length})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {business.courses.slice(0, 6).map((course) => (
                   <div key={course._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <img 
-                      src={course.thumbnail.url} 
-                      alt={course.name}
+                      src={course.thumbnail?.url || '/assets/images/avatar-default.png'}
+                      alt={course.name || 'Course'}
                       className="w-full h-24 object-cover"
                     />
                     <div className="p-3">
-                      <h4 className="font-medium text-sm text-gray-900 line-clamp-2">{course.name}</h4>
+                      <h4 className="font-medium text-sm text-gray-900 line-clamp-2">{course.name || 'Unnamed Course'}</h4>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm font-medium text-green-600">${course.price}</span>
+                        <span className="text-sm font-medium text-green-600">${course.price || 0}</span>
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           course.isPublished 
                             ? 'bg-green-100 text-green-800' 
@@ -208,6 +209,9 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ business, i
       </div>
     </div>
   );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
 };
 
 export default BusinessDetailsModal; 

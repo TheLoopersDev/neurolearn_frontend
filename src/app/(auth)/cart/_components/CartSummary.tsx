@@ -9,8 +9,10 @@ import { Dialog } from '@headlessui/react';
 interface CartSummaryProps {
   courses: {
     _id: string;
-    price: number;
-    quantity: number;
+    price?: number;
+    coursePackage?: { package: string; quantity: number; price: number }[];
+    selectedPackageIndex?: number;
+    showPackageSelector?: boolean; // thêm để xác định logic
   }[];
 }
 
@@ -23,16 +25,28 @@ export function CartSummary({ courses }: CartSummaryProps) {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Discount state
   const [discountCode, setDiscountCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
 
-  const subtotal = courses.reduce(
-    (sum, course) => sum + (course.price || 0) * course.quantity,
-    0
-  );
+  // --- Tính subtotal ---
+  const subtotal = courses.reduce((sum, course) => {
+    if (course.showPackageSelector && course.coursePackage?.length) {
+      const selectedIndex = typeof course.selectedPackageIndex === 'number'
+        ? course.selectedPackageIndex
+        : 0;
+
+      const pkg = selectedIndex >= 0 && selectedIndex < course.coursePackage.length
+        ? course.coursePackage[selectedIndex]
+        : null;
+
+      return sum + (pkg?.price || 0);
+    } else {
+      return sum + (course.price || 0);
+    }
+  }, 0);
+
   const totalCost = subtotal - discountAmount;
 
   const handleApplyDiscount = async () => {
@@ -44,24 +58,24 @@ export function CartSummary({ courses }: CartSummaryProps) {
     try {
       setApplying(true);
 
-      const courseIds = courses.map((c) => c._id);
+      const courseIds = courses.map(c => c._id);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URI}/discount/validate`,
         {
           code: discountCode.trim(),
           courseIds,
-          totalAmount: subtotal,
+          orderAmount: subtotal,
         },
         { withCredentials: true }
       );
 
-      if (res.data?.success && res.data.discountAmount > 0) {
-        setDiscountAmount(res.data.discountAmount || 0);
+      if (res.data?.success && res.data?.data?.discountAmount > 0) {
+        setDiscountAmount(res.data.data.discountAmount || 0);
         setAppliedDiscount(discountCode.trim());
         toast({
           variant: 'success',
           title: 'Discount applied!',
-          description: `You saved ${formatVND(res.data.discountAmount)}`,
+          description: `You saved ${formatVND(res.data.data.discountAmount)}`,
         });
       } else {
         setDiscountAmount(0);
@@ -85,11 +99,16 @@ export function CartSummary({ courses }: CartSummaryProps) {
     try {
       setLoading(true);
 
-      const courseIds = courses.map((course) => course._id);
+      const courseIds = courses.map(course => course._id);
       const licenseQuantities: Record<string, number> = {};
 
-      courses.forEach((course) => {
-        licenseQuantities[course._id] = course.quantity;
+      courses.forEach(course => {
+        if (course.showPackageSelector && course.coursePackage?.length) {
+          const pkg = course.coursePackage[course.selectedPackageIndex || 0];
+          licenseQuantities[course._id] = pkg?.quantity || 1;
+        } else {
+          licenseQuantities[course._id] = 1;
+        }
       });
 
       const res = await axios.post(
@@ -136,7 +155,16 @@ export function CartSummary({ courses }: CartSummaryProps) {
       <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-gray-600">
-            Items ({courses.reduce((sum, item) => sum + item.quantity, 0)})
+            Items (
+            {courses.reduce((sum, course) => {
+              if (course.showPackageSelector && course.coursePackage?.length) {
+                const pkg = course.coursePackage[course.selectedPackageIndex || 0];
+                return sum + (pkg?.quantity || 0);
+              } else {
+                return sum + 1;
+              }
+            }, 0)}
+            )
           </p>
           <p className="font-semibold text-gray-900">{formatVND(subtotal)}</p>
         </div>
@@ -148,7 +176,6 @@ export function CartSummary({ courses }: CartSummaryProps) {
         )}
       </div>
 
-      {/* Discount Code Input (style cũ của bạn) */}
       <div className="mt-6 space-y-2">
         <label htmlFor="promo-code" className="font-semibold text-gray-900">
           Discount Code
@@ -159,9 +186,7 @@ export function CartSummary({ courses }: CartSummaryProps) {
             id="promo-code"
             placeholder="Enter your code"
             value={discountCode}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setDiscountCode(e.target.value)
-            }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setDiscountCode(e.target.value)}
             className="w-full rounded-md text-gray-700 border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
           />
           <Button
@@ -175,7 +200,6 @@ export function CartSummary({ courses }: CartSummaryProps) {
         </div>
       </div>
 
-      {/* Total */}
       <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
         <p className="text-lg font-bold text-gray-900">Total Cost</p>
         <p className="text-xl font-bold text-gray-900">{formatVND(totalCost)}</p>

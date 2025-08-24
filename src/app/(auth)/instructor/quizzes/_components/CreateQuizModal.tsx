@@ -9,13 +9,14 @@ type ModalStep = 'initialStep' | 'aiForm';
 export interface CreateQuizModalPanelProps {
   onClose: () => void;
   onSubmit: (details: ManualCreationDetails | AICreationDetails) => void;
+  isBusy?: boolean;
 }
 
 /**
  * Chỉ render phần PANEL (không overlay).
  * Dùng bên trong ModalContainer.
  */
-export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onClose, onSubmit }) => {
+export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onClose, onSubmit, isBusy }) => {
   const [currentStep, setCurrentStep] = useState<ModalStep>('initialStep');
 
   // Bước 1
@@ -52,6 +53,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
   }, [resetForms]);
 
   const handleClose = () => {
+    if (isBusy) return; // prevent closing while busy
     resetForms();
     onClose();
   };
@@ -63,7 +65,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
     }
     if (creationModeSelection === 'manual') {
       onSubmit({ mode: 'manual', examTitle, duration });
-      handleClose();
+      // closing handled by container
     } else {
       setCurrentStep('aiForm');
     }
@@ -86,7 +88,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
       topic: aiTopic,
       questionConfigs: aiQuestionTypes,
     });
-    handleClose();
+    // closing handled by container after async completes
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,10 +117,10 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
   };
 
   const addAiQuestionTypeConfig = () => {
-    if (aiQuestionTypes.length < 3) {
+    if (aiQuestionTypes.length < 5) {
       setAiQuestionTypes([...aiQuestionTypes, { type: 'multiple-choice', count: 1 }]);
     } else {
-      alert('Maximum of 3 question type configurations reached.');
+      alert('Maximum of 5 question type configurations reached.');
     }
   };
 
@@ -143,7 +145,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
             value={examTitle}
             onChange={(e) => setExamTitle(e.target.value)}
             placeholder="Your course title"
-            className="w-full text-gray-700 px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            disabled={isBusy}
+            className="w-full text-gray-700 px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
           />
         </div>
 
@@ -156,7 +159,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
               id="modalDuration"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              className="w-full text-gray-700 appearance-none px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+              disabled={isBusy}
+              className="w-full text-gray-700 appearance-none px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white disabled:bg-gray-100"
             >
               <option value="" disabled>Select timer</option>
               <option value="15 Min">15 Minutes</option>
@@ -170,11 +174,12 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
 
         <div className="grid grid-cols-2 gap-4 mt-8">
           <button
-            onClick={() => setCreationModeSelection('manual')}
+            onClick={() => !isBusy && setCreationModeSelection('manual')}
+            disabled={isBusy}
             className={`p-4 border rounded-xl text-left transition-all duration-200 ${creationModeSelection === 'manual'
               ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-white'
-              }`}
+              } ${isBusy ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <div className="flex items-start justify-between mb-1">
               <div className="mb-4 rounded-md">
@@ -190,11 +195,12 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
           </button>
 
           <button
-            onClick={() => setCreationModeSelection('ai')}
+            onClick={() => !isBusy && setCreationModeSelection('ai')}
+            disabled={isBusy}
             className={`p-4 border rounded-xl text-left transition-all duration-200 ${creationModeSelection === 'ai'
               ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-white'
-              }`}
+              } ${isBusy ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <div className="flex items-start justify-between mb-1">
               <div className="rounded-md mb-4">
@@ -212,10 +218,10 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
       </div>
 
       <div className="mt-8 flex flex-col sm:flex-row gap-3">
-        <button type="button" onClick={handleClose} className="w-full sm:w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <button type="button" onClick={handleClose} disabled={isBusy} className="w-full sm:w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
           Cancel
         </button>
-        <button type="button" onClick={handleInitialStepSubmit} className="w-full sm:w-1/2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+        <button type="button" onClick={handleInitialStepSubmit} disabled={isBusy} className="w-full sm:w-1/2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
           {creationModeSelection === 'manual' ? 'Create Test' : 'Next'}
         </button>
       </div>
@@ -225,7 +231,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
   const renderAiForm = () => (
     <>
       <div className="flex items-center mb-6">
-        <button onClick={() => { setCurrentStep('initialStep'); resetAiFormFields(); }} className="p-1.5 mr-2 text-gray-500 hover:bg-gray-100 rounded-md">
+        <button onClick={() => { if (!isBusy) { setCurrentStep('initialStep'); resetAiFormFields(); } }} className={`p-1.5 mr-2 text-gray-500 rounded-md ${isBusy ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
           <ArrowLeft size={18} />
         </button>
         <h2 className="text-xl font-semibold text-gray-800">Create with AI</h2>
@@ -241,7 +247,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
             value={examTitle}
             onChange={(e) => setExamTitle(e.target.value)}
             placeholder="e.g., Mid-term UI/UX Exam"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            disabled={isBusy}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
           />
         </div>
 
@@ -249,7 +256,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Scan From document <span className="text-gray-400 text-xs">(Optional)</span>
           </label>
-          <label htmlFor="aiScanDoc" className="mt-1 flex justify-center px-4 py-5 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:border-blue-400 bg-gray-50 hover:bg-blue-50 transition-colors">
+          <label htmlFor="aiScanDoc" className={`mt-1 flex justify-center px-4 py-5 border-2 border-gray-300 border-dashed rounded-lg ${isBusy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-blue-400 bg-gray-50 hover:bg-blue-50'} transition-colors`}>
             <div className="text-center">
               <UploadCloud size={28} className="mx-auto text-gray-400" />
               <div className="flex flex-col text-sm text-gray-600 mt-1">
@@ -258,7 +265,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
               </div>
               {!aiScannedFile && <p className="text-xs text-gray-500 mt-0.5">PDF, DOCX, TXT up to 10MB</p>}
             </div>
-            <input id="aiScanDoc" name="aiScanDoc" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" />
+            <input id="aiScanDoc" name="aiScanDoc" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" disabled={isBusy} />
           </label>
           {aiScannedFile && <p className="mt-1 text-xs text-green-600">Selected: {aiScannedFile.name}</p>}
         </div>
@@ -272,7 +279,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
               id="aiDifficultyLevel"
               value={aiDifficultyLevel}
               onChange={(e) => setAiDifficultyLevel(e.target.value)}
-              className="w-full appearance-none px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+              disabled={isBusy}
+              className="w-full appearance-none px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white disabled:bg-gray-100"
             >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
@@ -291,7 +299,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
             value={aiTopic}
             onChange={(e) => setAiTopic(e.target.value)}
             placeholder="e.g., History of Ancient Rome, JavaScript Basics"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            disabled={isBusy}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
           />
         </div>
 
@@ -303,7 +312,8 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
                 <select
                   value={config.type}
                   onChange={(e) => handleAiQuestionTypeChange(index, 'type', e.target.value)}
-                  className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                  disabled={isBusy}
+                  className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white disabled:bg-gray-100"
                 >
                   <option value="multiple-choice">Multiple choice</option>
                   <option value="single-choice">Single choice</option>
@@ -312,11 +322,11 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
               </div>
 
               <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                <button type="button" onClick={() => handleAiQuestionTypeChange(index, 'count', config.count - 1)} className="p-1.5 px-2.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50" disabled={config.count <= 1}>
+                <button type="button" onClick={() => handleAiQuestionTypeChange(index, 'count', config.count - 1)} className="p-1.5 px-2.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50" disabled={config.count <= 1 || isBusy}>
                   <Minus size={14} />
                 </button>
                 <input readOnly value={config.count} className="w-10 text-center border-l border-r border-gray-300 text-sm py-1.5 bg-white" />
-                <button type="button" onClick={() => handleAiQuestionTypeChange(index, 'count', config.count + 1)} className="p-1.5 px-2.5 text-gray-600 hover:bg-gray-100">
+                <button type="button" onClick={() => handleAiQuestionTypeChange(index, 'count', config.count + 1)} className="p-1.5 px-2.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50" disabled={isBusy}>
                   <Plus size={14} />
                 </button>
               </div>
@@ -324,17 +334,27 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
           </div>
         ))}
 
-        <button type="button" onClick={addAiQuestionTypeConfig} className="flex items-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 px-2 rounded-md hover:bg-blue-50">
+        <button type="button" onClick={addAiQuestionTypeConfig} disabled={isBusy} className="flex items-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 px-2 rounded-md hover:bg-blue-50 disabled:opacity-50">
           <Plus size={14} className="mr-1" /> Add type quiz
         </button>
       </div>
 
       <div className="mt-8 flex flex-col sm:flex-row gap-3">
-        <button type="button" onClick={() => setCurrentStep('initialStep')} className="w-full sm:w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <button type="button" onClick={() => !isBusy && setCurrentStep('initialStep')} disabled={isBusy} className="w-full sm:w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
           Back
         </button>
-        <button type="button" onClick={handleAiFormSubmit} className="w-full sm:w-1/2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-          Generate
+        <button type="button" onClick={handleAiFormSubmit} disabled={isBusy} className="w-full sm:w-1/2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          {isBusy ? (
+            <span className="inline-flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+              Generating...
+            </span>
+          ) : (
+            'Generate'
+          )}
         </button>
       </div>
     </>
@@ -342,7 +362,7 @@ export const CreateQuizModalPanel: React.FC<CreateQuizModalPanelProps> = ({ onCl
 
   return (
     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-7 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-      <button onClick={handleClose} className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close modal">
+      <button onClick={handleClose} disabled={isBusy} className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50" aria-label="Close modal">
         <X size={20} />
       </button>
 
@@ -359,12 +379,12 @@ interface CreateQuizModalProps extends CreateQuizModalPanelProps {
   isOpen: boolean;
 }
 
-const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const CreateQuizModal: React.FC<CreateQuizModalProps> = ({ isOpen, onClose, onSubmit, isBusy }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose}>
-      <CreateQuizModalPanel onClose={onClose} onSubmit={onSubmit} />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={isBusy ? undefined : onClose}>
+      <CreateQuizModalPanel onClose={onClose} onSubmit={onSubmit} isBusy={isBusy} />
     </div>
   );
 };

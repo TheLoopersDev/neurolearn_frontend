@@ -1,15 +1,303 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ReviewHeader, ReviewPagination } from '@/components/review-common';
 import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusinessesQuery } from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
 import BusinessCard from '@/components/business/BusinessCard';
 import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
+import BusinessRequestCard from './_components/BusinessRequestCard';
 import { Business } from '@/types/business';
 import Loading from '@/components/common/Loading';
-import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/review-common';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+
+// Business Request Modal Component using createPortal
+const BusinessRequestModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  selected: any;
+  onApprove: (id: string) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}> = ({ isOpen, onClose, selected, onApprove, onReject }) => {
+  if (!isOpen || !selected) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Prepare data similar to "Show more" details in card
+  const businessData = selected?.data || {};
+  const userData = selected?.userId || {};
+  const representativeData = businessData?.representative || {};
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
+  const modalContent = (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || businessData?.businessName || selected?.userId?.name || 'N/A'}</h3>
+        </div>
+        {/* Business Request Content */}
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* LEFT COLUMN */}
+            <div className="w-full lg:w-[70%] space-y-6">
+              {/* User Info */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                <div className="flex items-center gap-4 mb-4">
+                  <Image
+                    src={userData?.avatar?.url || userData?.avatar || "/assets/images/avatar.png"}
+                    alt={userData?.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="font-semibold text-lg">{userData?.name || 'N/A'}</div>
+                    <div className="text-gray-500">{userData?.email || 'N/A'}</div>
+                    <div className="text-sm text-gray-400">User ID: {userData?._id || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Registration Details (mirrors "Show more") */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Registration Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Business Information */}
+                  <div className="space-y-3 text-sm">
+                    <div className="font-semibold text-gray-900 text-base">Business Information</div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Name:</span>
+                      <span>{businessData?.businessName || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Sector:</span>
+                      <span className="capitalize">{businessData?.businessSector || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500">Email:</span>
+                      <span>{businessData?.email || 'N/A'}</span>
+                    </div>
+                    {businessData?.taxCode && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Tax Code:</span>
+                        <span>{businessData.taxCode}</span>
+                      </div>
+                    )}
+                    {businessData?.address && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Address:</span>
+                        <span>{businessData.address}</span>
+                      </div>
+                    )}
+                    {selected?.businessId && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Business ID:</span>
+                        <span className="font-mono text-xs">{selected.businessId}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Representative and Account Owner */}
+                  <div>
+                    <div className="space-y-3 text-sm">
+                      <div className="font-semibold text-gray-900 text-base">Representative Details</div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Name:</span>
+                        <span>{representativeData?.name || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500">Email:</span>
+                        <span>{representativeData?.email || 'N/A'}</span>
+                      </div>
+                      {representativeData?.phone && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Phone:</span>
+                          <span>{representativeData.phone}</span>
+                        </div>
+                      )}
+                      {representativeData?.address && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Address:</span>
+                          <span>{representativeData.address}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h5 className="font-medium text-gray-800 text-sm mb-2">Account Owner</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Name:</span>
+                          <span>{userData?.name || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Email:</span>
+                          <span>{userData?.email || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Role:</span>
+                          <span className="capitalize">{userData?.role || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">Verified:</span>
+                          <span className={userData?.isVerified ? 'text-green-600' : 'text-orange-600'}>
+                            {userData?.isVerified ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description & Documents */}
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 text-base">Description</h4>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      {businessData?.description || 'No description provided.'}
+                    </div>
+                  </div>
+                  {businessData?.logo && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-700">Business Logo:</div>
+                      <div className="relative w-24 h-24">
+                        <Image
+                          src={businessData.logo}
+                          alt="Business Logo"
+                          width={96}
+                          height={96}
+                          className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {Array.isArray(businessData?.docImages) && businessData.docImages.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-700">Business Documents:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {businessData.docImages.map((doc: string, index: number) => (
+                          <div key={index} className="relative">
+                            <Image
+                              src={doc}
+                              alt={`Document ${index + 1}`}
+                              width={150}
+                              height={100}
+                              className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                            />
+                            <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                              Doc {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <div className="w-full lg:w-[30%] space-y-6">
+              {/* Request Details */}
+              <div className="bg-blue-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Type:</span>
+                    <div className="font-semibold text-blue-600">{selected?.type ? selected.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Business Verification'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Request Date:</span>
+                    <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-sm">Status:</span>
+                    <div className="font-semibold">
+                      <StatusBadge status={selected?.status || 'pending'} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Summary */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Summary</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Request Type</span>
+                    <span className="font-semibold">{selected?.type?.replace('_', ' ') || 'Business'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Status</span>
+                    <span className={`font-semibold ${selected?.status === 'approved' ? 'text-green-600' : selected?.status === 'rejected' ? 'text-red-600' : 'text-orange-600'}`}>{selected?.status || 'Pending'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Business Sector</span>
+                    <span className="font-semibold capitalize">{businessData?.businessSector || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Created</span>
+                    <span className="font-semibold">{selected?.createdAt ? formatDate(selected.createdAt) : 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-6 border-t mt-8">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onReject(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Reject
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await onApprove(selected._id || selected.id);
+                  onClose();
+                } catch (err: any) {
+                  // Error handling will be done in parent component
+                }
+              }}
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Use createPortal to render modal outside the parent layout
+  return createPortal(modalContent, document.body);
+};
 
 const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
@@ -26,7 +314,22 @@ const BusinessRequestsPage = () => {
   const [businessDetailsOpen, setBusinessDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
 
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role === undefined) return;
+    if (role !== 'admin') {
+      router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
   // API call for business approval requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
     type: 'business_verification',
@@ -53,10 +356,7 @@ const BusinessRequestsPage = () => {
     }
   }, [searchTerm, activeTab]);
 
-  const handleView = (request: any) => {
-    setSelected(request);
-    setOpen(true);
-  };
+  // removed unused handleView
 
   const handleViewBusinessDetails = (business: Business) => {
     setSelectedBusiness(business);
@@ -67,6 +367,8 @@ const BusinessRequestsPage = () => {
     try {
       await handleRequest({ type: 'business_verification', requestId, action }).unwrap();
       setCurrentPage(1);
+      // Refresh data to get latest status
+      await refetch();
       toast({
         title: action === 'approve' ? 'Request Approved' : 'Request Rejected',
         description: action === 'approve'
@@ -110,7 +412,7 @@ const BusinessRequestsPage = () => {
       }
       return finalPages;
     };
-
+   
     return (
       <div className="flex justify-center items-center gap-2 mt-8">
         <button
@@ -160,10 +462,11 @@ const BusinessRequestsPage = () => {
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
-
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         <ReviewHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -188,234 +491,58 @@ const BusinessRequestsPage = () => {
 
         {activeTab === 'request' ? (
           <>
-            {/* Table Container */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">User</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Company Name</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Status</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
-              </div>
-              {/* Table Body */}
-              <div className="divide-y divide-gray-50">
-                {isRequestLoading ? (
-                  <Loading message="Loading requests..." size="sm" className="py-8" />
-                ) : !requestData?.success || requests.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
+            {/* Business Request Cards Container */}
+            <div className="space-y-6">
+              {isRequestLoading ? (
+                <Loading message="Loading requests..." size="sm" className="py-12" />
+              ) : !requestData?.success || requests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
                   </div>
                 ) : (
                   currentRequests.map((request: any, index: number) => (
-                    <div key={request._id || request.id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                      {/* User */}
-                      <div className="col-span-3 flex items-center gap-3">
-                        <Image
-                          src={request.userId?.avatar || "/assets/images/avatar.png"}
-                          alt="avatar"
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
-                        />
-                        <div>
-                          <div className="font-semibold text-gray-900">{request.userId?.name || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{request.userId?.email || 'N/A'}</div>
-                        </div>
-                      </div>
-                      {/* Company Name */}
-                      <div className="col-span-3 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.userId?.businessInfo?.companyName || 'N/A'}</span>
-                      </div>
-                      {/* Request Date */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A'}</span>
-                      </div>
-                      {/* Status */}
-                      <div className="col-span-1 flex items-center justify-center">
-                        <StatusBadge status={request.status || 'pending'} />
-                      </div>
-                      {/* Action */}
-                      <div className="col-span-3 flex items-center justify-center gap-2">
-                        <button
-                          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                          onClick={() => handleView(request)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-                          onClick={() => handleApproveOrReject(request._id || request.id, 'approve')}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                          onClick={() => handleApproveOrReject(request._id || request.id, 'reject')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <BusinessRequestCard
+                      key={request._id || request.id}
+                      business={request}
+                      index={index}
+                      onPreview={() => {
+                        setSelected(request);
+                        setOpen(true);
+                      }}
+                      onReject={() => handleApproveOrReject(request._id, 'reject')}
+                    />
                   ))
-                )}
-              </div>
+              )}
             </div>
             <PaginationComponent />
-            {/* Business Request Modal */}
-            {open && selected && (
-              <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4">
-                <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <div className="flex justify-between items-center p-6 border-b">
-                    <h3 className="text-2xl font-bold text-gray-900">Business Request Information</h3>
-                    <button
-                      onClick={() => setOpen(false)}
-                      className="text-gray-400 hover:text-gray-600 p-2"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  {/* Business Request Content */}
-                  <div className="p-6">
-                    <div className="flex flex-col lg:flex-row gap-8">
-                      {/* LEFT COLUMN */}
-                      <div className="w-full lg:w-[70%] space-y-6">
-                        {/* User Info */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
-                          <div className="flex items-center gap-4 mb-4">
-                            <Image
-                              src={selected?.userId?.avatar || "/assets/images/avatar.png"}
-                              alt={selected?.userId?.name}
-                              width={80}
-                              height={80}
-                              className="w-20 h-20 rounded-full object-cover"
-                            />
-                            <div>
-                              <div className="font-semibold text-lg">{selected?.userId?.name}</div>
-                              <div className="text-gray-500">{selected?.userId?.email}</div>
-                              <div className="text-sm text-gray-400">User ID: {selected?.userId?._id}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Business Information */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-gray-500 text-sm">Company Name:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.companyName || 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Business Role:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.role || 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Business ID:</span>
-                              <div className="font-semibold">{selected?.userId?.businessInfo?.businessId || 'N/A'}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Social Links */}
-                        <div className="bg-gray-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Facebook:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.facebook || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Twitter:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.twitter || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">LinkedIn:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.linkedin || 'Not provided'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 text-sm">Instagram:</span>
-                              <span className="font-medium">{selected?.userId?.socialLinks?.instagram || 'Not provided'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* RIGHT SIDEBAR */}
-                      <div className="w-full lg:w-[30%] space-y-6">
-                        {/* Request Details */}
-                        <div className="bg-blue-50 rounded-xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-gray-500 text-sm">Request Type:</span>
-                              <div className="font-semibold text-blue-600">{selected?.type || 'Business Verification'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Request Date:</span>
-                              <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'N/A'}</div>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 text-sm">Status:</span>
-                              <div className="font-semibold">
-                                <StatusBadge status={selected?.status || 'pending'} />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-4 pt-6 border-t mt-8">
-                      <button
-                  onClick={() => setOpen(false)}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await handleApproveOrReject(selected._id || selected.id, 'reject');
-                            setOpen(false);
-                          } catch (err: any) {
-                            toast({
-                              title: 'Rejection Failed',
-                              description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
-                              variant: 'destructive',
-                            });
-                          }
-                        }}
-                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                >
-                  Reject
-                </button>
-                <button
-                        onClick={async () => {
-                          try {
-                            await handleApproveOrReject(selected._id || selected.id, 'approve');
-                            setOpen(false);
-                          } catch (err: any) {
-                            toast({
-                              title: 'Approval Failed',
-                              description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
-                              variant: 'destructive',
-                            });
-                          }
-                        }}
-                        className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                >
-                  Approve
-                </button>
-              </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Business Request Modal using createPortal */}
+            <BusinessRequestModal
+              isOpen={open}
+              onClose={() => setOpen(false)}
+              selected={selected}
+              onApprove={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'approve');
+                } catch (err: any) {
+                  toast({
+                    title: 'Approval Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              onReject={async (id: string) => {
+                try {
+                  await handleApproveOrReject(id, 'reject');
+                } catch (err: any) {
+                  toast({
+                    title: 'Rejection Failed',
+                    description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            />
           </>
         ) : (
           // Tab Business: Grid card view

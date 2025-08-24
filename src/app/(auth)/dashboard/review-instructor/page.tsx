@@ -1,14 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@headlessui/react';
 import { useGetPendingRequestsQuery } from '@/lib/redux/features/api/apiSlice';
 import SearchInstructorRequest from './_components/SearchInstructorRequest';
+import InstructorRequestCard from './_components/InstructorRequestCard';
 import Loading from '@/components/common/Loading';
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 
-const categories = ['All categories', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
-const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 interface InstructorData {
   _id: string;
@@ -32,27 +33,37 @@ interface InstructorData {
 
 const ReviewInstructorPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All instructors');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'requests' | 'instructors'>('requests');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState<InstructorData | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [isInstructorLoading, setIsInstructorLoading] = useState(false);
   const [instructorError, setInstructorError] = useState('');
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useSelector((state: any) => state.auth);
+  const role = user?.role;
+  const [ready, setReady] = useState(false);
+
+  // Mark as client-ready to avoid hydration flicker
+  useEffect(() => setReady(true), []);
+
+  // Redirect when not admin
+  useEffect(() => {
+    if (!ready) return;
+    if (role !== 'admin') {
+      // router.replace('/'); // send non-admin to home
+    }
+  }, [ready, role, router]);
+
 
   // API call for instructor verification requests
   const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
-    type: 'instructor_verification',
-    status: selectedStatus
+    type: 'instructor_verification'
   });
-
-  // Refetch when status changes
-  useEffect(() => {
-    refetch();
-  }, [selectedStatus, refetch]);
 
   // Ensure requestData is always an array
   const requestArray = Array.isArray(requestData) ? requestData : ((requestData as any)?.data || []);
@@ -65,9 +76,7 @@ const ReviewInstructorPage = () => {
       user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       requestData?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       requestData?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All instructors' ||
-      requestData?.category?.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
+    return matchesSearch
   });
 
   const requestsPerPage = 6;
@@ -121,12 +130,7 @@ const ReviewInstructorPage = () => {
       instructorProfession.includes(searchLower) ||
       instructorRole.includes(searchLower);
 
-    // Category filter - for instructors we can match by profession/role
-    const matchesCategory = selectedCategory === 'All instructors' ||
-      instructorProfession.includes(selectedCategory.toLowerCase()) ||
-      instructorRole.includes(selectedCategory.toLowerCase());
-
-    return matchesSearch && matchesCategory;
+    return matchesSearch
   });
 
   // Pagination for instructors
@@ -143,16 +147,16 @@ const ReviewInstructorPage = () => {
   // Reset to page 1 when search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [searchTerm]);
 
   // Handle instructor verification action
   const handleInstructorAction = async (requestId: string, action: 'approve' | 'reject') => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/request/instructor-verification/${requestId}/action`, {
         method: 'PUT',
+        credentials: 'include', // Use HttpOnly cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify({ action }),
       });
@@ -172,7 +176,7 @@ const ReviewInstructorPage = () => {
           variant: 'success',
         });
         setCurrentPage(1);
-        // refetch(); // This line was removed as per the new_code, as the refetch logic was moved to the API slice.
+        await refetch();
       } else {
         throw new Error(result.message || 'Failed to process request');
       }
@@ -185,6 +189,9 @@ const ReviewInstructorPage = () => {
     }
   };
 
+  // While checking/redirecting, render nothing (or your <Loading/>)
+  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -193,12 +200,6 @@ const ReviewInstructorPage = () => {
           <SearchInstructorRequest
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            categories={categories}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
-            statusOptions={statusOptions}
             activeTab={activeTab}
             searchPlaceholder="Search instructors requests"
           />
@@ -228,80 +229,28 @@ const ReviewInstructorPage = () => {
         {/* Tab content */}
         {activeTab === 'requests' ? (
           <>
-            {/* Table Container */}
-            <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">User</div>
-                <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Company</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide ml-4">Category</div>
-                <div className="col-span-2 text-sm font-semibold text-gray-600 uppercase tracking-wide">Request Date</div>
-                <div className="col-span-1 text-sm font-semibold text-gray-600 uppercase tracking-wide">Action</div>
-              </div>
-              {/* Table Body */}
-              <div className="divide-y divide-gray-50">
-                {isRequestLoading ? (
-                  <Loading message="Loading requests..." size="sm" className="py-8" />
-                ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+            {/* Request Cards Container */}
+            <div className="space-y-6">
+              {isRequestLoading ? (
+                <Loading message="Loading requests..." size="sm" className="py-12" />
+              ) : (Array.isArray(requestData) ? false : ((requestData as any) && (requestData as any).success === false && (requestData as any).message === 'No pending requests found')) || !currentRequests || currentRequests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
                     {searchTerm ? `No requests found matching "${searchTerm}"` : 'No data'}
                   </div>
                 ) : (
-                      currentRequests.map((request: any, index: number) => {
-                    const user = request.userId;
-                    const requestData = request.data;
-
-                    return (
-                      <div key={request._id} className={`grid grid-cols-12 gap-4 px-6 py-6 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                        {/* User */}
-                        <div className="col-span-3 flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                            <span className="text-gray-600 font-medium">
-                              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{user?.name || requestData?.fullName || 'N/A'}</div>
-                            <div className="text-sm text-gray-500">{user?.email || requestData?.email || 'N/A'}</div>
-                          </div>
-                        </div>
-                        {/* Company */}
-                        <div className="col-span-3 flex items-center ml-4">
-                          <div className="font-medium text-gray-900">{requestData?.company || 'N/A'}</div>
-                        </div>
-                        {/* Category */}
-                        <div className="col-span-2 flex items-center ml-4">
-                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                            {requestData?.category || 'N/A'}
-                          </span>
-                        </div>
-                        {/* Request Date */}
-                        <div className="col-span-2 flex items-center">
-                          <span className="text-gray-700 font-medium">{request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A'}</span>
-                        </div>
-                        {/* Action */}
-                        <div className="col-span-1 flex items-center justify-center gap-2">
-                          <button
-                            className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
-                            onClick={() => {
-                              // setSelectedRequest(request); // This line was removed as per the new_code, as the state variable was removed.
-                              // setIsModalOpen(true); // This line was removed as per the new_code, as the state variable was removed.
-                            }}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
-                            onClick={() => handleInstructorAction(request._id, 'reject')}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                    currentRequests.map((request: any, index: number) => (
+                      <InstructorRequestCard
+                        key={request._id}
+                        request={request}
+                        index={index}
+                        onPreview={(request) => {
+                          setSelectedRequest(request);
+                          setIsRequestModalOpen(true);
+                        }}
+                        onReject={(id) => handleInstructorAction(id, 'reject')}
+                      />
+                    ))
+              )}
             </div>
             {/* Pagination for requests */}
             {requestTotalPages > 1 && (
@@ -477,6 +426,156 @@ const ReviewInstructorPage = () => {
               </div>
             )}
           </>
+        )}
+        {/* Request Details Modal */}
+        {isRequestModalOpen && selectedRequest && (
+          <Dialog open={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 py-8 backdrop-blur-sm bg-black/20">
+              <Dialog.Panel className="bg-white rounded-3xl shadow-xl max-w-4xl w-full p-0 relative">
+                {/* Header */}
+                <div className="flex justify-between items-center p-6 border-b">
+                  <h3 className="text-2xl font-bold text-gray-900">Instructor Request Details</h3>
+                  <button
+                    onClick={() => setIsRequestModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Content */}
+                <div className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* LEFT COLUMN */}
+                    <div className="w-full lg:w-[70%] space-y-6">
+                      {/* User Info */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 font-medium text-2xl">
+                              {selectedRequest.userId?.name ? selectedRequest.userId.name.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-lg">{selectedRequest.userId?.name || selectedRequest.data?.fullName}</div>
+                            <div className="text-gray-500">{selectedRequest.userId?.email || selectedRequest.data?.email}</div>
+                            <div className="text-sm text-gray-400">User ID: {selectedRequest.userId?._id}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Request Details */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-500">Full Name:</span>
+                            <div className="font-medium">{selectedRequest.data?.fullName || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Email:</span>
+                            <div className="font-medium">{selectedRequest.data?.email || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Phone Number:</span>
+                            <div className="font-medium">{selectedRequest.data?.phoneNumber || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Date of Birth:</span>
+                            <div className="font-medium">{selectedRequest.data?.dob || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Address:</span>
+                            <div className="font-medium">{selectedRequest.data?.address || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Category:</span>
+                            <div className="font-medium">{selectedRequest.data?.category || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Experience:</span>
+                            <div className="font-medium">{selectedRequest.data?.experience || 'N/A'} years</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Company:</span>
+                            <div className="font-medium">{selectedRequest.data?.company || 'N/A'}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Description */}
+                      <div className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Description</h4>
+                        <div className="text-gray-700">
+                          {selectedRequest.data?.description || 'No description provided.'}
+                        </div>
+                      </div>
+                      {/* Documents */}
+                      {selectedRequest.data?.documents && selectedRequest.data.documents.length > 0 && (
+                        <div className="bg-gray-50 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Documents</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            {selectedRequest.data.documents.map((doc: string, index: number) => (
+                              <div key={index} className="bg-white rounded-lg p-4 border">
+                                <img src={doc} alt={`Document ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                                <div className="mt-2 text-sm text-gray-600">Document {index + 1}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {/* RIGHT SIDEBAR */}
+                    <div className="w-full lg:w-[30%] space-y-6">
+                      {/* Request Status */}
+                      <div className="bg-blue-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-blue-900 mb-4">Request Status</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <span className="text-sm text-blue-600">Status:</span>
+                            <div className="font-medium text-blue-900 capitalize">{selectedRequest.status || 'pending'}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm text-blue-600">Request Date:</span>
+                            <div className="font-medium text-blue-900">
+                              {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleDateString() : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-6 border-t mt-6">
+                    <button
+                      onClick={() => setIsRequestModalOpen(false)}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'reject');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleInstructorAction(selectedRequest._id, 'approve');
+                        setIsRequestModalOpen(false);
+                      }}
+                      className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
         )}
         {isProfileModalOpen && selectedInstructor && (
           <Dialog open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} className="fixed z-40 inset-0 overflow-y-auto">

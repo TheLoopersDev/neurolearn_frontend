@@ -12,12 +12,29 @@ const CourseCard = ({ course }: CourseCardProps) => {
   const [imageError, setImageError] = useState(false);
 
 
+  //  xác định locale & currency
+  const locale = typeof window !== "undefined" ? navigator.language : "en-US";
+  const currency = locale.startsWith("vi") ? "VND" : "USD";
 
+  // Hàm format: đơn vị ở SAU số + loại bỏ thập phân thừa
+  const formatPrice = (raw: number) => {
+    const isVND = currency === "VND";
+    const value = isVND ? Math.round(raw) : raw;
+
+    const nf = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: isVND ? 0 : (Number.isInteger(value) ? 0 : 2),
+      maximumFractionDigits: isVND ? 0 : 2,
+    });
+
+    const core = nf.format(value);
+    const suffix = isVND ? " VNĐ" : " $";
+    return core + suffix;
+  };
 
   return (
     <Link href={`/courses/${course._id}`} className="relative block w-[311px]">
       {/* Top Right Icons */}
-      <div className="absolute top-0 right-0 z-30 flex space-x-1 ">
+      <div className="absolute top-0 right-0 z-30 flex space-x-1">
         {/* <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-2xl">
           <Image src="/assets/home/Heart.svg" alt="Heart" width={20} height={20} />
         </div> */}
@@ -45,7 +62,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           <div className="leading-tight text-sm">
             <p className="text-gray-900 font-semibold">{course?.publisher?.name}</p>
-            <p className="text-xs text-gray-700">{course?.publisher?.profession || 'Instructor'}</p>
+            <p className="text-xs text-gray-700">{course?.publisher?.role || 'Instructor'}</p>
           </div>
         </div>
 
@@ -77,12 +94,16 @@ const CourseCard = ({ course }: CourseCardProps) => {
               <span>{course?.rating.toFixed(1)}</span>
               <span className="text-[#6B6B6B] ml-1">({course?.purchased} reviews)</span>
             </div>
-            <span className="text-[#6B6B6B] line-through">{course?.estimatedPrice}</span>
+            <span className="text-[#6B6B6B] line-through">
+              {typeof course?.estimatedPrice === "number"
+                ? formatPrice(course.estimatedPrice)
+                : ""}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-[#0D0D0D]">200 Review rating</span>
             <span className="text-[#3858F8] text-[16px] font-semibold">
-              {course?.isFree ? 'Free' : `${course?.price} $`}
+              {course?.isFree ? "Free" : formatPrice(course?.price || 0)}
             </span>
           </div>
         </div>

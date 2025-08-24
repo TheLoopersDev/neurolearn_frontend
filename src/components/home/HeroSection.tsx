@@ -9,7 +9,7 @@ import { slideFromLeft, slideFromRight } from '@/utils/animations';
 const HeroSection = () => {
   return (
     <section className="pt-12">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
+      <div className="container mx-auto flex flex-col md:flex-row items-center">
         <AnimatedSection variants={slideFromLeft} className="md:w-1/2 mb-8 md:mb-0">
           <div className='flex items-center justify-center bg-blue-600 w-50 rounded-full items-center mb-20'>
             #1 Online Courses 2025

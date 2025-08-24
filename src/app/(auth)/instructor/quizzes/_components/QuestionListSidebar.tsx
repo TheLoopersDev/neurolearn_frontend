@@ -25,22 +25,24 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
     <aside className="w-72 bg-white flex flex-col flex-shrink-0 rounded-2xl mx-auto">
       <div className="p-4 flex items-center justify-between ">
         <h2 className="text-lg font-semibold text-gray-800">{headerText}</h2>
-        <button
-          onClick={onAddQuestion}
-          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
-          title="Add new question"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2.5"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onAddQuestion}
+            className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+            title="Add new question"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </button>
+        </div>
       </div>
       <nav className="flex-grow p-2 space-y-1">
         {questions.map(q => (
@@ -48,10 +50,9 @@ const QuestionListSidebar: React.FC<QuestionListSidebarProps> = ({
             <button
               onClick={() => onSelectQuestion(q.id)}
               className={`w-full flex items-start p-3 rounded-lg text-left transition-colors duration-150
-                ${
-                  selectedQuestionId === q.id
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'hover:bg-gray-50 text-gray-700'
+                ${selectedQuestionId === q.id
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'hover:bg-gray-50 text-gray-700'
                 }`}
             >
               <span

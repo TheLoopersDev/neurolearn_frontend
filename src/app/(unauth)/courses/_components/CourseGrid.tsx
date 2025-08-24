@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useGetCoursesPaginatedQuery } from '@/lib/redux/features/course/courseApi';
 import CourseCard from '@/components/common/CourseCard';
-import CoursePagination from './CoursePagination';
+import { CommonPagination } from '@/components/common/ui';
 import { fadeIn, staggerContainer } from '@/utils/animations';
 
 interface CourseGridProps {
@@ -40,6 +40,9 @@ const CourseGrid: React.FC<CourseGridProps> = ({
 
     const courses = Array.isArray(data?.courses) ? data?.courses : [];
 
+    // Calculate minimum height based on the limit (assuming each card is ~280px tall + gap)
+    const minGridHeight = Math.ceil(limit / 4) * (280 + 24); // 24 is gap-6 (1.5rem)
+
     const skeletonArray = new Array(limit).fill(null);
     if (isError) {
         return <div className="text-red-500 text-center mt-10">Unable to load courses.</div>;
@@ -62,27 +65,31 @@ const CourseGrid: React.FC<CourseGridProps> = ({
             )}
 
             {!isLoading && courses.length > 0 && (
-                <motion.div
-                    key={`page-${page}`}
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative"
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    viewport={{ once: true, amount: 0.3 }}
-                >
-                    {courses.map((course, index) => (
-                        <motion.div
-                            key={course._id}
-                            variants={fadeIn}
-                            transition={{ delay: index * 0.05 }}
-                        >
-                            <CourseCard course={course} />
-                        </motion.div>
-                    ))}
-                </motion.div>
+                <div style={{ minHeight: `${minGridHeight}px` }}>
+                    <motion.div
+                        key={`page-${page}`}
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative"
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="visible"
+                        viewport={{ once: true, amount: 0.3 }}
+                        layout // Add layout animation to smooth transitions
+                    >
+                        {courses.map((course, index) => (
+                            <motion.div
+                                key={course._id}
+                                variants={fadeIn}
+                                transition={{ delay: index * 0.05 }}
+                                layout // Add layout animation to smooth transitions
+                            >
+                                <CourseCard course={course} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
             )}
 
-            <CoursePagination
+            <CommonPagination
                 page={page}
                 totalPages={data?.totalPages ?? 1}
                 isFetching={isFetching}

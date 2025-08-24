@@ -7,7 +7,7 @@ import { DiscountResponse, Discount, CreateDiscountRequest, UpdateDiscountReques
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000',
+    baseUrl: process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:8000',
     credentials: 'include',
     prepareHeaders: headers => {
       // Don't manually set Authorization header for HttpOnly cookies
@@ -74,7 +74,7 @@ export const apiSlice = createApi({
       invalidatesTags: ['User'],
     }),
     // <<-- THAY ĐỔI: Thêm oldPassword vào payload -->>
-    updatePassword: builder.mutation<any, { oldPassword: string; newPassword: string }>({
+    updatePassword: builder.mutation<any, { newPassword: string }>({
       query: data => ({
         url: 'users/update-password', // This should match your backend's password update API
         method: 'PUT',

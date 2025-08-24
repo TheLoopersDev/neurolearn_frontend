@@ -110,7 +110,7 @@ const LoginForm = ({ onClose }: LoginFormProps) => {
               <div className="h-px flex-1 bg-gray-300" />
             </div>
 
-            <SocialLogin showFacebook={false} />
+            <SocialLogin />
 
             <div className="mt-6 text-center text-sm text-gray-700">
               You do not have an account?{' '}

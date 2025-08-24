@@ -7,6 +7,7 @@ import { CourseCard } from "./CourseCard";
 import { useGetUserCoursesQuery } from "@/lib/redux/features/course/courseApi";
 import { useGetInstructorCourseRequestsQuery } from "@/lib/redux/features/request/requestApi";
 import Loading from "@/components/common/Loading";
+import { CommonPagination } from "@/components/common/ui";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -115,34 +116,22 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ searchTerm = "" }) => {
   const currentCourses = mergedCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
-    <section className="w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {currentCourses.map((course: any) => (
-          <div key={course._id} className="relative">
-            <CourseCard course={course} status={course.status} />
-          </div>
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6 gap-3">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
+    <section className="w-full min-h-screen">
+      <div className="flex flex-col justify-between min-h-[900px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full flex-1">
+          {currentCourses.map((course: any) => (
+            <div key={course._id} className="relative">
+              <CourseCard course={course} status={course.status} />
+            </div>
+          ))}
         </div>
-      )}
+
+        <CommonPagination
+          page={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </section>
   );
 };

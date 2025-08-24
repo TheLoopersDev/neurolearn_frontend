@@ -30,9 +30,23 @@ interface MenuItem {
   suffixIcon?: any;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'instructor' | 'user' | string;
+  avatar?: {
+    url?: string;
+  };
+  businessInfo?: {
+    businessId?: string;
+    role?: string;
+  };
+}
+
 const Sidebar = () => {
   const pathname = usePathname();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth) as { user: User | null };
 
   const userRole = typeof user === 'string' ? 'user' : user?.role || 'user';
 
@@ -40,6 +54,15 @@ const Sidebar = () => {
     user: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: courses, label: 'Courses', path: '/dashboard/my-courses' },
+      ...(user?.businessInfo?.role === 'employee'
+        ? [
+            {
+              icon: courses,
+              label: 'Business Courses',
+              path: '/dashboard/assign-course',
+            },
+          ]
+        : []),
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
@@ -52,19 +75,19 @@ const Sidebar = () => {
       { icon: courses, label: 'Courses', path: '/instructor/courses' },
       { icon: createQuiz, label: 'Quizzes', path: '/instructor/quizzes', suffixIcon: magicPenIcon },
       { icon: earning, label: 'Earning', path: '/dashboard/earning' },
-      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      // { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: message, label: 'Message', path: '/dashboard/message' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     admin: [
-      { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
       { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },
+      { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
   };

@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import SectionItem from "./SectionItem";
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import {
-    // ❌ useGetAllSectionsQuery,
-    useGetSectionsByUserIdQuery,      // ✅
+    useGetSectionsByUserIdQuery,
     useCreateSectionMutation,
     useUpdateSectionMutation,
     useDeleteSectionMutation,
@@ -19,6 +18,8 @@ import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useModal } from "@/context/ModalContext";
 import SectionContentList from "./SectionContentList";
+import { courseApi, useGetCourseByIdQuery } from "@/lib/redux/features/course/courseApi";
+import { useAppDispatch } from "@/lib/redux/hooks";
 
 interface Props {
     courseId: string;
@@ -33,10 +34,80 @@ export default function CourseSectionList({ courseId }: Props) {
     const [deleteSection] = useDeleteSectionMutation();
     const [reorderSections] = useReorderSectionsMutation();
     const [createLesson] = useCreateLessonMutation();
-    const [addQuizToSection] = useAddQuizToSectionMutation();       // ✅
+    const [addQuizToSection] = useAddQuizToSectionMutation(); // ✅
+    const { refetch: refetchCourse } = useGetCourseByIdQuery(courseId);
 
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
     const { showModal } = useModal();
+    const dispatch = useAppDispatch();
+
+    // 🔹 Helper nhỏ: chuẩn hoá lỗi từ RTK/BE và bắn toast (không tạo util riêng)
+    const showApiError = (err: any, fallback = "Request failed") => {
+        let message = fallback;
+        let details: string[] = [];
+
+        const toArray = (val: any): string[] => {
+            if (!val) return [];
+            if (Array.isArray(val)) {
+                return val
+                    .map((x) =>
+                        typeof x === "string" ? x : x?.msg || x?.message || x?.error || ""
+                    )
+                    .filter(Boolean);
+            }
+            if (typeof val === "object") {
+                const out: string[] = [];
+                for (const [k, v] of Object.entries(val)) {
+                    if (Array.isArray(v)) v.forEach((s) => out.push(`${k}: ${s}`));
+                    else if (typeof v === "string") out.push(`${k}: ${v}`);
+                }
+                return out;
+            }
+            if (typeof val === "string") return [val];
+            return [];
+        };
+
+        // RTK FetchBaseQueryError: { status, data }
+        if (err && typeof err === "object" && "status" in err) {
+            const data = (err as any).data;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || err?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+        // SerializedError | Error | string | object tự do
+        else if (err instanceof Error) {
+            message = err.message || fallback;
+        } else if (typeof err === "string") {
+            message = err;
+        } else if (err && typeof err === "object") {
+            const data = (err as any).data ?? err;
+            if (typeof data === "string") {
+                message = data;
+            } else {
+                message = data?.message || data?.error || fallback;
+                details = toArray(data?.errors);
+            }
+        }
+
+        toast({
+            title: "Error",
+            description:
+                details.length > 0 ? (
+                    <ul className="list-disc pl-4">
+                        {details.map((d, i) => (
+                            <li key={i}>{d}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <span>{message}</span>
+                ),
+            variant: "destructive",
+            duration: 6000,
+        });
+    };
 
     // Helper: chỉ refetch endpoint user-sections
     const refetchSections = refetchAllSections;
@@ -49,10 +120,16 @@ export default function CourseSectionList({ courseId }: Props) {
             onSubmit: async (data: any) => {
                 try {
                     await createSection({ courseId, data }).unwrap();
-                    await refetchSections();
-                    toast({ title: "Success", description: "Section created successfully", variant: "success" });
-                } catch {
-                    toast({ title: "Error", description: "Failed to create section", variant: "destructive" });
+                    await refetchAllSections().unwrap();
+                    dispatch(courseApi.util.invalidateTags([{ type: "Course", id: courseId }]));
+                    await refetchCourse();
+                    toast({
+                        title: "Success",
+                        description: "Section created successfully",
+                        variant: "success",
+                    });
+                } catch (err) {
+                    showApiError(err, "Failed to create section");
                 }
             },
         });
@@ -71,10 +148,21 @@ export default function CourseSectionList({ courseId }: Props) {
             onSubmit: async (data: any) => {
                 try {
                     await updateSection({ id: section._id, data }).unwrap();
-                    await refetchSections();
-                    toast({ title: "Success", description: "Section updated successfully", variant: "success" });
-                } catch {
-                    toast({ title: "Error", description: "Failed to update section", variant: "destructive" });
+                    await refetchAllSections().unwrap();
+                    dispatch(
+                        courseApi.util.invalidateTags([
+                            { type: "Course", id: courseId },
+                            { type: "Section", id: "LIST" },
+                        ])
+                    );
+                    await refetchCourse();
+                    toast({
+                        title: "Success",
+                        description: "Section updated successfully",
+                        variant: "success",
+                    });
+                } catch (err) {
+                    showApiError(err, "Failed to update section");
                 }
             },
         });
@@ -84,10 +172,22 @@ export default function CourseSectionList({ courseId }: Props) {
     const handleAddLesson = async (sectionId: string) => {
         try {
             await createLesson({ courseId, sectionId, data: { title: "New Lesson", isFree: true } }).unwrap();
-            await refetchSections();
-            toast({ title: "Success", description: "Lesson added successfully", variant: "success" });
-        } catch {
-            toast({ title: "Error", description: "Failed to add lesson", variant: "destructive" });
+            await refetchAllSections().unwrap();
+            dispatch(
+                courseApi.util.invalidateTags([
+                    { type: "Course", id: courseId },
+                    { type: "Section", id: sectionId },
+                    { type: "Lesson", id: "LIST" },
+                ])
+            );
+            await refetchCourse();
+            toast({
+                title: "Success",
+                description: "Lesson added successfully",
+                variant: "success",
+            });
+        } catch (err) {
+            showApiError(err, "Failed to add lesson");
         }
     };
 
@@ -95,10 +195,21 @@ export default function CourseSectionList({ courseId }: Props) {
     const handleDeleteSection = async (id: string) => {
         try {
             await deleteSection(id).unwrap();
-            await refetchSections();
-            toast({ title: "Success", description: "Section deleted successfully", variant: "success" });
-        } catch {
-            toast({ title: "Error", description: "Failed to delete section", variant: "destructive" });
+            await refetchAllSections().unwrap();
+            dispatch(
+                courseApi.util.invalidateTags([
+                    { type: "Course", id: courseId },
+                    { type: "Lesson", id: "LIST" },
+                ])
+            );
+            await refetchCourse();
+            toast({
+                title: "Success",
+                description: "Section deleted successfully",
+                variant: "success",
+            });
+        } catch (err) {
+            showApiError(err, "Failed to delete section");
         }
     };
 
@@ -126,10 +237,13 @@ export default function CourseSectionList({ courseId }: Props) {
 
             await reorderSections({ sectionOrders: orderUpdates }).unwrap();
             await refetchSections();
-
-            toast({ title: "Success", description: "Sections reordered successfully", variant: "success" });
-        } catch {
-            toast({ title: "Error", description: "Failed to reorder sections", variant: "destructive" });
+            toast({
+                title: "Success",
+                description: "Sections reordered successfully",
+                variant: "success",
+            });
+        } catch (err) {
+            showApiError(err, "Failed to reorder sections");
         }
     };
 
@@ -137,15 +251,28 @@ export default function CourseSectionList({ courseId }: Props) {
         showModal("pickQuizToAdd", {
             sectionId,
             courseId, // optional
-            // ✅ Trả về promise của unwrap() để modal biết khi nào lỗi/thành công
+            // ⚠️ Modal này tự xử lý toast thành công/thất bại của riêng nó.
+            // Nếu muốn hiển thị lỗi backend ngay tại đây, bỏ comment đoạn catch bên dưới.
             onSubmit: async ({ quizId, position }: { quizId: string; position?: number }) => {
                 const res = await addQuizToSection({ sectionId, quizId, position }).unwrap();
-                // Sau khi success: refetch ở đây (KHÔNG toast ở đây)
                 await refetchSections();
                 return res; // để modal có thể dùng res.quiz.name hiển thị
             },
+            // Nếu muốn toast lỗi tại đây thay vì trong modal:
+            // onSubmit: async ({ quizId, position }) => {
+            //   try {
+            //     const res = await addQuizToSection({ sectionId, quizId, position }).unwrap();
+            //     await refetchSections();
+            //     toast({ title: "Success", description: "Quiz added to section", variant: "success" });
+            //     return res;
+            //   } catch (err) {
+            //     showApiError(err, "Failed to add quiz to section");
+            //     throw err; // để modal biết là lỗi (nếu cần)
+            //   }
+            // },
         });
     };
+
     const sections = (allSectionData?.data || []).filter((s: any) => s.courseId === courseId);
 
     return (
@@ -155,14 +282,20 @@ export default function CourseSectionList({ courseId }: Props) {
             <DragDropContext onDragEnd={handleReorderSections}>
                 <Droppable droppableId="sections">
                     {(provided) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-4 bg-white rounded-xl p-6">
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="space-y-4 bg-white rounded-xl p-6"
+                        >
                             {sections.length === 0 && !isFetching && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <div className="bg-secondary text-gray-400 rounded-full p-4 mb-4">
                                         <Plus className="text-primary w-8 h-8" />
                                     </div>
                                     <h3 className="text-lg font-medium text-gray-400 mb-2">No sections yet</h3>
-                                    <p className="text-gray-500 mb-4">Create your first section to start building your course</p>
+                                    <p className="text-gray-500 mb-4">
+                                        Create your first section to start building your course
+                                    </p>
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -190,7 +323,7 @@ export default function CourseSectionList({ courseId }: Props) {
                                         onSave={() => { }}
                                         onToggleExpand={handleToggleExpand}
                                         onAddLesson={handleAddLesson}
-                                        onAddQuiz={handleAddQuiz}                 // ✅ pass vào
+                                        onAddQuiz={handleAddQuiz} // ✅ pass vào
                                     />
 
                                     {expandedSection === section._id && (

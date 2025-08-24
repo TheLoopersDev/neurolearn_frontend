@@ -1,15 +1,24 @@
 "use client"
 
 import CertificateCard from '@/components/dashboard/certificate/CertificateCard';
-import { useAllCertificates } from '@/hooks/useCertificate';
+import { useAllCertificates, useInstructorCertificates, useCurrentUser } from '@/hooks/useCertificate';
 import Loading from '@/components/common/Loading';
 import React, { useState } from 'react';
+import { CommonPagination } from '@/components/common/ui';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function Page() {
-    const { certificates, loading, error } = useAllCertificates();
+    const { user, loading: userLoading, error: userError } = useCurrentUser();
+    const { certificates: allCertificates, loading: allCertificatesLoading, error: allCertificatesError } = useAllCertificates();
+    const { certificates: instructorCertificates, loading: instructorCertificatesLoading, error: instructorCertificatesError } = useInstructorCertificates();
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Determine which certificates to use based on user role
+    const isInstructor = user?.role === 'instructor';
+    const certificates = isInstructor ? instructorCertificates : allCertificates;
+    const loading = userLoading || (isInstructor ? instructorCertificatesLoading : allCertificatesLoading);
+    const error = userError || (isInstructor ? instructorCertificatesError : allCertificatesError);
 
     const totalPages = Math.ceil((certificates?.length || 0) / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -35,14 +44,31 @@ export default function Page() {
             <div className="flex justify-center items-center min-h-[400px]">
                 <div className="text-center">
                     <p className="text-lg font-semibold mb-2 text-gray-600">No certificates found</p>
-                    <p className="text-sm text-gray-500">Complete courses to earn certificates</p>
+                    <p className="text-sm text-gray-500">
+                        {isInstructor
+                            ? "No students have completed your courses yet"
+                            : "Complete courses to earn certificates"
+                        }
+                    </p>
                 </div>
             </div>
         );
     }
-
     return (
         <div>
+            {/* Page Title */}
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">
+                    {isInstructor ? 'Student Certificates' : 'My Certificates'}
+                </h1>
+                <p className="text-gray-600 mt-2">
+                    {isInstructor
+                        ? 'Certificates earned by students in your courses'
+                        : 'Certificates you have earned from completed courses'
+                    }
+                </p>
+            </div>
+
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {currentCertificates.map((certificate) => (
                     <CertificateCard
@@ -51,27 +77,12 @@ export default function Page() {
                     />
                 ))}
             </div>
-
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex justify-center mt-8 gap-3">
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Prev
-                    </button>
-                    <span className="px-3 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
+            <CommonPagination
+                page={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }

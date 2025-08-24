@@ -20,6 +20,8 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { user } = useSelector((state: any) => state.auth);
 
+  const isBusinessAdmin = user?.businessInfo?.role === 'admin';
+
   const menuItems = [
     { icon: dashboard, label: 'Dashboard', path: `/business/dashboard/${user?.businessInfo?.businessId}` },
     {
@@ -27,13 +29,15 @@ const Sidebar = () => {
       label: 'My Courses',
       path: '/business/mycourses',
     },
-    // 👇 Mục Employee mới được thêm vào đây
     { icon: dashboard, label: 'Employee', path: '/business/employees' },
     { icon: message, label: 'Message', path: '/business/message', suffixIcon: magicPenIcon },
     { icon: purchaseHistory, label: 'Purchase History', path: '/business/purchase-history' },
     { icon: discount, label: 'Discount', path: '/business/discount' },
-    { icon: setting, label: 'Setting', path: '/business/setting' },
   ];
+
+  if (isBusinessAdmin) {
+    menuItems.push({ icon: setting, label: 'Setting', path: '/business/setting' });
+  }
 
   return (
     <div className="w-full h-screen flex flex-col items-start p-4 rounded-2xl bg-white">

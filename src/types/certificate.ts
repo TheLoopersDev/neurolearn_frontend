@@ -11,6 +11,8 @@ export interface Certificate {
   };
   course: {
     _id: string;
+    title?: string;
+    authorId?: string;
   };
   userName: string;
   courseName: string;

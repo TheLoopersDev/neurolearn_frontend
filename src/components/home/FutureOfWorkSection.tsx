@@ -19,7 +19,7 @@ const FutureOfWorkSection = ({
 }: FutureOfWorkSectionProps) => {
   return (
     <section className="py-10">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl overflow-hidden shadow-sm relative">
           <div
             className="absolute top-0 left-0 right-0 bottom-0 z-0"
@@ -32,7 +32,7 @@ const FutureOfWorkSection = ({
           ></div>
           <div className="relative z-10 min-h-[240px] flex items-center">
             <div className="p-8 md:p-12 w-full md:w-3/5">
-              <h2 className="text-3xl font-bold text-gray-900 mb-1">{title}</h2>
+              <h2 className="text-3xl font-bold text-black mb-1">{title}</h2>
               <h3 className="text-3xl font-bold text-blue-600 mb-4">{subtitle}</h3>
               <p className="text-gray-700 mb-6 max-w-md">{description}</p>
               <Button href={buttonUrl} variant="primary">

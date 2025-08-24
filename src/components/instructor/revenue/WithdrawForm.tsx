@@ -4,20 +4,23 @@ import React, { useState } from 'react';
 import { TotalRevenueIcon } from '@/components/instructor/revenue/RevenueIcons';   
 import { FiUpload } from "react-icons/fi";
 import { useWithDrawApiMutation } from '@/lib/redux/features/bank/bankApi';
+import { useToast } from '@/hooks/use-toast';
 
 interface WithdrawFormProps {
   totalRevenue: string;
   maxWithdrawAmount: number;
+  onSuccess?: () => void;
 }
 
-export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWithdrawAmount }) => {
+export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWithdrawAmount, onSuccess }) => {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [withdraw, { isLoading }] = useWithDrawApiMutation();
+  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (!amount) {
-      alert('Please enter an amount');
+      toast({ title: 'Missing amount', description: 'Please enter an amount.', variant: 'destructive' });
       return;
     }
 
@@ -25,33 +28,32 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ totalRevenue, maxWit
 
     // Validation rules
     if (withdrawAmount <= 0) {
-      alert('Amount must be greater than 0');
+      toast({ title: 'Invalid amount', description: 'Amount must be greater than 0.', variant: 'destructive' });
       return;
     }
 
     if (withdrawAmount > maxWithdrawAmount) {
-      alert(`Cannot withdraw more than ${new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-      }).format(maxWithdrawAmount)}`);
+      toast({ title: 'Amount too large', description: `Cannot withdraw more than ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(maxWithdrawAmount)}`, variant: 'destructive' });
       return;
     }
 
     try {
       const result = await withdraw({ amount: withdrawAmount, reason: reason || undefined }).unwrap();
       if (result.success) {
-        alert('Withdrawal request sent successfully!');
+        toast({ title: 'Withdrawal requested', description: 'Your withdrawal request has been sent.', variant: 'success' });
         setAmount('');
         setReason('');
+        try {
+          onSuccess?.();
+        } catch { }
       } else {
-        alert(result.message || 'Withdrawal failed.');
+        toast({ title: 'Withdrawal failed', description: result.message || 'Withdrawal failed.', variant: 'destructive' });
       }
     } catch (error: unknown) {
-      if (typeof error === 'object' && error && 'data' in error) {
-        alert((error as { data?: string }).data || 'Withdrawal failed.');
-      } else {
-        alert('Withdrawal failed.');
-      }
+      const description = typeof error === 'object' && error && 'data' in error
+        ? ((error as { data?: string }).data || 'Withdrawal failed.')
+        : 'Withdrawal failed.';
+      toast({ title: 'Withdrawal failed', description, variant: 'destructive' });
     }
   };
 

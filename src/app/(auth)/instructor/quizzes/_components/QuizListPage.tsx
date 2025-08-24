@@ -74,11 +74,31 @@ const QuizListPage: React.FC = () => {
   const handleCreateTestFromModal = useCallback(
     async (details: ManualCreationDetails | AICreationDetails) => {
       try {
+        let generatedQuestions: any[] | undefined;
+        if ((details as AICreationDetails).mode === 'ai') {
+          const ai = details as AICreationDetails;
+          const fd = new FormData();
+          fd.append('mode', 'quiz');
+          if (ai.examTitle) fd.append('examTitle', ai.examTitle);
+          if (ai.difficultyLevel) fd.append('difficultyLevel', ai.difficultyLevel);
+          if (ai.topic) fd.append('topic', ai.topic);
+          if (ai.questionConfigs) fd.append('questionConfigs', JSON.stringify(ai.questionConfigs));
+          if (ai.documentFile) fd.append('file', ai.documentFile);
+
+          const res = await fetch('/api/ai/summarize', { method: 'POST', body: fd });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err?.error || 'AI generation failed');
+          }
+          const data = await res.json();
+          generatedQuestions = Array.isArray(data?.questions) ? data.questions : undefined;
+        }
+
         const response = await createQuiz({
           name: details.examTitle || 'Untitled Quiz',
           duration: '30',
           category: 'Uncategorized',
-          questions: [],
+          questions: generatedQuestions || [],
           passingScore: 50,
           maxAttempts: 3,
         }).unwrap();

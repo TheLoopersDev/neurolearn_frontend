@@ -84,11 +84,9 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
     try {
       const alreadyExists = await checkCourseExistInCart();
 
-      const isBusinessManager = user?.businessInfo?.role === 'admin';
-
-      if (alreadyExists && !isBusinessManager) {
+      if (alreadyExists) {
         toast({
-          variant: 'success',
+          variant: 'destructive',
           title: 'This course is already in your cart',
           description: 'You can check it in your cart.',
           duration: 3000,
@@ -111,7 +109,6 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
         });
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
       toast({
         variant: 'destructive',
         title: 'Failed to add course to cart',
@@ -173,7 +170,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
             <p className="text-xl text-black">Full course</p>
             {course.estimatedPrice && (
               <div className="text-xl text-gray-400 line-through">
-                {course.estimatedPrice.toLocaleString()} $
+                {course.estimatedPrice.toLocaleString()} VNĐ
               </div>
             )}
           </div>
@@ -193,7 +190,7 @@ export default function CourseCard({ course }: { course: CourseCardProps['course
       <div className="text-black pb-4">
         <div className="text-sm space-y-4 px-4">
           <div className="text-4xl text-[#3858F8] mt-2">
-            {course.isFree ? 'Free' : `$${(course.price ?? 0).toLocaleString()}`}
+            {course.isFree ? 'Free' : `${(course.price ?? 0).toLocaleString()} VNĐ`}
           </div>
 
           <div className="text-black text-2xl">Course includes</div>
