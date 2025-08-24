@@ -10,10 +10,7 @@ import { useRouter } from 'next/navigation';
 
 const ExpertsSection = () => {
   const { data: experts, isLoading, error } = useGetAllExpertsQuery();
-<<<<<<< HEAD
   console.log('experts', experts);
-=======
->>>>>>> 049eca9869864b55085a1fd7c0caf51b984d170f
   const displayExperts = experts ? experts.slice(0, 3) : [];
   const router = useRouter();
 
@@ -25,13 +22,8 @@ const ExpertsSection = () => {
     console.error('Error fetching experts:', error);
     return (
       <section className="py-10">
-<<<<<<< HEAD
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-medium mb-6 text-gray-900">Our Experts</h2>
-=======
         <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6 text-black">Our Experts</h2>
->>>>>>> 049eca9869864b55085a1fd7c0caf51b984d170f
           <div className="text-center text-gray-500">Error loading experts</div>
         </div>
       </section>
@@ -41,13 +33,8 @@ const ExpertsSection = () => {
   if (displayExperts.length === 0) {
     return (
       <section className="py-10">
-<<<<<<< HEAD
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-medium mb-6 text-gray-900">Our Experts</h2>
-=======
         <div className="container mx-auto">
           <h2 className="text-4xl font-medium mb-6 text-black">Our Experts</h2>
->>>>>>> 049eca9869864b55085a1fd7c0caf51b984d170f
           <div className="text-center text-gray-500">No experts available</div>
         </div>
       </section>
@@ -58,7 +45,6 @@ const ExpertsSection = () => {
 
   return (
     <section className="py-10">
-<<<<<<< HEAD
       <div className="container mx-auto px-4">
         {/* Bọc tiêu đề và "View More" trong một div cha với flexbox */}
         <div className="flex justify-between items-center mb-8">
@@ -86,13 +72,6 @@ const ExpertsSection = () => {
         </div>
 
         <motion.div
-=======
-      <div className="container mx-auto">
-        <AnimatedSection variants={fadeIn}>
-          <h2 className="text-4xl mb-8 text-black">Our Experts</h2>
-        </AnimatedSection>
-        <motion.div 
->>>>>>> 049eca9869864b55085a1fd7c0caf51b984d170f
           className="grid grid-cols-1 md:grid-cols-3 gap-8"
           variants={staggerContainer}
           initial="hidden"

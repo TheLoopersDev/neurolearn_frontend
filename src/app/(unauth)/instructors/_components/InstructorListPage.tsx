@@ -1,8 +1,6 @@
 // src/app/(auth)/dashboard/teacher/_components/InstructorListPage.tsx
 'use client';
 import React, { useEffect, useState, useMemo } from 'react';
-import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
 import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
 import InstructorCard from './InstructorCard';
 import SearchInstructor from './SearchInstructor';
