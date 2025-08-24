@@ -38,7 +38,6 @@ export default function ClientLayout({ children }: { readonly children: React.Re
   useEffect(() => {
     // Only clear auth when explicitly unauthenticated. Do not clear during 'loading'.
     if (status === 'unauthenticated') {
-      dispatch(setAuthState({ token: null, user: null, isAuthenticated: false }));
       didBridge.current = false;
       return;
     }
