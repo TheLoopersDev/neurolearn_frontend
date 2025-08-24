@@ -186,11 +186,11 @@ export default function CourseRequestCard({ request, onPreview, onReject, index 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="text-gray-500 mb-1">Sections</div>
-                  <div className="font-semibold text-lg">{request.data.meta.summary.sections.old}</div>
+                  <div className="font-semibold text-lg">{sectionsData.length}</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="text-gray-500 mb-1">Lessons</div>
-                  <div className="font-semibold text-lg">{request.data.meta.summary.lessons.old}</div>
+                  <div className="font-semibold text-lg">{sectionsData.reduce((total: number, section: any) => total + (section.lessons?.length || 0), 0)}</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="text-gray-500 mb-1">Draft Changes</div>
