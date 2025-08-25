@@ -247,11 +247,6 @@ const SubmissionsPage = () => {
     }
   };
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchSubmissions();
-  };
-
   const handleSort = (newSortBy: string) => {
     if (sortBy === newSortBy) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
