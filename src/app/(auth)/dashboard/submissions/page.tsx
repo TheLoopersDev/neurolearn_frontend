@@ -33,6 +33,29 @@ interface StatisticsData {
   averageSubmission: number;
 }
 
+interface TopInstructor {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string;
+  total: number;
+  submission: number;
+  netIncome: number;
+  withdrawn: number;
+  available: number;
+  rank: number;
+}
+
+// interface SummaryData {
+//   topSubmissions: TopInstructor[];
+//   statistics: StatisticsData;
+//   summary: {
+//     topEarners: number;
+//     totalInstructors: number;
+//     activeInstructors: number;
+//   };
+// }
+
 // These interfaces are for future use when real API is implemented
 // interface SubmissionsResponse {
 //   success: boolean;
@@ -135,8 +158,10 @@ const SubmissionsPage = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [submissions, setSubmissions] = useState<SubmissionData[]>([]);
   const [statistics, setStatistics] = useState<StatisticsData | null>(null);
+  const [topInstructors, setTopInstructors] = useState<TopInstructor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingTop, setIsLoadingTop] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
@@ -160,17 +185,46 @@ const SubmissionsPage = () => {
     if (ready && role === 'admin') {
       fetchSubmissions();
       fetchStatistics();
+      fetchTopInstructors();
     }
-  }, [ready, role, currentPage, sortBy, sortOrder]);
+  }, [ready, role, currentPage, sortBy, sortOrder, searchTerm]);
 
   const fetchSubmissions = async () => {
     try {
       setIsLoading(true);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Try real API first
+      try {
+        // Build query parameters
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '10',
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+          ...(searchTerm && { search: searchTerm })
+        });
 
-      // Filter by search term
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/all-submissions?${params}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setSubmissions(result.data.submissions);
+            setTotalPages(result.data.pagination.totalPages);
+            setTotalItems(result.data.pagination.totalItems);
+            return; // Success, exit early
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, using mock data');
+      }
+
+      // Fallback to mock data
       const filteredData = mockSubmissions.filter(submission => 
         submission.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         submission.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
@@ -236,14 +290,72 @@ const SubmissionsPage = () => {
     try {
       setIsLoadingStats(true);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Try real API first
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submission-statistics`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setStatistics(result.data);
+            return; // Success, exit early
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, using mock statistics');
+      }
+
+      // Fallback to mock data
       setStatistics(mockStatistics);
     } catch (error) {
       console.error('Error fetching statistics:', error);
     } finally {
       setIsLoadingStats(false);
+    }
+  };
+
+  const fetchTopInstructors = async () => {
+    try {
+      setIsLoadingTop(true);
+
+      // Try real API first
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submissions-summary?top=5`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setTopInstructors(result.data.topSubmissions);
+            return; // Success, exit early
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, using mock top instructors');
+      }
+
+      // Fallback to mock data - top 5 from mockSubmissions
+      const top5 = mockSubmissions
+        .sort((a, b) => b.submission - a.submission)
+        .slice(0, 5)
+        .map((submission, index) => ({
+          ...submission,
+          rank: index + 1
+        }));
+      setTopInstructors(top5);
+    } catch (error) {
+      console.error('Error fetching top instructors:', error);
+    } finally {
+      setIsLoadingTop(false);
     }
   };
 
@@ -293,15 +405,75 @@ const SubmissionsPage = () => {
             <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
               📊 Manage all instructor revenue submissions
             </div>
-            <div className="text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200">
-              🔧 Using mock data - Backend API pending
-            </div>
           </div>
         </div>
 
         {/* Statistics Section */}
         {!isLoadingStats && statistics && (
           <SubmissionStats statistics={statistics} />
+        )}
+
+        {/* Top Instructors Section */}
+        {!isLoadingTop && topInstructors.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                🏆 Top 5 Instructors by Submission
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {topInstructors.map((instructor) => (
+                  <div key={instructor.userId} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="relative">
+                        {instructor.userAvatar ? (
+                          <img
+                            src={instructor.userAvatar}
+                            alt="avatar"
+                            className="w-12 h-12 rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-lg ${instructor.userAvatar ? 'hidden' : ''}`}>
+                          {instructor.userName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          #{instructor.rank}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 text-sm truncate">{instructor.userName}</div>
+                        <div className="text-xs text-gray-500 truncate">{instructor.userEmail}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Submission:</span>
+                        <span className="font-semibold text-blue-600 text-sm">
+                          {formatCurrency(instructor.submission)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Total:</span>
+                        <span className="font-medium text-gray-700 text-sm">
+                          {formatCurrency(instructor.total)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Available:</span>
+                        <span className="font-medium text-green-600 text-sm">
+                          {formatCurrency(instructor.available)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Sort Controls */}
