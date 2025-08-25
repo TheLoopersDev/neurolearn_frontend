@@ -140,13 +140,11 @@ const NewPasswordForm = ({ onClose }: { onClose: () => void }) => {
 
             <div className="space-y-4">
               <PasswordField
-                type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="New Password"
               />
               <PasswordField
-                type="password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Confirm Password"

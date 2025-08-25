@@ -30,6 +30,34 @@ export const getCurrentUserAPI = async (): Promise<User> => {
 };
 
 /**
+ * Lấy danh sách tất cả user trừ role admin
+ */
+export const getAllUsersExceptAdminAPI = async (): Promise<User[]> => {
+  const res = await fetch(`${API_BASE_URL}/users/get-users`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || 'Failed to fetch users data.');
+  }
+
+  if (!data.users) {
+    throw new Error('API response did not contain users data.');
+  }
+
+  // Lọc ra các user không phải admin
+  const filteredUsers = data.users.filter((user: User) => user.role !== 'admin');
+  
+  return filteredUsers;
+};
+
+/**
  * Cập nhật thông tin người dùng.
  */
 export const updateCurrentUserInfoAPI = async (updatedData: Partial<User>): Promise<any> => {
