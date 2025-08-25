@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { ChevronDown, ChevronUp, DollarSign, TrendingUp, Wallet, CreditCard, Calendar, User } from 'lucide-react';
 
 interface SubmissionData {
@@ -57,18 +56,21 @@ export default function SubmissionCard({ submission, index, formatCurrency }: Su
         {/* User Info */}
         <div className="col-span-3 flex items-center gap-4">
           {submission.userAvatar ? (
-            <Image
+            <img
               src={submission.userAvatar}
               alt="user avatar"
-              width={56}
-              height={56}
               className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-md"
+              onError={(e) => {
+                // Fallback to default avatar if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-white">
-              {submission.userName.charAt(0).toUpperCase()}
-            </div>
-          )}
+          ) : null}
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-white ${submission.userAvatar ? 'hidden' : ''}`}>
+            {submission.userName.charAt(0).toUpperCase()}
+          </div>
           <div className="space-y-1">
             <div className="font-semibold text-gray-900 text-base leading-6">{submission.userName}</div>
             <div className="text-sm text-gray-500">{submission.userEmail}</div>
