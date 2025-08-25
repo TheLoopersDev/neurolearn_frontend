@@ -84,6 +84,7 @@ const Sidebar = () => {
     admin: [
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      { icon: earning, label: 'Submissions', path: '/dashboard/submissions' },
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
       { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },

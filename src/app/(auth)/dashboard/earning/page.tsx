@@ -1,26 +1,28 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { WithdrawForm } from '@/components/instructor/revenue/WithdrawForm';
 import { BalanceOverview } from '@/components/instructor/revenue/BalanceOverview';
 import { CardSection } from '@/components/instructor/revenue/CardSection';
 import { TransactionHistory } from '@/components/instructor/revenue/TransactionHistory';
 import { useModal } from '@/context/ModalContext';
-import { useMemo } from 'react';
-import { useGetTotalIncomeQuery } from '@/lib/redux/features/income/incomeApi';
 import Loading from '@/components/common/Loading';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import { useGetRevenueDetailedMeQuery } from '@/lib/redux/features/income/incomeApi';
 
 const WithdrawDashboard: React.FC = () => {
   const { showModal } = useModal();
 
-  const { data, isLoading, isError, refetch } = useGetTotalIncomeQuery();
+  // Use detailed revenue endpoint to get total, submission, withdrawn, available
+  const { data, isLoading, isError, refetch } = useGetRevenueDetailedMeQuery();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const income = useMemo(() => {
-    return data?.income ?? 0;
-  }, [data]);
+  // Map backend fields to UI fields according to new model
+  const total = useMemo(() => data?.data?.total ?? 0, [data]);
+  const submission = useMemo(() => data?.data?.submission ?? 0, [data]);
+  const available = useMemo(() => data?.data?.available ?? 0, [data]);
+
   const router = useRouter();
   const { user } = useSelector((state: any) => state.auth);
   const role = user?.role;
@@ -38,7 +40,6 @@ const WithdrawDashboard: React.FC = () => {
     }
   }, [ready, role, router]);
 
-
   const errorMessage = isError ? 'Không thể lấy dữ liệu thu nhập' : null;
 
   const handleAddCard = () => {
@@ -52,10 +53,6 @@ const WithdrawDashboard: React.FC = () => {
     } catch { }
     setRefreshKey(prev => prev + 1);
   };
-
-  // Tính toán các giá trị
-  const serviceFee = income * 0.1; // 10% của total income
-  const currentBalance = income - serviceFee; // Số tiền có thể rút
 
   // Hàm format tiền tệ
   const formatCurrency = (value: number) => {
@@ -77,15 +74,15 @@ const WithdrawDashboard: React.FC = () => {
           {/* Left Section */}
           <section className="flex-1 min-w-[400px]">
             <WithdrawForm
-              totalRevenue={errorMessage ? errorMessage : formatCurrency(income)}
-              maxWithdrawAmount={currentBalance}
+              totalRevenue={errorMessage ? errorMessage : formatCurrency(total)}
+              maxWithdrawAmount={available}
               onSuccess={handleWithdrawSuccess}
             />
 
             <BalanceOverview
-              totalIncome={formatCurrency(income)}
-              serviceFee={formatCurrency(serviceFee)}
-              currentBalance={formatCurrency(currentBalance)}
+              totalIncome={formatCurrency(total)}
+              serviceFee={formatCurrency(submission)}
+              currentBalance={formatCurrency(available)}
             />
           </section>
 

@@ -151,12 +151,22 @@ const WithdrawalsPage = () => {
     return matchesSearch;
   });
 
-  // Removed unused headers
+  // Sort withdrawals: pending first, then by requested date (newest first)
+  const sortedWithdraws = filteredWithdraws.sort((a, b) => {
+    // First priority: pending status
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+
+    // Second priority: by requested date (newest first)
+    const dateA = new Date(a.requestedAt).getTime();
+    const dateB = new Date(b.requestedAt).getTime();
+    return dateB - dateA;
+  });
 
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredWithdraws.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedWithdraws.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentWithdraws = filteredWithdraws.slice(startIndex, startIndex + itemsPerPage);
+  const currentWithdraws = sortedWithdraws.slice(startIndex, startIndex + itemsPerPage);
 
   if (isLoading) {
     return <Loading message="Loading withdrawals..." className="min-h-screen" />;
@@ -180,7 +190,12 @@ const WithdrawalsPage = () => {
           ]}
         />
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-10">Browse The Withdrawals</h1>
+        <div className="flex items-center justify-between mb-10">
+          <h1 className="text-3xl font-bold text-gray-900">Browse The Withdrawals</h1>
+          <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+            📋 Pending requests are shown first for priority processing
+          </div>
+        </div>
 
         {/* Withdrawal Cards Container */}
         <div className="space-y-6">

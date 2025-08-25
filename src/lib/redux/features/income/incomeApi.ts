@@ -14,6 +14,18 @@ type TotalIncomeResponse = {
   message?: string;
 };
 
+// Updated detailed revenue response: maps to /revenue/detailed/me
+type RevenueDetailedResponse = {
+  success: boolean;
+  data: {
+    total: number;        // Total revenue from orders, never decreases
+    submission: number;   // 10% of total, calculated runtime
+    withdrawn: number;    // Total amount already withdrawn
+    available: number;    // netIncome = total - (submission + withdrawn)
+  };
+  message?: string;
+};
+
 export const incomeApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
     getIncome: builder.query<IncomeResponse, string>({
@@ -35,7 +47,17 @@ export const incomeApi = apiSlice.injectEndpoints({
       }),
       providesTags: ['Income'],
     }),
+
+    // New: detailed revenue for current user with withdrawn and available
+    getRevenueDetailedMe: builder.query<RevenueDetailedResponse, void>({
+      query: () => ({
+        url: 'revenue/detailed/me',
+        method: 'GET',
+        credentials: 'include' as const,
+      }),
+      providesTags: ['Income'],
+    }),
   }),
 });
 
-export const { useGetIncomeQuery, useGetTotalIncomeQuery } = incomeApi;
+export const { useGetIncomeQuery, useGetTotalIncomeQuery, useGetRevenueDetailedMeQuery } = incomeApi;
