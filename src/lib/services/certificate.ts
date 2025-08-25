@@ -68,4 +68,20 @@ export const certificateService = {
     }
     return response.json();
   },
+
+  // Get certificates for courses created by instructor
+  async getCertificatesByInstructor(): Promise<Certificate[]> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/certificate/instructor/courses`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor certificates');
+    }
+    return response.json();
+  },
 };
