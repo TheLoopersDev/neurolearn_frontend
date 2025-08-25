@@ -28,6 +28,10 @@ export interface User {
   rating?: number | null;
   student?: number | null;
   socialLinks?: SocialLinks;
+  businessInfo?: {
+    businessId?: string | null;
+    role?: 'admin' | 'manager' | 'employee' | null;
+  };
   createdAt?: string;
   updatedAt?: string;
 }
