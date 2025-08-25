@@ -6,6 +6,7 @@ import LearningCard from './_components/LearningCard';
 import Loading from '@/components/common/Loading';
 import SearchCourse from '@/components/dashboard/SearchCourse';
 import { CommonPagination } from '@/components/common/ui';
+import Button from '@/components/common/ui/Button';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 
@@ -93,20 +94,32 @@ export default function LearningPage() {
             {/* Content area */}
             {!isLoading && (
                 <div>
-                    <div>
-                        {/* Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            {currentCourses.map((course: any) => (
-                                <LearningCard key={course._id} course={course} />
-                            ))}
+                    {currentCourses.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                            <p className="text-gray-500 text-lg">You have no courses yet.</p>
+                            <Button
+                                onClick={() => router.push('/courses/')}
+                                className="px-6 py-2"
+                            >
+                                Explore Courses
+                            </Button>
                         </div>
-                        {/* Pagination */}
-                        <CommonPagination
-                            page={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                        />
-                    </div>
+                    ) : (
+                            <div>
+                                {/* Grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                    {currentCourses.map((course: any) => (
+                                        <LearningCard key={course._id} course={course} />
+                                    ))}
+                                </div>
+                                {/* Pagination */}
+                                <CommonPagination
+                                    page={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                    )}
                 </div>
             )}
         </div>
