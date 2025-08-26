@@ -444,7 +444,7 @@ function CoursePage() {
                 <div className="shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">✓</div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">Congratulations!</h3>
-                  <p className="text-gray-600">You have completed "{courseTitle}". Your certificate is ready.</p>
+                  <p className="text-gray-600">You have completed &quot;{courseTitle}&quot;. Your certificate is ready.</p>
                 </div>
               </div>
               <div className="mt-6 flex gap-3 justify-end">
