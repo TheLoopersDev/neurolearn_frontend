@@ -1,8 +1,6 @@
 // src/app/(auth)/dashboard/teacher/_components/InstructorListPage.tsx
 'use client';
 import React, { useEffect, useState, useMemo } from 'react';
-import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
 import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
 import InstructorCard from './InstructorCard';
 import SearchInstructor from './SearchInstructor';
@@ -65,19 +63,7 @@ const InstructorListPage: React.FC = () => {
             setSearchTerm(value);
             setCurrentPage(1);
           }}
-          onFilterClick={() => {
-            console.log('Filter clicked');
-          }}
         />
-        <div className="flex w-full sm:w-auto justify-center sm:justify-end mt-4 sm:mt-0">
-          <Link
-            href="#"
-            className="flex items-center bg-blue-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md h-[42px] whitespace-nowrap flex-shrink-0"
-          >
-            <PlusCircle size={18} className="mr-1.5 flex-shrink-0" />
-            Add Instructor
-          </Link>
-        </div>
       </div>
 
       {/* Lưới hiển thị các Instructor Cards */}

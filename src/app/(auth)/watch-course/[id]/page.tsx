@@ -8,6 +8,7 @@ import ReactPlayer from 'react-player';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loading from '@/components/common/Loading';
+import { useCertificate, useCurrentUser } from '@/hooks/useCertificate';
 
 function CoursePage() {
   const { id: rawCourseId } = useParams();
@@ -55,6 +56,7 @@ function CoursePage() {
   // Course data
   const [course, setCourse] = useState<any>(null);
   const [isFetchingCourse, setIsFetchingCourse] = useState(true);
+  const { user } = useCurrentUser();
 
   useEffect(() => {
     if (!courseId || isPurchased !== true) return;
@@ -154,6 +156,22 @@ function CoursePage() {
 
   const ctaLesson = nextLesson ?? firstPlayable;
   const courseTitle = course?.name || '';
+  const isCourseCompleted = course?.progress?.progressPercentage === 100;
+  const { certificate, loading: certLoading } = useCertificate(user?._id, courseId);
+
+  // Congrats modal state
+  const [showCongrats, setShowCongrats] = useState(false);
+  const prevCompletedRef = useRef<boolean>(false);
+  const congratsKey = useMemo(() => (courseId ? `nl:congrats_shown:${courseId}` : null), [courseId]);
+  useEffect(() => {
+    const prev = prevCompletedRef.current;
+    const now = Boolean(isCourseCompleted);
+    const alreadyShown = typeof window !== 'undefined' && congratsKey ? localStorage.getItem(congratsKey) === '1' : false;
+    if (now && !alreadyShown && !prev) {
+      setShowCongrats(true);
+    }
+    prevCompletedRef.current = now;
+  }, [isCourseCompleted, congratsKey]);
 
   const markLessonCompleted = (lessonId: string, completed = true) => {
     setCourse((prev: any) => {
@@ -251,11 +269,35 @@ function CoursePage() {
   if (loading) return <Loading message="Loading..." className="min-h-screen" />;
 
   return (
+    <>
     <div className="w-full py-20">
       <div className="w-full">
         <div className="flex flex-col lg:flex-row gap-20 px-4 sm:px-6 lg:px-20">
           {/* LEFT: Player / CTA */}
           <div className="w-full lg:w-[65%] space-y-10">
+              {isCourseCompleted && (
+                <div className="p-4 rounded-xl border bg-emerald-50 text-emerald-800 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold">You have completed this course.</p>
+                    <p className="text-sm text-emerald-700">You can view your certificate.</p>
+                  </div>
+                  <button
+                    disabled={!certificate?._id || certLoading}
+                    onClick={() => {
+                      if (certificate?._id) {
+                        if (typeof window !== 'undefined' && congratsKey) localStorage.setItem(congratsKey, '1');
+                        router.push(`/certificate/${certificate._id}`);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${certificate?._id && !certLoading
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      }`}
+                  >
+                    {certLoading ? 'Loading...' : 'View certificate'}
+                  </button>
+                </div>
+              )}
             {currentVideoUrl ? (
               <>
                 <div className="relative aspect-video w-full rounded-xl overflow-hidden shadow-md">
@@ -374,6 +416,66 @@ function CoursePage() {
         </div>
       </div>
     </div>
+
+      {/* Congrats Modal */}
+      <AnimatePresence>
+        {showCongrats && (
+          <motion.div
+            key="congrats-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] bg-black/40 flex items-center justify-center px-4"
+            onClick={() => setShowCongrats(false)}
+          >
+            <motion.div
+              key="congrats-modal"
+              initial={{ scale: 0.95, y: 10, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 10, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-6"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Course completed"
+            >
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">✓</div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Congratulations!</h3>
+                  <p className="text-gray-600">You have completed &quot;{courseTitle}&quot;. Your certificate is ready.</p>
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && congratsKey) localStorage.setItem(congratsKey, '1');
+                    setShowCongrats(false);
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
+                >
+                  Close
+                </button>
+                <button
+                  disabled={!certificate?._id || certLoading}
+                  onClick={() => {
+                    if (certificate?._id) {
+                      if (typeof window !== 'undefined' && congratsKey) localStorage.setItem(congratsKey, '1');
+                      setShowCongrats(false);
+                      router.push(`/certificate/${certificate._id}`);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${certificate?._id && !certLoading ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                >
+                  {certLoading ? 'Loading...' : 'View certificate'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
