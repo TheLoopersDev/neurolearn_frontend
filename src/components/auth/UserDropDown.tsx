@@ -260,6 +260,11 @@ function getDropdownList(user: User) {
       icon: <Image src={dashboard} alt="" width={20} height={20} />,
     },
     {
+      title: 'Teacher',
+      href: '/dashboard/teacher',
+      icon: <Image src={teacher} alt="" width={20} height={20} />,
+    },
+    {
       title: 'Courses',
       href: '/dashboard/my-courses',
       icon: <Image src={courses} alt="" width={20} height={20} />,
