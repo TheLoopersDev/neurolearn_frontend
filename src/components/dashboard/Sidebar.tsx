@@ -56,6 +56,7 @@ const Sidebar = () => {
   const menuByRole: Record<string, MenuItem[]> = {
     user: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
       { icon: courses, label: 'Courses', path: '/dashboard/my-courses' },
       ...(user?.businessInfo?.role === 'employee'
         ? [
