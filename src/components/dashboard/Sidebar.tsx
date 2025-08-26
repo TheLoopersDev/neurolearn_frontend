@@ -88,6 +88,7 @@ const Sidebar = () => {
       { icon: manageCourseIcon, label: 'Manage Courses', path: '/dashboard/manage-course' },
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
       { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      { icon: earning, label: 'Submissions', path: '/dashboard/submissions' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
       { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
