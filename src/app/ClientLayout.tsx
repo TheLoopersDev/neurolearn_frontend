@@ -103,7 +103,20 @@ export default function ClientLayout({ children }: { readonly children: React.Re
         {/* Background cố định, không effect màu */}
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute left-1/2 -translate-x-1/2 w-[clamp(800px,100vw,1172px)] h-[clamp(320px,60vw,467px)] top-[clamp(-200px,-20vw,-234px)] -z-10 rounded-b-[100%]"
+          className="pointer-events-none select-none absolute left-1/2 -translate-x-1/2 
+            w-[clamp(300px,90vw,1172px)] 
+            h-[clamp(200px,40vh,467px)] 
+            top-[clamp(-100px,-10vh,-234px)] 
+            -z-10 rounded-b-[100%]
+            sm:w-[clamp(500px,80vw,1172px)]
+            sm:h-[clamp(250px,50vh,467px)]
+            sm:top-[clamp(-150px,-15vh,-234px)]
+            md:w-[clamp(600px,70vw,1172px)]
+            md:h-[clamp(280px,55vh,467px)]
+            md:top-[clamp(-180px,-18vh,-234px)]
+            lg:w-[clamp(800px,100vw,1172px)]
+            lg:h-[clamp(320px,60vw,467px)]
+            lg:top-[clamp(-200px,-20vw,-234px)]"
           style={{
             background:
               'radial-gradient(58.94% 105.86% at 50% -5.86%, #5B78FF 0%, #F7F8FA 100%)',
