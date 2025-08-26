@@ -79,77 +79,7 @@ interface TopInstructor {
 //   message: string;
 // }
 
-// Mock data for development
-const mockSubmissions: SubmissionData[] = [
-  {
-    userId: '1',
-    userName: 'Nguyễn Văn A',
-    userEmail: 'nguyenvana@example.com',
-    userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-    total: 5000000,
-    submission: 500000,
-    netIncome: 4500000,
-    withdrawn: 2000000,
-    available: 2500000,
-    updatedAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    userId: '2',
-    userName: 'Trần Thị B',
-    userEmail: 'tranthib@example.com',
-    total: 3000000,
-    submission: 300000,
-    netIncome: 2700000,
-    withdrawn: 1000000,
-    available: 1700000,
-    updatedAt: '2024-01-14T15:45:00Z'
-  },
-  {
-    userId: '3',
-    userName: 'Lê Văn C',
-    userEmail: 'levanc@example.com',
-    userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    total: 8000000,
-    submission: 800000,
-    netIncome: 7200000,
-    withdrawn: 3000000,
-    available: 4200000,
-    updatedAt: '2024-01-13T09:20:00Z'
-  },
-  {
-    userId: '4',
-    userName: 'Phạm Thị D',
-    userEmail: 'phamthid@example.com',
-    total: 2000000,
-    submission: 200000,
-    netIncome: 1800000,
-    withdrawn: 500000,
-    available: 1300000,
-    updatedAt: '2024-01-12T14:15:00Z'
-  },
-  {
-    userId: '5',
-    userName: 'Hoàng Văn E',
-    userEmail: 'hoangvane@example.com',
-    userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-    total: 12000000,
-    submission: 1200000,
-    netIncome: 10800000,
-    withdrawn: 4000000,
-    available: 6800000,
-    updatedAt: '2024-01-11T11:30:00Z'
-  }
-];
-
-const mockStatistics: StatisticsData = {
-  totalRevenue: 30000000,
-  totalSubmission: 3000000,
-  totalWithdrawn: 10500000,
-  totalAvailable: 16500000,
-  activeInstructors: 5,
-  totalInstructors: 8,
-  averageSubmission: 600000
-};
+// Removed all mock data. Using backend APIs directly.
 
 const SubmissionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -166,7 +96,7 @@ const SubmissionsPage = () => {
   const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
   const router = useRouter();
-  const { user } = useSelector((state: any) => state.auth);
+  const { user, token } = useSelector((state: any) => state.auth);
   const role = user?.role;
   const [ready, setReady] = useState(false);
 
@@ -192,86 +122,33 @@ const SubmissionsPage = () => {
   const fetchSubmissions = async () => {
     try {
       setIsLoading(true);
-      
-      // Try real API first
-      try {
-        // Build query parameters
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: '10',
-          sortBy: sortBy,
-          sortOrder: sortOrder,
-          ...(searchTerm && { search: searchTerm })
-        });
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/all-submissions?${params}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setSubmissions(result.data.submissions);
-            setTotalPages(result.data.pagination.totalPages);
-            setTotalItems(result.data.pagination.totalItems);
-            return; // Success, exit early
-          }
-        }
-      } catch (apiError) {
-        console.log('API not available, using mock data');
-      }
-
-      // Fallback to mock data
-      const filteredData = mockSubmissions.filter(submission => 
-        submission.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        submission.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-      // Sort data
-      filteredData.sort((a, b) => {
-        let aValue: number, bValue: number;
-        
-        switch (sortBy) {
-          case 'submission':
-            aValue = a.submission;
-            bValue = b.submission;
-            break;
-          case 'total':
-            aValue = a.total;
-            bValue = b.total;
-            break;
-          case 'available':
-            aValue = a.available;
-            bValue = b.available;
-            break;
-          case 'withdrawn':
-            aValue = a.withdrawn;
-            bValue = b.withdrawn;
-            break;
-          default:
-            aValue = a.submission;
-            bValue = b.submission;
-        }
-
-        if (sortOrder === 'asc') {
-          return aValue - bValue;
-        } else {
-          return bValue - aValue;
-        }
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+        ...(searchTerm && { search: searchTerm })
       });
 
-      // Pagination
-      const itemsPerPage = 10;
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedData = filteredData.slice(startIndex, endIndex);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/all-submissions?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      });
 
-      setSubmissions(paginatedData);
-      setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
-      setTotalItems(filteredData.length);
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to fetch submissions');
+      }
+
+      setSubmissions(result.data.submissions);
+      setTotalPages(result.data.pagination.totalPages);
+      setTotalItems(result.data.pagination.totalItems);
 
     } catch (error) {
       console.error('Error fetching submissions:', error);
@@ -289,29 +166,20 @@ const SubmissionsPage = () => {
   const fetchStatistics = async () => {
     try {
       setIsLoadingStats(true);
-      
-      // Try real API first
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submission-statistics`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submission-statistics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setStatistics(result.data);
-            return; // Success, exit early
-          }
-        }
-      } catch (apiError) {
-        console.log('API not available, using mock statistics');
+      const result = await response.json();
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'Failed to fetch statistics');
       }
-
-      // Fallback to mock data
-      setStatistics(mockStatistics);
+      setStatistics(result.data);
     } catch (error) {
       console.error('Error fetching statistics:', error);
     } finally {
@@ -322,36 +190,54 @@ const SubmissionsPage = () => {
   const fetchTopInstructors = async () => {
     try {
       setIsLoadingTop(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submissions-summary?top=5`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      });
 
-      // Try real API first
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/revenue/submissions-summary?top=5`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setTopInstructors(result.data.topSubmissions);
-            return; // Success, exit early
-          }
-        }
-      } catch (apiError) {
-        console.log('API not available, using mock top instructors');
+      const result = await response.json().catch(() => undefined);
+      if (!response.ok || !result?.success || !result?.data) {
+        // Fallback: derive top instructors from current submissions list
+        const derived = [...submissions]
+          .sort((a, b) => b.submission - a.submission)
+          .slice(0, 5)
+          .map((s, index) => ({
+            userId: s.userId,
+            userName: s.userName,
+            userEmail: s.userEmail,
+            userAvatar: s.userAvatar,
+            total: s.total,
+            submission: s.submission,
+            netIncome: s.netIncome,
+            withdrawn: s.withdrawn,
+            available: s.available,
+            rank: index + 1,
+          }));
+        setTopInstructors(derived);
+        return;
       }
 
-      // Fallback to mock data - top 5 from mockSubmissions
-      const top5 = mockSubmissions
-        .sort((a, b) => b.submission - a.submission)
-        .slice(0, 5)
-        .map((submission, index) => ({
-          ...submission,
-          rank: index + 1
-        }));
-      setTopInstructors(top5);
+      const mapped: TopInstructor[] = (result.data.topSubmissions || result.data || []).map((item: any, index: number) => {
+        const user = item.user || item.instructor || {};
+        return {
+          userId: user._id || item.userId || item._id || `${index}`,
+          userName: user.name || item.userName || 'Unknown',
+          userEmail: user.email || item.userEmail || 'Unknown',
+          userAvatar: user.avatar || item.userAvatar,
+          total: Number(item.total ?? 0),
+          submission: Number(item.submission ?? item.platformSubmission ?? 0),
+          netIncome: Number(item.netIncome ?? 0),
+          withdrawn: Number(item.withdrawn ?? 0),
+          available: Number(item.available ?? 0),
+          rank: Number(item.rank ?? index + 1),
+        } as TopInstructor;
+      });
+
+      setTopInstructors(mapped);
     } catch (error) {
       console.error('Error fetching top instructors:', error);
     } finally {
