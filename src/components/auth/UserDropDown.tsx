@@ -47,7 +47,9 @@ interface User {
   avatar?: { url?: string };
   businessInfo?: { businessId?: string; role?: string };
 }
-interface LoadUserResponse { user: User }
+interface LoadUserResponse {
+  user: User;
+}
 
 function getDropdownList(user: User) {
   const isBusinessAdminOrManager = user?.businessInfo?.role === 'manager';
@@ -88,70 +90,198 @@ function getDropdownList(user: User) {
         href: '/business/setting',
         icon: <Image src={setting} alt="" width={20} height={20} />,
       },
-
     ];
   }
   const businessItems = isBusinessAdminOrManager
-  ? [
-      {
-        title: 'Business Dashboard',
-        href: `/business/dashboard/${user.businessInfo?.businessId}`,
-        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
-      },
-      ...(user?.businessInfo?.role === 'admin'
-        ? [
-            {
-              title: 'Setting',
-              href: '/business/setting',
-              icon: <Image src={setting} alt="" width={20} height={20} />,
-            },
-          ]
-        : []),
-      { title: 'My Courses', href: '/business/mycourses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Employee', href: '/business/employees', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/business/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Purchase History', href: '/business/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-      { title: 'Discount', href: '/business/discount', icon: <Image src={discountIcon} alt="" width={20} height={20} /> },
-    ]
-  : [];
+    ? [
+        {
+          title: 'Business Dashboard',
+          href: `/business/dashboard/${user.businessInfo?.businessId}`,
+          icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+        },
+        ...(user?.businessInfo?.role === 'admin'
+          ? [
+              {
+                title: 'Setting',
+                href: '/business/setting',
+                icon: <Image src={setting} alt="" width={20} height={20} />,
+              },
+            ]
+          : []),
+        {
+          title: 'My Courses',
+          href: '/business/mycourses',
+          icon: <Image src={courses} alt="" width={20} height={20} />,
+        },
+        {
+          title: 'Employee',
+          href: '/business/employees',
+          icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+        },
+        {
+          title: 'Message',
+          href: '/business/message',
+          icon: <Image src={message} alt="" width={20} height={20} />,
+        },
+        {
+          title: 'Purchase History',
+          href: '/business/purchase-history',
+          icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+        },
+        {
+          title: 'Discount',
+          href: '/business/discount',
+          icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+        },
+      ]
+    : [];
 
   if (user.role === 'admin') {
     return [
-      { title: 'Course Requests', href: '/dashboard/review-courses', icon: <Image src={reviewIcon} alt="" width={20} height={20} /> },
-      { title: 'Teacher', href: '/dashboard/teacher', icon: <Image src={teacher} alt="" width={20} height={20} /> },
-      { title: 'Withdrawals', href: '/dashboard/withdrawals', icon: <Image src={withdrawIcon} alt="" width={20} height={20} /> },
-      { title: 'Instructor Requests', href: '/dashboard/review-instructor', icon: <Image src={peopleIcon} alt="" width={20} height={20} /> },
-      { title: 'Business Requests', href: '/dashboard/business-requests', icon: <Image src={businessIcon} alt="" width={20} height={20} /> },
-      { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+      {
+        title: 'Course Requests',
+        href: '/dashboard/review-courses',
+        icon: <Image src={reviewIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Teacher',
+        href: '/dashboard/teacher',
+        icon: <Image src={teacher} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Withdrawals',
+        href: '/dashboard/withdrawals',
+        icon: <Image src={withdrawIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Instructor Requests',
+        href: '/dashboard/review-instructor',
+        icon: <Image src={peopleIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Business Requests',
+        href: '/dashboard/business-requests',
+        icon: <Image src={businessIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Certificate',
+        href: '/dashboard/certificate',
+        icon: <Image src={certificate} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
     ];
   }
 
   if (user.role === 'instructor') {
     return [
-      { title: 'Dashboard', href: '/instructor/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
-      { title: 'Learning', href: '/instructor/learning', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Courses', href: '/instructor/courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-      { title: 'Quizzes', href: '/instructor/quizzes', icon: <Image src={createQuiz} alt="" width={20} height={20} /> },
-      { title: 'Earning', href: '/dashboard/earning', icon: <Image src={earning} alt="" width={20} height={20} /> },
-      { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-      { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
-      { title: 'Discount', href: '/dashboard/discount', icon: <Image src={discountIcon} alt="" width={20} height={20} /> },
-      { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-      { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+      {
+        title: 'Dashboard',
+        href: '/instructor/dashboard',
+        icon: <Image src={dashboard} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Learning',
+        href: '/instructor/learning',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Courses',
+        href: '/instructor/courses',
+        icon: <Image src={courses} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Quizzes',
+        href: '/instructor/quizzes',
+        icon: <Image src={createQuiz} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Earning',
+        href: '/dashboard/earning',
+        icon: <Image src={earning} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Purchase History',
+        href: '/dashboard/purchase-history',
+        icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Certificate',
+        href: '/dashboard/certificate',
+        icon: <Image src={certificate} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Discount',
+        href: '/dashboard/discount',
+        icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Message',
+        href: '/dashboard/message',
+        icon: <Image src={message} alt="" width={20} height={20} />,
+      },
+      {
+        title: 'Setting',
+        href: '/dashboard/setting',
+        icon: <Image src={setting} alt="" width={20} height={20} />,
+      },
       ...businessItems,
     ];
   }
 
   return [
-    { title: 'Dashboard', href: '/dashboard', icon: <Image src={dashboard} alt="" width={20} height={20} /> },
-    { title: 'Courses', href: '/dashboard/my-courses', icon: <Image src={courses} alt="" width={20} height={20} /> },
-    { title: 'Purchase History', href: '/dashboard/purchase-history', icon: <Image src={purchaseHistory} alt="" width={20} height={20} /> },
-    { title: 'Certificate', href: '/dashboard/certificate', icon: <Image src={certificate} alt="" width={20} height={20} /> },
-    { title: 'Discount', href: '/dashboard/discount', icon: <Image src={discountIcon} alt="" width={20} height={20} /> },
-    { title: 'Message', href: '/dashboard/message', icon: <Image src={message} alt="" width={20} height={20} /> },
-    { title: 'Setting', href: '/dashboard/setting', icon: <Image src={setting} alt="" width={20} height={20} /> },
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: <Image src={dashboard} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Courses',
+      href: '/dashboard/my-courses',
+      icon: <Image src={courses} alt="" width={20} height={20} />,
+    },
+    ...(user?.businessInfo?.role === 'employee'
+      ? [
+          {
+            icon: <Image src={courses} alt="" width={20} height={20} />,
+            title: 'Business Courses',
+            href: '/dashboard/assign-course',
+          },
+        ]
+      : []),
+    {
+      title: 'Purchase History',
+      href: '/dashboard/purchase-history',
+      icon: <Image src={purchaseHistory} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Certificate',
+      href: '/dashboard/certificate',
+      icon: <Image src={certificate} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Discount',
+      href: '/dashboard/discount',
+      icon: <Image src={discountIcon} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Message',
+      href: '/dashboard/message',
+      icon: <Image src={message} alt="" width={20} height={20} />,
+    },
+    {
+      title: 'Setting',
+      href: '/dashboard/setting',
+      icon: <Image src={setting} alt="" width={20} height={20} />,
+    },
     ...businessItems,
   ];
 }
@@ -162,7 +292,7 @@ export function UserDropdown() {
   const [logoutTriggered, setLogoutTriggered] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
-const { data: session } = useSession(); // status: 'loading' | 'authenticated' | 'unauthenticated'
+  const { data: session } = useSession(); // status: 'loading' | 'authenticated' | 'unauthenticated'
   const router = useRouter();
   const [socialAuth] = useSocialAuthMutation();
 
@@ -186,8 +316,8 @@ const { data: session } = useSession(); // status: 'loading' | 'authenticated' |
         socialAuth({
           email: session.user.email,
           name: session.user.name,
-          avatar: session.user.image
-        }).catch(() => { });
+          avatar: session.user.image,
+        }).catch(() => {});
       }
     }
   }, [session, data?.user, isLoggingOut, socialAuth]);
@@ -202,7 +332,9 @@ const { data: session } = useSession(); // status: 'loading' | 'authenticated' |
     if (logoutTriggered) {
       logoutApi()
         .then(() => {
-          signOutAction().then(() => { if (!session) router.push('/'); });
+          signOutAction().then(() => {
+            if (!session) router.push('/');
+          });
         })
         .catch(() => router.push('/'))
         .finally(() => setIsLoggingOut(false));
@@ -220,12 +352,21 @@ const { data: session } = useSession(); // status: 'loading' | 'authenticated' |
   // animations
   const dropdownVariants: Variants = {
     hidden: { opacity: 0, y: -20, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 20, stiffness: 300, mass: 0.5 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { type: 'spring', damping: 20, stiffness: 300, mass: 0.5 },
+    },
     exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
   };
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: -10 },
-    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, type: 'spring', stiffness: 300 } }),
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.05, type: 'spring', stiffness: 300 },
+    }),
   };
 
   return (
