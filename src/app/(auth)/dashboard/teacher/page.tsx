@@ -19,12 +19,12 @@ export default function InstructorsPage() {
       useEffect(() => {
         if (!ready) return;
         if (role === undefined) return;
-        if (role !== 'admin') {
+        if (role !== 'admin' && role !== 'user') {
           router.replace('/'); // send non-admin to home
         }
       }, [ready, role, router]);
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
+  if (!ready || role !== 'admin' && role !== 'user') return <Loading message="Redirecting..." className="min-h-screen" />;
   return (
     <div className=" ">
       <InstructorListPage />;
