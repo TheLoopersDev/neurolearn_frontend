@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -48,6 +48,9 @@ interface User {
 }
 
 const Sidebar = () => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const pathname = usePathname();
   const { user } = useSelector((state: RootState) => state.auth) as { user: User | null };
 
@@ -101,6 +104,19 @@ const Sidebar = () => {
 
   // Choose menu items based on user role
   const menuItems: MenuItem[] = menuByRole[userRole] || menuByRole['user'];
+
+  // Render a deterministic skeleton on SSR to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="w-full max-h-screen flex flex-col items-start p-4 rounded-2xl bg-white">
+        <nav className="flex flex-col gap-4 w-full">
+          <div className="h-9 rounded-lg bg-gray-100" />
+          <div className="h-9 rounded-lg bg-gray-100" />
+          <div className="h-9 rounded-lg bg-gray-100" />
+        </nav>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-h-screen flex flex-col items-start p-4 rounded-2xl bg-white">

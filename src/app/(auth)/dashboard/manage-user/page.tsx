@@ -237,7 +237,7 @@ const ManageUserPage = () => {
                                         {currentUsers.map((user) => (
                                             <div
                                                 key={user._id}
-                                                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                                                className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
                                             >
                                                 <div className="flex items-center space-x-4">
                                                     <AvatarWithFallback

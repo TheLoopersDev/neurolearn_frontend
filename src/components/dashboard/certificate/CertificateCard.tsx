@@ -14,8 +14,9 @@ const CertificateCard: React.FC<CertificateCardProps> = ({ certificate }) => {
 
     React.useEffect(() => {
         const fetchUserAvatar = async () => {
+            if (!certificate?.user?._id) return;
             try {
-                const userData = await getUserById(certificate.user._id);
+                const userData = await getUserById(certificate?.user?._id);
                 const user = userData.user || userData;
                 if (user?.avatar?.url) {
                     setUserAvatar(user.avatar.url);
@@ -26,7 +27,7 @@ const CertificateCard: React.FC<CertificateCardProps> = ({ certificate }) => {
         };
 
         fetchUserAvatar();
-    }, [certificate.user._id]);
+    }, [certificate?.user?._id]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -67,7 +68,7 @@ const CertificateCard: React.FC<CertificateCardProps> = ({ certificate }) => {
                             <Image src="/assets/icons/menu.svg" alt="Menu" width={30} height={30} />
                         </div>
                     </div>
-                    <div className="font-bold text-gray-800 text-xl my-3 leading-tight">
+                    <div className="font-bold h-10 text-gray-800 text-xl my-3 leading-tight">
                         {certificate.courseName}
                     </div>
                     <div className="flex justify-between items-start text-xs text-gray-500">

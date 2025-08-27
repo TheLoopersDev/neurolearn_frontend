@@ -24,7 +24,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [notification, setNotification] = useState<{ isVisible: boolean; employeeName: string }>({
     isVisible: false,
-    employeeName: ''
+    employeeName: '',
   });
   const { signInAnonymouslyIfNeeded } = useFirebaseAuth();
 
@@ -88,18 +88,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
 
       // Sau đó thêm employee mới vào group chat
       console.log('Adding new employee to group chat...');
-      await addEmployeeToBusinessGroupChat(
-        businessId,
-        newEmployeeId,
-        newEmployeeName
-      );
+      await addEmployeeToBusinessGroupChat(businessId, newEmployeeId, newEmployeeName);
 
       console.log('Business group chat updated successfully');
 
       // Hiển thị thông báo thành công
       setNotification({
         isVisible: true,
-        employeeName: newEmployeeName
+        employeeName: newEmployeeName,
       });
 
       // Tự động ẩn notification sau 5 giây
@@ -117,7 +113,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
       // Hiển thị cảnh báo nhưng không block việc thêm employee
       toast({
         title: 'Warning',
-        description: 'Employee added but group chat update failed. You can manually add them later.',
+        description:
+          'Employee added but group chat update failed. You can manually add them later.',
         variant: 'destructive',
       });
     }
@@ -241,19 +238,21 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
             <div className="flex mb-4 border-b">
               <button
                 onClick={() => setActiveTab('email')}
-                className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'email'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-500'
-                  }`}
+                className={`py-2 px-4 hover:cursor-pointer ${
+                  activeTab === 'email'
+                    ? 'border-b-2 border-indigo-600 text-indigo-600'
+                    : 'text-gray-500'
+                }`}
               >
                 Add by Email
               </button>
               <button
                 onClick={() => setActiveTab('file')}
-                className={`py-2 px-4 hover:cursor-pointer ${activeTab === 'file'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-500'
-                  }`}
+                className={`py-2 px-4 hover:cursor-pointer ${
+                  activeTab === 'file'
+                    ? 'border-b-2 border-indigo-600 text-indigo-600'
+                    : 'text-gray-500'
+                }`}
               >
                 Add by File (.xlsx)
               </button>
@@ -285,7 +284,18 @@ const AddEmployeeModal = ({ isOpen, onClose, onRefresh }: AddEmployeeModalProps)
 
               {activeTab === 'file' && (
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">Upload XLSX File</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Upload XLSX File
+                    </label>
+                    <a
+                      href="/Example.xlsx"
+                      download
+                      className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+                    >
+                      📥 Download Example.xlsx
+                    </a>
+                  </div>
 
                   <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                     <div className="space-y-1 text-center">

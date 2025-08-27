@@ -1,9 +1,12 @@
+import { User } from './user';
+import { Course } from './course';
 export interface BusinessEmployee {
   _id: string;
   name?: string;
   email?: string;
   avatar?: string;
   role?: string;
+  user?: User;
 }
 
 export interface BusinessCourse {
@@ -14,6 +17,7 @@ export interface BusinessCourse {
   };
   price?: number;
   isPublished?: boolean;
+  course?: Course;
 }
 
 export interface BusinessCreator {
@@ -21,6 +25,7 @@ export interface BusinessCreator {
   name?: string;
   email?: string;
   avatar?: string;
+  user?: User;
 }
 
 export interface Business {
@@ -35,6 +40,7 @@ export interface Business {
   employees?: BusinessEmployee[];
   courses?: BusinessCourse[];
   createdAt: string;
+  logo?: string;
 }
 
 export interface BusinessResponse {
@@ -48,4 +54,4 @@ export interface BusinessResponse {
     hasPrevPage: boolean;
     limit: number;
   };
-} 
+}
