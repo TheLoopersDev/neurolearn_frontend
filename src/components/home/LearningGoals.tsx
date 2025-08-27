@@ -9,7 +9,7 @@ import image64 from "@/public/assets/home/image 64.svg"
 
 export const LearningGoals: React.FC = () => {
     return (
-        <section className="max-w-[1280px] mx-auto py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+        <section className="max-w-[1280px] mx-auto py-8 sm:py-12 md:py-16">
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-black mb-6 sm:mb-8 md:mb-10 text-center lg:text-left">
                 Learning focused on your goals
             </h1>

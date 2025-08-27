@@ -45,7 +45,7 @@ const ExpertsSection = () => {
 
   return (
     <section className="py-6 sm:py-8 md:py-10 lg:py-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto">
         {/* Header section with title and view more */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
           <AnimatedSection variants={fadeIn}>
