@@ -272,6 +272,24 @@ export const courseApi = createApi({
         };
       },
     }),
+    getPublishedCoursesForAdmin: builder.query<
+      { success: boolean; data: Course[]; totalCourses: number },
+      { search?: string; level?: string; sortBy?: string; sortOrder?: string }
+    >({
+      query: (params) => ({
+        url: '/courses/admin/published',
+        method: 'GET',
+        params,
+      }),
+      providesTags: ['Course'],
+      transformResponse: (response: { success: boolean; data: Course[]; totalCourses: number }) => {
+        return {
+          success: response.success,
+          data: response.data,
+          totalCourses: response.totalCourses,
+        };
+      },
+    }),
   }),
 });
 
@@ -296,4 +314,5 @@ export const {
   useUnpublishCourseMutation,
   useGetAllPurchasedCoursesQuery,
   useGetAllAssignedCoursesQuery,
+  useGetPublishedCoursesForAdminQuery,
 } = courseApi;
