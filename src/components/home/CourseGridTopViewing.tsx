@@ -27,10 +27,10 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
   if (error) {
     console.error('Error fetching courses:', error);
     return (
-      <div className="py-10 bg-gray-50">
-        <div className="container mx-auto">
-          <h2 className="text-4xl font-medium mb-6 text-gray-900">{title}</h2>
-          <div className="text-center text-gray-500">Error loading courses</div>
+      <div className="py-6 sm:py-8 md:py-10 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium mb-4 sm:mb-6 text-gray-900">{title}</h2>
+          <div className="text-center text-gray-500 text-sm sm:text-base">Error loading courses</div>
         </div>
       </div>
     );
@@ -38,32 +38,32 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
 
   if (courses.length === 0) {
     return (
-      <div className="py-10 bg-gray-50">
-        <div className="container mx-auto">
-          <h2 className="text-4xl font-medium mb-6 text-gray-900">{title}</h2>
-          <div className="text-center text-gray-500">No courses available</div>
+      <div className="py-6 sm:py-8 md:py-10 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium mb-4 sm:mb-6 text-gray-900">{title}</h2>
+          <div className="text-center text-gray-500 text-sm sm:text-base">No courses available</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-10">
-      <div className="container mx-auto px-4">
-        {/* Thêm một div cha để bọc tiêu đề và "View More" */}
-        <div className="flex justify-between items-center mb-6">
+    <div className="py-6 sm:py-8 md:py-10 lg:py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header section with title and view more */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8 md:mb-10">
           <AnimatedSection variants={fadeIn}>
-            <h2 className="text-4xl md:text-4xl text-[#0D0D0D]">{title}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium text-[#0D0D0D] text-center sm:text-left">{title}</h2>
           </AnimatedSection>
           <div
-            className="text-blue-900 cursor-pointer hover:underline flex items-center"
+            className="text-blue-900 cursor-pointer hover:underline flex items-center justify-center sm:justify-start text-sm sm:text-base font-medium"
             onClick={() => router.push('/courses?page=1')}
           >
-            <span className="mr-1">View More</span>
-            {/* Thêm biểu tượng mũi tên SVG */}
+            <span className="mr-2">View More</span>
+            {/* Arrow SVG */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-4 w-4 sm:h-5 sm:w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -74,8 +74,9 @@ const CourseGridTopViewing = ({ title }: CourseGridProps) => {
           </div>
         </div>
 
+        {/* Course grid */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 md:gap-10 lg:gap-12"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
