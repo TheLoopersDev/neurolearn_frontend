@@ -24,6 +24,7 @@ import peopleIcon from '@/public/assets/icons/teacher.svg';
 import discountIcon from '@/public/assets/business/discount.svg';
 import manageUserIcon from '@/public/assets/icons/manage-user.svg';
 import manageCourseIcon from '@/public/assets/icons/manage-course.svg';
+import teacher from '@/public/assets/icons/teacher.svg';
 
 interface MenuItem {
   icon: any;
@@ -55,6 +56,7 @@ const Sidebar = () => {
   const menuByRole: Record<string, MenuItem[]> = {
     user: [
       { icon: dashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
       { icon: courses, label: 'Courses', path: '/dashboard/my-courses' },
       ...(user?.businessInfo?.role === 'employee'
         ? [
@@ -67,8 +69,8 @@ const Sidebar = () => {
         : []),
       { icon: purchaseHistory, label: 'Purchase History', path: '/dashboard/purchase-history' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
-      { icon: message, label: 'Message', path: '/dashboard/message' },
       { icon: discountIcon, label: 'Discount', path: '/dashboard/discount' },
+      { icon: message, label: 'Message', path: '/dashboard/message' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     instructor: [
@@ -83,13 +85,15 @@ const Sidebar = () => {
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],
     admin: [
+      { icon: earning, label: 'Submissions', path: '/dashboard/submissions' },
       { icon: manageUserIcon, label: 'Manage Users', path: '/dashboard/manage-user' },
       { icon: peopleIcon, label: 'Instructor Requests', path: '/dashboard/review-instructor' },
       { icon: manageCourseIcon, label: 'Manage Courses', path: '/dashboard/manage-course' },
       { icon: reviewIcon, label: 'Course Requests', path: '/dashboard/review-courses' },
-      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
+      { icon: teacher, label: 'Teacher', path: '/dashboard/teacher' },
       { icon: businessIcon, label: 'Business Requests', path: '/dashboard/business-requests' },
       { icon: discountIcon, label: 'Discount Management', path: '/dashboard/discount-management' },
+      { icon: withdrawIcon, label: 'Withdrawals', path: '/dashboard/withdrawals' },
       { icon: certificate, label: 'Certificate', path: '/dashboard/certificate' },
       { icon: setting, label: 'Setting', path: '/dashboard/setting' },
     ],

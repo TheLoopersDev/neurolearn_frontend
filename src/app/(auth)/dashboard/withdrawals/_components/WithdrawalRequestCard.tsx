@@ -27,7 +27,18 @@ export default function WithdrawalRequestCard({ withdrawal, onPreview, onReject,
   };
 
   return (
-    <div className={`border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+    <div className={`border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${withdrawal.status === 'pending'
+        ? 'border-orange-300 bg-orange-50/30'
+        : index % 2 === 0
+          ? 'border-gray-200 bg-white'
+          : 'border-gray-200 bg-gray-50/30'
+      }`}>
+      {/* Priority indicator for pending requests */}
+      {withdrawal.status === 'pending' && (
+        <div className="bg-orange-500 text-white text-xs font-medium px-3 py-1 text-center">
+          ⚡ PRIORITY - PENDING APPROVAL
+        </div>
+      )}
       {/* Main Row */}
       <div className="grid grid-cols-12 gap-8 px-8 py-8 items-start hover:bg-gray-50 transition-colors">
         {/* User Info */}

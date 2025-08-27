@@ -80,7 +80,19 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshK
       const data: WithdrawResponse = await response.json();
 
       if (data.success) {
-        setWithdraws(data.data.withdraws);
+        // Sort withdrawals: pending first, then by requested date (newest first)
+        const sortedWithdraws = data.data.withdraws.sort((a: WithdrawData, b: WithdrawData) => {
+          // First priority: pending status
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status !== 'pending' && b.status === 'pending') return 1;
+
+          // Second priority: by requested date (newest first)
+          const dateA = new Date(a.requestedAt).getTime();
+          const dateB = new Date(b.requestedAt).getTime();
+          return dateB - dateA;
+        });
+
+        setWithdraws(sortedWithdraws);
         setTotalPages(data.data.pagination.totalPages);
       } else {
         setWithdraws([]);
@@ -131,7 +143,12 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshK
   return (
     <section className="mt-4 w-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold leading-none text-stone-950">Withdraw History</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold leading-none text-stone-950">Withdraw History</h2>
+          <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+            ⚡ Pending first
+          </div>
+        </div>
         <div className="flex gap-2">
           <select
             value={statusFilter}
