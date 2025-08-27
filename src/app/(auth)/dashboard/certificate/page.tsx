@@ -23,6 +23,7 @@ export default function Page() {
     const totalPages = Math.ceil((certificates?.length || 0) / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentCertificates = certificates?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [];
+    const placeholderCount = Math.max(0, ITEMS_PER_PAGE - currentCertificates.length);
 
     if (loading) {
         return <Loading message="Loading certificates..." />;
@@ -71,10 +72,12 @@ export default function Page() {
 
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {currentCertificates.map((certificate) => (
-                    <CertificateCard
-                        key={certificate._id}
-                        certificate={certificate}
-                    />
+                    <div key={certificate._id} className="min-h-[430px]">
+                        <CertificateCard certificate={certificate} />
+                    </div>
+                ))}
+                {Array.from({ length: placeholderCount }).map((_, idx) => (
+                    <div key={`ph-${idx}`} className="min-h-[420px]" aria-hidden />
                 ))}
             </div>
             {/* Pagination Controls */}

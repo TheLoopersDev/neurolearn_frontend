@@ -18,7 +18,8 @@ export const useCurrentUser = () => {
         const data = await getCurrentUserAPI();
         setUser(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch user');
+        // Không đăng nhập: coi như user null và KHÔNG coi là lỗi hiển thị
+        setUser(null);
       } finally {
         setLoading(false);
       }
