@@ -28,7 +28,7 @@ const CoursesPage: React.FC = () => {
         <div className="min-h-screen pb-10">
             <Banner />
 
-            <div className="relative z-80 -mt-[64px]">
+            <div className="relative -mt-[64px]">
                 <Suspense fallback={<div>Loading filters...</div>}>
                     <FilterSection />
                 </Suspense>

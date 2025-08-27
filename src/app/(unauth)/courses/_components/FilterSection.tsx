@@ -52,10 +52,10 @@ const FilterSection = () => {
 
     return (
         <div className="w-full px-4 md:px-0">
-            <div className="-mt-[64px] max-w-[1144px] mx-auto z-100 relative">
-                <div className="bg-white h-40 rounded-[20px] shadow px-6 py-[31px] w-full">
-                    <div className="flex flex-wrap md:flex-nowrap justify-between gap-[32px]">
-                        <div className="relative w-full min-h-[90px] flex-1">
+            <div className="-mt-[64px] max-sm:-mt-6 max-w-[1144px] mx-auto z-[80] relative">
+                <div className="bg-white h-40 max-sm:h-auto rounded-[20px] max-sm:rounded-[16px] shadow px-6 py-[31px] max-sm:px-4 max-sm:py-4 w-full overflow-visible">
+                    <div className="flex flex-wrap md:flex-nowrap justify-between gap-[32px] max-sm:gap-4">
+                        <div className="relative w-full min-h-[90px] md:min-h-[120px] max-sm:min-h-[120px] flex-1">
                             <AnimatePresence mode="wait">
                                 {searching ? (
                                     <motion.div
@@ -77,10 +77,10 @@ const FilterSection = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.2 }}
-                                        className="absolute inset-0 flex gap-[32px] flex-wrap md:flex-nowrap"
+                                            className="md:absolute md:inset-0 flex gap-[32px] flex-wrap md:flex-nowrap max-sm:flex-col max-sm:gap-4"
                                     >
                                         {/* Category */}
-                                        <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+                                            <div className="flex flex-col gap-2 min-w-[200px] max-sm:min-w-0 flex-1">
                                             <label className="text-base font-medium text-black">Type of Category</label>
                                             <FilterDropdown
                                                 options={categoryOptions}
@@ -93,7 +93,7 @@ const FilterSection = () => {
                                         </div>
 
                                         {/* Price */}
-                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <div className="flex flex-col gap-2 min-w-[160px] max-sm:min-w-0 flex-1">
                                             <label className="text-base font-medium text-black">Price</label>
                                             <FilterDropdown
                                                 options={['All Prices', 'Free', 'Paid']}
@@ -106,7 +106,7 @@ const FilterSection = () => {
                                         </div>
 
                                         {/* Level */}
-                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <div className="flex flex-col gap-2 min-w-[160px] max-sm:min-w-0 flex-1">
                                             <label className="text-base font-medium text-black">Level</label>
                                             <FilterDropdown
                                                 options={['All Levels', 'Beginner', 'Intermediate', 'Advanced']}
@@ -119,7 +119,7 @@ const FilterSection = () => {
                                         </div>
 
                                         {/* Rating */}
-                                        <div className="flex flex-col gap-2 min-w-[160px] flex-1">
+                                            <div className="flex flex-col gap-2 min-w-[160px] max-sm:min-w-0 flex-1">
                                             <label className="text-base font-medium text-black">Rating</label>
                                             <FilterDropdown
                                                 options={['All Ratings', '4★ & up', '3★ & up', '2★ & up']}
@@ -138,10 +138,10 @@ const FilterSection = () => {
                         <div className="flex items-center">
                             <button
                                 onClick={() => setSearching(!searching)}
-                                className={`w-[56px] h-[56px] rounded-full flex items-center justify-center transition ${searching ? 'bg-gray-200' : 'bg-[#F7F8FA] hover:bg-gray-200'
+                                className={`w-[56px] h-[56px] max-sm:w-11 max-sm:h-11 rounded-full flex items-center justify-center transition ${searching ? 'bg-gray-200' : 'bg-[#F7F8FA] hover:bg-gray-200'
                                     }`}
                             >
-                                <FaSearch className="text-black w-5 h-5" />
+                                <FaSearch className="text-black w-5 h-5 max-sm:w-4 max-sm:h-4" />
                             </button>
                         </div>
                     </div>
