@@ -73,7 +73,7 @@ const ActionModal: React.FC<ActionModalProps> = ({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="am-title"
-                className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 md:mx-auto z-50"
+                className="relative bg-white rounded-lg shadow-xl w-full max-w-[92vw] md:max-w-md mx-4 md:mx-auto z-50 max-h-[90vh] overflow-y-auto"
             >
                 <button
                     onClick={onClose}
@@ -84,7 +84,7 @@ const ActionModal: React.FC<ActionModalProps> = ({
                     <X size={20} />
                 </button>
 
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     <h2 id="am-title" className="text-lg font-semibold text-gray-900">
                         {title}
                     </h2>
@@ -93,7 +93,7 @@ const ActionModal: React.FC<ActionModalProps> = ({
                         <p className="mt-2 text-sm text-gray-600">{description}</p>
                     )}
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
                         {hasCancel && (
                             <Button
                                 variant="outline"

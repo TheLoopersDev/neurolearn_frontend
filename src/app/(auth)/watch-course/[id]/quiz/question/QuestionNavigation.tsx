@@ -1,4 +1,3 @@
-// watch-course/[id]/quiz/question/QuestionNavigation.tsx
 import React from 'react';
 import { Button } from '@/components/common/ui/Button2';
 
@@ -8,7 +7,7 @@ interface QuestionNavigationProps {
   onSubmit: () => void;
   canGoPrevious: boolean;
   canGoNext: boolean;
-  isSubmitting?: boolean; // NEW
+  isSubmitting?: boolean;
 }
 
 export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
@@ -17,22 +16,25 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   onSubmit,
   canGoPrevious,
   canGoNext,
-  isSubmitting = false, // NEW
+  isSubmitting = false,
 }) => {
   const disableAll = isSubmitting;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex justify-between gap-5">
+    <nav className="flex flex-col gap-3 sm:gap-5" aria-label="Question navigation">
+      {/* Prev / Next: 2 cột trên mobile, giữ cân đối */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5">
         <Button
           variant="ghost"
           size="default"
-          className="w-1/2 flex items-center justify-center"
+          className="w-full min-h-[44px] flex items-center justify-center gap-2"
           onClick={onPrevious}
-          disabled={disableAll || !canGoPrevious} // NEW
+          disabled={disableAll || !canGoPrevious}
+          aria-disabled={disableAll || !canGoPrevious}
+          aria-label="Previous question"
         >
           <svg className="w-5 h-5 text-[#3858F8] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Previous
         </Button>
@@ -40,29 +42,34 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
         <Button
           variant="ghost"
           size="default"
-          className="w-1/2 flex items-center justify-center"
+          className="w-full min-h-[44px] flex items-center justify-center gap-2"
           onClick={onNext}
-          disabled={disableAll || !canGoNext} // NEW
+          disabled={disableAll || !canGoNext}
+          aria-disabled={disableAll || !canGoNext}
+          aria-label="Next question"
         >
           Next
           <svg className="w-5 h-5 text-[#3858F8] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
         </Button>
       </div>
 
+      {/* Submit: full-width */}
       <Button
         variant="default"
         size="lg"
-        className="w-full flex items-center justify-center"
+        className="w-full min-h-[48px] flex items-center justify-center gap-2"
         onClick={onSubmit}
-        disabled={disableAll} // NEW
+        disabled={disableAll}
+        aria-busy={isSubmitting}
+        aria-label="Submit quiz"
       >
         <svg className="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
         </svg>
-        {isSubmitting ? 'Submitting...' : 'Submit'} {/* NEW */}
+        {isSubmitting ? 'Submitting...' : 'Submit'}
       </Button>
-    </div>
+    </nav>
   );
 };

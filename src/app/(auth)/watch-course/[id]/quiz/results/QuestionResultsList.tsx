@@ -1,6 +1,3 @@
-// watch-course/[id]/quiz/results/QuestionResultsList.tsx
-// Đồng bộ width & chip với QuestionList để hai bên khớp tuyệt đối
-
 import React from 'react';
 import { QuestionResultItemData } from '@/types/quiz';
 import { Card } from '../ui/Card';
@@ -20,6 +17,7 @@ const SIDE_PANEL_WIDTH =
 export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
   results,
   onQuestionSelect,
+  selectedQuestionId,
 }) => {
   // Gom số câu, tránh đè số duplicate
   const rawNumbers = results.map((it) =>
@@ -40,11 +38,12 @@ export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
       <div className="flex flex-col gap-6">
         <div className="text-2xl font-semibold leading-7 text-[#3858F8]">Question list</div>
 
-        {/* 4 cột, chip 56x56 giống QuestionList */}
-        <div className="grid grid-cols-4 place-items-center gap-3">
+        {/* Responsive grid — auto-fill min 56px, không cần dropdown */}
+        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(56px,1fr))] gap-3 place-items-center">
           {results.map((item, idx) => {
             const itemId = item.__resultId;
             const displayNumber = getDisplayNumber(idx);
+            const isSelected = selectedQuestionId === itemId;
 
             // Màu nền / chữ theo status
             let bg = '';
@@ -62,24 +61,22 @@ export const QuestionResultsList: React.FC<QuestionResultsListProps> = ({
             }
 
             return (
-              <div
+              <button
+                type="button"
                 key={itemId}
-                role="button"
-                tabIndex={0}
                 aria-label={`Question ${displayNumber}`}
                 title={`Q${displayNumber} - ${item.status}`}
                 onClick={() => onQuestionSelect(itemId)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') onQuestionSelect(itemId);
-                }}
-                className={`
-                  flex h-14 w-14 items-center justify-center rounded-lg text-xl font-medium
-                  transition-all duration-150 ease-in-out hover:opacity-80
-                  ${bg} ${txt}
-                `}
+                className={[
+                  'flex h-14 w-14 items-center justify-center rounded-lg text-xl font-medium',
+                  'transition-all duration-150 ease-in-out hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3858F8] focus-visible:ring-offset-2',
+                  bg,
+                  txt,
+                  isSelected ? 'ring-2 ring-[#3858F8] ring-offset-2' : '',
+                ].join(' ')}
               >
                 {displayNumber}
-              </div>
+              </button>
             );
           })}
         </div>

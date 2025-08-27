@@ -24,10 +24,12 @@ export const IndividualQuestionResultDetails: React.FC<IndividualQuestionResultD
   const pointsEarned = Number(result?.pointsEarned ?? 0);
   const maxPoints = Number(result?.maxPoints ?? 0);
   const rationale = (result as any)?.rationale;
+
   const userSelectedSet: Set<string> = useMemo(
     () => toSet(result?.userAnswer?.selectedOptionIds),
     [result?.userAnswer?.selectedOptionIds]
   );
+
   // Nếu không có dữ liệu câu hỏi thì hiển thị placeholder nhẹ
   if (!questionData) {
     return (
@@ -97,34 +99,40 @@ export const IndividualQuestionResultDetails: React.FC<IndividualQuestionResultD
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Title + Points */}
-      <div className="flex items-baseline gap-2 question-title-clip">
-        <div className="text-2xl font-semibold text-[#3858F8] leading-7">
+    <div className="flex flex-col gap-6 sm:gap-8">
+      {/* Title + Points (wrap dài) */}
+      <div className="flex items-baseline gap-2 min-w-0">
+        <div className="text-2xl font-semibold text-[#3858F8] leading-7 break-words hyphens-auto">
           Question {questionNumber}
         </div>
         {points != null && (
-          <div className="text-base font-normal text-[#6B6B6B] leading-5">
-            ({points} points)
-          </div>
+          <div className="text-base font-normal text-[#6B6B6B] leading-5">( {points} points )</div>
         )}
       </div>
 
       {/* Question text + image */}
-      <div className="flex flex-col gap-8">
-        {title && <div className="text-xl font-medium text-[#0D0D0D] leading-6">{title}</div>}
-        {questionImage && (
-          <Image
-            src={questionImage}
-            alt="Question"
-            width={800}
-            height={450}
-            className="max-w-full h-auto rounded-lg"
-          />
+      <div className="flex flex-col gap-5 sm:gap-8">
+        {title && (
+          <div className="text-xl font-medium text-[#0D0D0D] leading-6 whitespace-pre-wrap break-words hyphens-auto">
+            {title}
+          </div>
         )}
 
-        {/* Options */}
-        <div className="flex flex-col gap-4">
+        {questionImage && (
+          <div className="w-full">
+            <Image
+              src={questionImage}
+              alt="Question"
+              width={800}
+              height={450}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 800px"
+              className="mx-auto max-w-full h-auto rounded-lg object-contain"
+            />
+          </div>
+        )}
+
+        {/* Options (read-only) */}
+        <div className="flex flex-col gap-3 sm:gap-4" role="list" aria-label="Options">
           {options.map((option: any, idx: number) => {
             const optionId = String(toId(option, String(idx)));
             const isUserSelected = userSelectedSet.has(optionId);
@@ -150,21 +158,34 @@ export const IndividualQuestionResultDetails: React.FC<IndividualQuestionResultD
               radioDotColor = 'bg-[#FF7410]';
             }
 
+            const label =
+              (option?.text && String(option.text)) || `Option ${idx + 1}`;
+
             return (
               <div
                 key={optionId}
-                className={`relative w-full py-1 pl-4 pr-6 rounded-xl cursor-pointer ${optionBgColor} shadow-sm transition-colors duration-200`}
+                role="listitem"
+                aria-label={label}
+                className={`relative w-full min-h-14 pl-5 pr-4 py-3 rounded-xl ${optionBgColor} shadow-sm transition-colors duration-200`}
               >
+                {/* Left color bar */}
                 {leftBarColor && (
-                  <div className={`absolute left-2 top-1/2 -translate-y-1/2 h-[calc(100%-8px)] w-3 rounded-xl ${leftBarColor}`} />
+                  <div className={`absolute left-2 top-2 bottom-2 w-1.5 sm:w-2 rounded-full ${leftBarColor}`} />
                 )}
-                <div className="flex items-center justify-between py-1 px-4">
-                  <div className={`flex-grow flex items-center h-12 text-base font-medium leading-5 ${optionTextColor}`}>
-                    {option?.text ?? ''}
+
+                <div className="flex items-center justify-between gap-3 py-1 pl-2">
+                  <div
+                    className={`flex-grow text-base leading-5 ${optionTextColor} whitespace-pre-wrap break-words hyphens-auto`}
+                  >
+                    {label}
                   </div>
 
+                  {/* Icon (checkbox/radio) */}
                   {isMultipleAnswer ? (
-                    <div className={`w-6 h-6 rounded border-[1.5px] flex-shrink-0 flex items-center justify-center ${radioColor}`}>
+                    <div
+                      className={`w-6 h-6 rounded border-[1.5px] flex-shrink-0 flex items-center justify-center ${radioColor}`}
+                      aria-hidden="true"
+                    >
                       {(isCorrectAnswer || isUserSelected) && (
                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -172,21 +193,32 @@ export const IndividualQuestionResultDetails: React.FC<IndividualQuestionResultD
                       )}
                     </div>
                   ) : (
-                      <div className={`w-6 h-6 rounded-full border-[1.5px] flex-shrink-0 flex items-center justify-center ${radioColor}`}>
+                      <div
+                        className={`w-6 h-6 rounded-full border-[1.5px] flex-shrink-0 flex items-center justify-center ${radioColor}`}
+                        aria-hidden="true"
+                      >
                       {(isCorrectAnswer || isUserSelected) && (
                           <div className={`w-4 h-4 rounded-full ${radioDotColor}`} />
                       )}
                     </div>
                   )}
                 </div>
+
+                {/* SR-only badges for screen readers */}
+                <span className="sr-only">
+                  {isCorrectAnswer ? 'Correct answer.' : isUserSelected ? 'Your selection.' : ''}
+                </span>
               </div>
             );
           })}
         </div>
 
         {/* Feedback */}
-        <div className={`self-stretch h-20 px-12 py-5 ${feedbackBgColor} rounded-xl flex flex-col justify-center items-start gap-2`}>
-          <div className="w-full flex justify-between items-center">
+        <div
+          className={`self-stretch ${feedbackBgColor} rounded-xl p-4 sm:px-6 lg:px-12 py-5`}
+          aria-live="polite"
+        >
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               {feedbackIcon}
               <div className="flex flex-col">
@@ -202,7 +234,7 @@ export const IndividualQuestionResultDetails: React.FC<IndividualQuestionResultD
 
         {/* Rationale */}
         {rationale && (
-          <div className="self-stretch bg-[#F7F8FA] rounded-xl p-6 text-[#0D0D0D] text-base">
+          <div className="self-stretch bg-[#F7F8FA] rounded-xl p-4 sm:p-6 text-[#0D0D0D] text-base whitespace-pre-wrap break-words hyphens-auto">
             <h3 className="font-semibold text-lg mb-2">Explanation:</h3>
             <p>{rationale}</p>
           </div>

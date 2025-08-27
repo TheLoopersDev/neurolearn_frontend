@@ -9,6 +9,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loading from '@/components/common/Loading';
 import { useCertificate, useCurrentUser } from '@/hooks/useCertificate';
+import { ChevronDown } from 'lucide-react';
 
 function CoursePage() {
   const { id: rawCourseId } = useParams();
@@ -262,6 +263,9 @@ function CoursePage() {
     hasUpdatedProgress.current = false;
   };
 
+  // Mobile: toggle lesson list inline
+  const [mobileLessonsOpen, setMobileLessonsOpen] = useState(false);
+
   // ---- RENDER GATES ----
   if (isPurchased === false) return <div className="w-full py-20" />;
 
@@ -270,13 +274,13 @@ function CoursePage() {
 
   return (
     <>
-    <div className="w-full py-20">
-      <div className="w-full">
-        <div className="flex flex-col lg:flex-row gap-20 px-4 sm:px-6 lg:px-20">
-          {/* LEFT: Player / CTA */}
-          <div className="w-full lg:w-[65%] space-y-10">
+      <div className="w-full py-10 lg:py-20">
+        <div className="w-full">
+          <div className="max-w-screen-2xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-20 px-4 sm:px-6 lg:px-20">
+            {/* LEFT: Player / CTA */}
+            <div className="w-full lg:w-[65%] min-w-0 space-y-6 lg:space-y-10">
               {isCourseCompleted && (
-                <div className="p-4 rounded-xl border bg-emerald-50 text-emerald-800 flex items-center justify-between gap-4">
+                <div className="p-4 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-between gap-4">
                   <div>
                     <p className="font-semibold">You have completed this course.</p>
                     <p className="text-sm text-emerald-700">You can view your certificate.</p>
@@ -298,124 +302,170 @@ function CoursePage() {
                   </button>
                 </div>
               )}
-            {currentVideoUrl ? (
-              <>
-                <div className="relative aspect-video w-full rounded-xl overflow-hidden shadow-md">
-                  <ReactPlayer
-                    url={currentVideoUrl}
-                    controls
-                    width="100%"
-                    height="100%"
-                    onProgress={handleProgress}
-                    config={{ file: { attributes: { controlsList: 'nodownload' } } }}
-                  />
 
-                  {/* CTA when 80% */}
-                  <AnimatePresence>
-                    {nextLesson?.url && (
-                      <motion.div
-                        key="next-up-cta"
-                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 12, scale: 0.98 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
-                        className="absolute bottom-3 right-3 flex gap-2"
-                        aria-live="polite"
-                      >
-                        <motion.button
-                          onClick={() => {
-                            setCurrentVideoUrl(nextLesson.url);
-                            setCurrentLessonId(nextLesson.id);
-                            setNextLesson(null);
-                            hasUpdatedProgress.current = false;
-                          }}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 text-white shadow-md"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.98 }}
-                          animate={{
-                            boxShadow: [
-                              '0 0 0 0 rgba(16,185,129,0.0)',
-                              '0 0 0 8px rgba(16,185,129,0.15)',
-                              '0 0 0 0 rgba(16,185,129,0.0)',
-                            ],
-                          }}
-                          transition={{ duration: 1.6, repeat: Infinity, repeatType: 'loop', repeatDelay: 1.1 }}
-                          title={`Next up: ${nextLesson.title}`}
+              {currentVideoUrl ? (
+                <>
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden shadow-md border border-gray-200">
+                    <ReactPlayer
+                      url={currentVideoUrl}
+                      controls
+                      width="100%"
+                      height="100%"
+                      onProgress={handleProgress}
+                      config={{ file: { attributes: { controlsList: 'nodownload' } } }}
+                    />
+
+                    {/* CTA when 80% */}
+                    <AnimatePresence>
+                      {nextLesson?.url && (
+                        <motion.div
+                          key="next-up-cta"
+                          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex gap-2"
+                          aria-live="polite"
                         >
-                          <motion.span
-                            className="inline-block w-2 h-2 rounded-full bg-white/90"
-                            animate={{ scale: [1, 1.25, 1], opacity: [0.9, 1, 0.9] }}
-                            transition={{ duration: 1.2, repeat: Infinity }}
-                          />
-                          <span className="truncate max-w-[240px]">Next up: {nextLesson.title}</span>
-                        </motion.button>
+                          <motion.button
+                            onClick={() => {
+                              setCurrentVideoUrl(nextLesson.url);
+                              setCurrentLessonId(nextLesson.id);
+                              setNextLesson(null);
+                              hasUpdatedProgress.current = false;
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 text-white shadow-md"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.98 }}
+                            animate={{
+                              boxShadow: [
+                                '0 0 0 0 rgba(16,185,129,0.0)',
+                                '0 0 0 8px rgba(16,185,129,0.15)',
+                                '0 0 0 0 rgba(16,185,129,0.0)',
+                              ],
+                            }}
+                            transition={{ duration: 1.6, repeat: Infinity, repeatType: 'loop', repeatDelay: 1.1 }}
+                            title={`Next up: ${nextLesson.title}`}
+                          >
+                            <motion.span
+                              className="inline-block w-2 h-2 rounded-full bg-white/90"
+                              animate={{ scale: [1, 1.25, 1], opacity: [0.9, 1, 0.9] }}
+                              transition={{ duration: 1.2, repeat: Infinity }}
+                            />
+                            <span className="truncate max-w-[55vw] sm:max-w-[280px] lg:max-w-[320px]">
+                              Next up: {nextLesson.title}
+                            </span>
+                          </motion.button>
 
-                        <motion.button
-                          onClick={() => setNextLesson(null)}
-                          className="inline-flex items-center px-2 py-1.5 rounded-lg text-xs bg-white/85 backdrop-blur border border-white/60 text-gray-700"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          title="Hide suggestion"
-                        >
-                          Dismiss
-                        </motion.button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                          <motion.button
+                            onClick={() => setNextLesson(null)}
+                            className="inline-flex items-center px-2 py-1.5 rounded-lg text-xs bg-white/85 backdrop-blur text-gray-700"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            title="Hide suggestion"
+                          >
+                            Dismiss
+                          </motion.button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                {/* Course title under player */}
-                <motion.div
-                  key={`course-title-${course?._id || 'course'}`}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.22, ease: 'easeOut' }}
-                  className="mt-3"
-                  aria-live="polite"
-                >
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 leading-snug line-clamp-2">
-                    {courseTitle}
-                  </h1>
-                </motion.div>
-              </>
-            ) : (
+                  {/* Course title under player */}
+                  <motion.div
+                    key={`course-title-${course?._id || 'course'}`}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="mt-2 sm:mt-3"
+                    aria-live="polite"
+                  >
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 leading-snug line-clamp-2">
+                      {courseTitle}
+                    </h1>
+                  </motion.div>
+                </>
+              ) : (
                 <div className="w-full">
-                <div className="w-full aspect-video rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center p-6">
-                  <div className="flex flex-col items-center text-center">
+                    <div className="w-full aspect-video rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center p-6">
+                      <div className="flex flex-col items-center text-center">
                       <div className="mb-3 animate-pulse" />
-                    <p className="text-gray-600 mb-3">
+                        <p className="text-gray-600 mb-3">
                         {nextLesson ? 'Great job! Ready for the next lesson?' : courseTitle}
                       </p>
-                    <button
-                      disabled={!ctaLesson?.url}
-                      onClick={startCtaLesson}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
-                      ${ctaLesson?.url ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                        <button
+                          disabled={!ctaLesson?.url}
+                          onClick={startCtaLesson}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition
+                        ${ctaLesson?.url ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                        >
+                          {ctaLesson?.title ? `Start: ${ctaLesson.title}` : 'No video lesson available yet'}
+                        </button>
+                      </div>
+                  </div>
+                  </div>
+              )}
+
+              {/* Mobile Lessons Toggle */}
+              <div className="lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileLessonsOpen((s) => !s)}
+                  className="w-full mt-2 inline-flex items-center justify-between px-4 py-3 rounded-xl bg-white text-gray-800"
+                  aria-expanded={mobileLessonsOpen}
+                  aria-controls="mobile-lessons"
+                >
+                  <span className="text-sm font-medium">
+                    Lessons {course?.progress?.totalCompleted ?? 0}/{course?.progress?.totalLessons ?? 0}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileLessonsOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {mobileLessonsOpen && (
+                    <motion.div
+                      id="mobile-lessons"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22 }}
+                      className="overflow-hidden mt-3"
                     >
-                      {ctaLesson?.title ? `Start: ${ctaLesson.title}` : 'No video lesson available yet'}
-                    </button>
-                  </div>
-                  </div>
+                      <div className="rounded-xl bg-white">
+                        <CourseContent
+                          courseId={courseId || ''}
+                          sections={course?.sections}
+                          onLessonClick={(url, id) => {
+                            handleLessonClick(url, id);
+                            setMobileLessonsOpen(false);
+                            window?.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          progress={course?.progress}
+                          currentLessonId={currentLessonId ?? undefined}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            )}
 
-            <TabMenu course={course} />
-          </div>
+              <TabMenu course={course} />
+            </div>
 
-          {/* RIGHT: Content list */}
-          <div className="w-full lg:w-[35%] space-y-6">
-            <CourseContent
-              courseId={courseId || ''}
-              sections={course?.sections}
-              onLessonClick={handleLessonClick}
-              progress={course?.progress}
-              currentLessonId={currentLessonId ?? undefined}
-            />
+            {/* RIGHT: Content list (desktop) — no sticky */}
+            <div className="hidden lg:block w-full lg:w-[35%] space-y-6">
+              <CourseContent
+                courseId={courseId || ''}
+                sections={course?.sections}
+                onLessonClick={handleLessonClick}
+                progress={course?.progress}
+                currentLessonId={currentLessonId ?? undefined}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* Congrats Modal */}
       <AnimatePresence>
