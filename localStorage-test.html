@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>localStorage Test</title>
+</head>
+<body>
+    <h1>localStorage Test</h1>
+    <button onclick="testLocalStorage()">Test localStorage</button>
+    <button onclick="clearLocalStorage()">Clear localStorage</button>
+    <div id="result"></div>
+
+    <script>
+        function testLocalStorage() {
+            const userId = 'test-user-123';
+            const chatRoomId = 'test-chat-room-456';
+            const key = `activeChatRoom_${userId}`;
+            
+            // Test setting
+            localStorage.setItem(key, JSON.stringify(chatRoomId));
+            console.log('Set localStorage:', key, chatRoomId);
+            
+            // Test getting
+            const stored = localStorage.getItem(key);
+            const parsed = stored ? JSON.parse(stored) : null;
+            console.log('Retrieved from localStorage:', key, parsed);
+            
+            document.getElementById('result').innerHTML = `
+                <p>Key: ${key}</p>
+                <p>Stored: ${stored}</p>
+                <p>Parsed: ${parsed}</p>
+            `;
+        }
+        
+        function clearLocalStorage() {
+            localStorage.clear();
+            console.log('Cleared localStorage');
+            document.getElementById('result').innerHTML = '<p>localStorage cleared</p>';
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            console.log('localStorage available:', typeof localStorage !== 'undefined');
+            console.log('Current localStorage items:', Object.keys(localStorage));
+        };
+    </script>
+</body>
+</html> 
