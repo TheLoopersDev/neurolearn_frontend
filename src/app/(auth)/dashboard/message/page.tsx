@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setActiveChat } from '@/lib/redux/features/chat/chatSlice';
@@ -52,6 +53,7 @@ const MessagePage: React.FC = () => {
   const [selectedChatRoomId, setSelectedChatRoomId] = useState<string | null>(null);
   const [forceRefresh, setForceRefresh] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
+  const searchParams = useSearchParams();
 
 
 
@@ -227,6 +229,14 @@ const MessagePage: React.FC = () => {
     // Force refresh để đảm bảo messages được load lại
     setForceRefresh(prev => prev + 1);
   }, [activeChatRoomIdHook, dispatch, joinChat, leaveChat, setActiveChatRoomId]);
+
+  // Auto-select from ?room= param when available
+  useEffect(() => {
+    const roomFromQuery = searchParams?.get('room');
+    if (roomFromQuery && roomFromQuery !== selectedChatRoomId) {
+      handleSelectChat(roomFromQuery);
+    }
+  }, [searchParams, handleSelectChat, selectedChatRoomId]);
 
   // Khi messages thay đổi hoặc activeChatRoomId đổi, tắt loading
   useEffect(() => {

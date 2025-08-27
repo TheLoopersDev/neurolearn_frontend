@@ -4,18 +4,36 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { User } from '@/types/user'; // Đảm bảo đường dẫn đúng
+import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import { getOrCreateChatRoom } from '@/lib/firestore/chat';
 
 interface InstructorCardProps {
   instructor: User;
 }
 
 const InstructorCard: React.FC<InstructorCardProps> = ({ instructor }) => {
-  const handleSendMessage = (e: React.MouseEvent) => {
-    e.preventDefault(); // Ngăn Link cha điều hướng khi click nút này
+  const { user } = useSelector((state: any) => state.auth);
+  const router = useRouter();
+
+  const handleSendMessage = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    console.log(`Sending message to ${instructor.name}`);
-    // TODO: Mở modal hoặc điều hướng đến trang nhắn tin
-    alert(`Send message to ${instructor.name}`);
+
+    const currentUserId = user?._id;
+    const currentUserName = user?.name || '';
+    if (!currentUserId) {
+      router.push('/');
+      return;
+    }
+
+    try {
+      const roomId = await getOrCreateChatRoom(String(currentUserId), String(instructor._id), currentUserName, instructor.name || `User ${String(instructor._id).slice(-4)}`);
+      // Điều hướng tới trang message và chọn phòng vừa tạo
+      router.push(`/dashboard/message?room=${encodeURIComponent(roomId)}`);
+    } catch (err) {
+      console.error('Failed to start chat:', err);
+    }
   };
 
   return (

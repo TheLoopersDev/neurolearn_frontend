@@ -17,6 +17,7 @@ import {
   ChatRoom,
 } from '@/lib/firestore/chat';
 import { useFirebaseAuth } from './useFirebaseAuth';
+import { Timestamp } from 'firebase/firestore';
 
 export const useFirestoreChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -127,7 +128,10 @@ export const useFirestoreChat = () => {
           // Chỉ update messages nếu vẫn đang ở cùng chat room
           if (currentActiveChatRef.current === activeChatRoomId) {
             console.log('Messages updated for chat room:', activeChatRoomId, 'count:', newMessages.length);
-            setMessages(newMessages);
+            
+            // Remove temporary messages when real messages arrive from Firestore
+            const filteredMessages = newMessages.filter(msg => !msg.id?.startsWith('temp-'));
+            setMessages(filteredMessages);
           }
         });
 
@@ -187,18 +191,48 @@ export const useFirestoreChat = () => {
           return;
         }
 
+        let targetChatRoomId = activeChatRoomId;
+
         // Nếu có activeChatRoomId, sử dụng nó (cho group chat)
         if (activeChatRoomId) {
           // Send message trực tiếp vào chat room hiện tại
           await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
         } else {
           // Get or create chat room (cho 1-1 chat)
-          const chatRoomId = await getOrCreateChatRoom(userId, receiverId);
-          await sendMessage(chatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
+          targetChatRoomId = await getOrCreateChatRoom(userId, receiverId);
+          await sendMessage(targetChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
           
           // Set active chat room if not already set
-          setActiveChatRoomId(chatRoomId);
+          setActiveChatRoomId(targetChatRoomId);
         }
+
+        // Add message to local state immediately for instant UI feedback
+        const newMessage = {
+          id: `temp-${Date.now()}`,
+          senderId: userId,
+          receiverId,
+          content,
+          timestamp: Timestamp.now(),
+          type,
+          read: false,
+          reactions: [],
+          ...(replyTo && { replyTo }),
+          ...(senderInfo && { senderInfo })
+        };
+        
+        setMessages(prev => [...prev, newMessage]);
+
+        // Also update chatRooms to reflect new lastMessage in sidebar
+        setChatRooms(prev => prev.map(room => {
+          if (room.id === (activeChatRoomId || targetChatRoomId)) {
+            return {
+              ...room,
+              lastMessage: newMessage,
+              lastMessageTime: newMessage.timestamp
+            };
+          }
+          return room;
+        }));
       } catch (err) {
         console.error('Error sending message:', err);
         setError(err instanceof Error ? err.message : 'Failed to send message');
