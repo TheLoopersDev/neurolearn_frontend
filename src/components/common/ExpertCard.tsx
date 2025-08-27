@@ -7,6 +7,7 @@ import Arrow from '@/public/assets/home/Arrow.svg';
 import Facebook from '@/public/assets/home/Facebook.svg';
 import Linkedin from '@/public/assets/home/Linkedin.svg';
 import Mail from '@/public/assets/home/Mail.svg';
+import { useRouter } from 'next/navigation';
 
 interface ExpertCardProps {
   name: string;
@@ -29,6 +30,13 @@ const ExpertCard = ({
   isActive = false,
 }: ExpertCardProps) => {
   const AVATAR = 112;
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    if (profileUrl && profileUrl !== '#') {
+      router.push(profileUrl);
+    }
+  };
 
   return (
     <div
@@ -37,8 +45,18 @@ const ExpertCard = ({
         'group relative w-full max-w-[419px] h-[320px] sm:h-[330px] md:h-[350px] rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white shadow-sm',
         'border transition-all duration-300 hover:shadow-lg hover:-translate-y-[2px]',
         isActive ? 'border-[#A18EFF]' : 'border-gray-100',
-        'overflow-hidden', // cần cho hiệu ứng header
+        'overflow-hidden cursor-pointer', // cần cho hiệu ứng header + clickable
       ].join(' ')}
+      role="button"
+      tabIndex={0}
+      aria-label={`View instructor ${name}`}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
     >
       {/* Gradient header của Uiverse (mô phỏng ::before) */}
       <div
@@ -124,6 +142,7 @@ const ExpertCard = ({
             rel="noopener noreferrer"
             aria-label="LinkedIn"
             className="group/link w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center ring-1 ring-inset ring-gray-200 hover:bg-[#EEF2FF] transition"
+            onClick={(e) => e.stopPropagation()}
           >
             <Image src={Linkedin} alt="LinkedIn" width={14} height={14} className="sm:w-4 sm:h-4 opacity-90 group-hover/link:opacity-100" />
           </Link>
@@ -133,6 +152,7 @@ const ExpertCard = ({
             rel="noopener noreferrer"
             aria-label="Facebook"
             className="group/fb w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center ring-1 ring-inset ring-gray-200 hover:bg-[#EEF2FF] transition"
+            onClick={(e) => e.stopPropagation()}
           >
             <Image src={Facebook} alt="Facebook" width={14} height={14} className="sm:w-4 sm:h-4 opacity-90 group-hover/fb:opacity-100" />
           </Link>
@@ -140,6 +160,7 @@ const ExpertCard = ({
             href={socialLinks?.email ? `mailto:${socialLinks.email}` : '#'}
             aria-label="Email"
             className="group/mail w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center ring-1 ring-inset ring-gray-200 hover:bg-[#EEF2FF] transition"
+            onClick={(e) => e.stopPropagation()}
           >
             <Image src={Mail} alt="Email" width={14} height={14} className="sm:w-4 sm:h-4 opacity-90 group-hover/mail:opacity-100" />
           </Link>
@@ -149,6 +170,7 @@ const ExpertCard = ({
           href={profileUrl}
           aria-label="View profile"
           className="group/cta w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full ring-1 ring-inset ring-gray-200 hover:ring-[#A18EFF] hover:bg-[#F5F3FF] transition"
+          onClick={(e) => e.stopPropagation()}
         >
           <Image
             src={Arrow}
