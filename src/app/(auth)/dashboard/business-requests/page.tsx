@@ -1,19 +1,25 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ReviewHeader, ReviewPagination } from '@/components/review-common';
-import { useGetPendingRequestsQuery, useHandleRequestMutation, useGetAllBusinessesQuery } from '@/lib/redux/features/api/apiSlice';
+import { ReviewHeader } from '@/components/review-common';
+import {
+  useGetPendingRequestsQuery,
+  useHandleRequestMutation,
+  useGetAllBusinessesQuery,
+} from '@/lib/redux/features/api/apiSlice';
 import { useToast } from '@/hooks/use-toast';
-import BusinessCard from '@/components/business/BusinessCard';
-import BusinessDetailsModal from '@/components/business/BusinessDetailsModal';
+import BusinessCard from './_components/BusinessCard';
+import BusinessDetailsModal from './_components/BusinessDetailsModal';
 import BusinessRequestCard from './_components/BusinessRequestCard';
 import { Business } from '@/types/business';
 import Loading from '@/components/common/Loading';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/review-common';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import { CommonPagination } from '@/components/common/ui';
+
+type TabKey = 'request' | 'business';
 
 // Business Request Modal Component using createPortal
 const BusinessRequestModal: React.FC<{
@@ -26,9 +32,7 @@ const BusinessRequestModal: React.FC<{
   if (!isOpen || !selected) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   };
 
   // Prepare data similar to "Show more" details in card
@@ -36,16 +40,24 @@ const BusinessRequestModal: React.FC<{
   const userData = selected?.userId || {};
   const representativeData = businessData?.representative || {};
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('vi-VN');
 
   const modalContent = (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4" onClick={handleBackdropClick}>
+    <div
+      className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999] p-4"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
-          <h3 className="text-2xl font-bold text-gray-900">Business Request: {selected?.userId?.businessInfo?.businessId?.name || businessData?.businessName || selected?.userId?.name || 'N/A'}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Business Request:{' '}
+            {selected?.userId?.businessInfo?.businessId?.name ||
+              businessData?.businessName ||
+              selected?.userId?.name ||
+              'N/A'}
+          </h3>
         </div>
+
         {/* Business Request Content */}
         <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -56,8 +68,8 @@ const BusinessRequestModal: React.FC<{
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">User Information</h4>
                 <div className="flex items-center gap-4 mb-4">
                   <Image
-                    src={userData?.avatar?.url || userData?.avatar || "/assets/images/avatar.png"}
-                    alt={userData?.name}
+                    src={userData?.avatar?.url || userData?.avatar || '/assets/images/avatar.png'}
+                    alt={userData?.name || 'User avatar'}
                     width={80}
                     height={80}
                     className="w-20 h-20 rounded-full object-cover"
@@ -76,7 +88,9 @@ const BusinessRequestModal: React.FC<{
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Business Information */}
                   <div className="space-y-3 text-sm">
-                    <div className="font-semibold text-gray-900 text-base">Business Information</div>
+                    <div className="font-semibold text-gray-900 text-base">
+                      Business Information
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="text-gray-500">Name:</span>
                       <span>{businessData?.businessName || 'N/A'}</span>
@@ -112,7 +126,9 @@ const BusinessRequestModal: React.FC<{
                   {/* Representative and Account Owner */}
                   <div>
                     <div className="space-y-3 text-sm">
-                      <div className="font-semibold text-gray-900 text-base">Representative Details</div>
+                      <div className="font-semibold text-gray-900 text-base">
+                        Representative Details
+                      </div>
                       <div className="flex items-center gap-3">
                         <span className="text-gray-500">Name:</span>
                         <span>{representativeData?.name || 'N/A'}</span>
@@ -151,7 +167,9 @@ const BusinessRequestModal: React.FC<{
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-gray-500">Verified:</span>
-                          <span className={userData?.isVerified ? 'text-green-600' : 'text-orange-600'}>
+                          <span
+                            className={userData?.isVerified ? 'text-green-600' : 'text-orange-600'}
+                          >
                             {userData?.isVerified ? 'Yes' : 'No'}
                           </span>
                         </div>
@@ -215,11 +233,21 @@ const BusinessRequestModal: React.FC<{
                 <div className="space-y-3">
                   <div>
                     <span className="text-gray-500 text-sm">Request Type:</span>
-                    <div className="font-semibold text-blue-600">{selected?.type ? selected.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Business Verification'}</div>
+                    <div className="font-semibold text-blue-600">
+                      {selected?.type
+                        ? selected.type
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (l: string) => l.toUpperCase())
+                        : 'Business Verification'}
+                    </div>
                   </div>
                   <div>
                     <span className="text-gray-500 text-sm">Request Date:</span>
-                    <div className="font-semibold">{selected?.createdAt ? new Date(selected.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                    <div className="font-semibold">
+                      {selected?.createdAt
+                        ? new Date(selected.createdAt).toLocaleDateString('vi-VN')
+                        : 'N/A'}
+                    </div>
                   </div>
                   <div>
                     <span className="text-gray-500 text-sm">Status:</span>
@@ -236,19 +264,35 @@ const BusinessRequestModal: React.FC<{
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Request Type</span>
-                    <span className="font-semibold">{selected?.type?.replace('_', ' ') || 'Business'}</span>
+                    <span className="font-semibold">
+                      {selected?.type?.replace('_', ' ') || 'Business'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Status</span>
-                    <span className={`font-semibold ${selected?.status === 'approved' ? 'text-green-600' : selected?.status === 'rejected' ? 'text-red-600' : 'text-orange-600'}`}>{selected?.status || 'Pending'}</span>
+                    <span
+                      className={`font-semibold ${
+                        selected?.status === 'approved'
+                          ? 'text-green-600'
+                          : selected?.status === 'rejected'
+                            ? 'text-red-600'
+                            : 'text-orange-600'
+                      }`}
+                    >
+                      {selected?.status || 'Pending'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Business Sector</span>
-                    <span className="font-semibold capitalize">{businessData?.businessSector || 'N/A'}</span>
+                    <span className="font-semibold capitalize">
+                      {businessData?.businessSector || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Created</span>
-                    <span className="font-semibold">{selected?.createdAt ? formatDate(selected.createdAt) : 'N/A'}</span>
+                    <span className="font-semibold">
+                      {selected?.createdAt ? formatDate(selected.createdAt) : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -268,9 +312,7 @@ const BusinessRequestModal: React.FC<{
                 try {
                   await onReject(selected._id || selected.id);
                   onClose();
-                } catch (err: any) {
-                  // Error handling will be done in parent component
-                }
+                } catch {}
               }}
               className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             >
@@ -281,9 +323,7 @@ const BusinessRequestModal: React.FC<{
                 try {
                   await onApprove(selected._id || selected.id);
                   onClose();
-                } catch (err: any) {
-                  // Error handling will be done in parent component
-                }
+                } catch {}
               }}
               className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
@@ -299,20 +339,27 @@ const BusinessRequestModal: React.FC<{
   return createPortal(modalContent, document.body);
 };
 
-const categories = ['All requests', 'UI/UX', 'Development', 'Data Science', 'Marketing', 'Creative'];
+const categories = [
+  'All requests',
+  'UI/UX',
+  'Development',
+  'Data Science',
+  'Marketing',
+  'Creative',
+];
 const statusOptions = ['all', 'pending', 'approved', 'rejected'];
 
 const BusinessRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All requests');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [businessPage, setBusinessPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1); // pagination for REQUEST tab
+  const [businessPage, setBusinessPage] = useState(1); // pagination for BUSINESS tab
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [businessDetailsOpen, setBusinessDetailsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'request' | 'business'>('request');
+  const [activeTab, setActiveTab] = useState<TabKey>('request');
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useSelector((state: any) => state.auth);
@@ -326,37 +373,39 @@ const BusinessRequestsPage = () => {
   useEffect(() => {
     if (!ready) return;
     if (role === undefined) return;
-    if (role !== 'admin') {
-      router.replace('/'); // send non-admin to home
-    }
+    if (role !== 'admin') router.replace('/');
   }, [ready, role, router]);
+
   // API call for business approval requests
-  const { data: requestData, isLoading: isRequestLoading, refetch } = useGetPendingRequestsQuery({
+  const {
+    data: requestData,
+    isLoading: isRequestLoading,
+    refetch,
+  } = useGetPendingRequestsQuery({
     type: 'business_verification',
-    status: selectedStatus
+    status: selectedStatus,
   });
+
   const [handleRequest] = useHandleRequestMutation();
 
-  // API call for all businesses
+  // API call for all businesses (tab Business)
   const { data: businessData, isLoading: isBusinessLoading } = useGetAllBusinessesQuery({
     page: businessPage,
-    limit: 6,
-    search: searchTerm
+    limit: 8,
+    search: searchTerm,
   });
 
-  // Refetch when status changes
+  // Refetch & reset page when status changes
   useEffect(() => {
     refetch();
+    setCurrentPage(1);
   }, [selectedStatus, refetch]);
 
-  // Reset business page when search term changes
+  // Reset pages when searchTerm changes
   useEffect(() => {
-    if (activeTab === 'business') {
-      setBusinessPage(1);
-    }
+    if (activeTab === 'business') setBusinessPage(1);
+    if (activeTab === 'request') setCurrentPage(1);
   }, [searchTerm, activeTab]);
-
-  // removed unused handleView
 
   const handleViewBusinessDetails = (business: Business) => {
     setSelectedBusiness(business);
@@ -367,103 +416,36 @@ const BusinessRequestsPage = () => {
     try {
       await handleRequest({ type: 'business_verification', requestId, action }).unwrap();
       setCurrentPage(1);
-      // Refresh data to get latest status
       await refetch();
       toast({
         title: action === 'approve' ? 'Request Approved' : 'Request Rejected',
-        description: action === 'approve'
-          ? 'The business request has been approved successfully.'
-          : 'The business request has been rejected successfully.',
+        description:
+          action === 'approve'
+            ? 'The business request has been approved successfully.'
+            : 'The business request has been rejected successfully.',
         variant: 'success',
       });
     } catch (err: any) {
       toast({
         title: action === 'approve' ? 'Approval Failed' : 'Rejection Failed',
-        description: err?.data?.message || err?.error || 'An error occurred while processing the request.',
+        description:
+          err?.data?.message || err?.error || 'An error occurred while processing the request.',
         variant: 'destructive',
       });
     }
   };
 
-  // Pagination component
-  const PaginationComponent = () => {
-    if (totalPages <= 1) return null;
-
-    const getPageNumbers = () => {
-      const pageNumbers = new Set<number>();
-      pageNumbers.add(1);
-      pageNumbers.add(totalPages);
-      if (currentPage > 1) pageNumbers.add(currentPage - 1);
-      pageNumbers.add(currentPage);
-      if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
-
-      const sortedPages = Array.from(pageNumbers)
-        .filter(p => p > 0 && p <= totalPages)
-        .sort((a, b) => a - b);
-      const finalPages: (number | string)[] = [];
-      let lastPage = 0;
-
-      for (const page of sortedPages) {
-        if (lastPage !== 0 && page > lastPage + 1) {
-          finalPages.push('...');
-        }
-        finalPages.push(page);
-        lastPage = page;
-      }
-      return finalPages;
-    };
-   
-    return (
-      <div className="flex justify-center items-center gap-2 mt-8">
-        <button
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              if (typeof page === 'number') {
-                setCurrentPage(page);
-              }
-            }}
-            disabled={page === '...'}
-            className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
-              ? 'text-blue-600 bg-blue-50 border border-blue-300'
-              : page === '...'
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
-              }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  };
-
-  // Extract data from API response
+  // Extract & paginate requests
   const requests = requestData?.data || [];
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(requests.length / itemsPerPage);
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(requests.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
+
   // While checking/redirecting, render nothing (or your <Loading/>)
-  if (!ready || role !== 'admin') return <Loading message="Redirecting..." className="min-h-screen" />;
+  if (!ready || role !== 'admin')
+    return <Loading message="Redirecting..." className="min-h-screen" />;
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -474,7 +456,7 @@ const BusinessRequestsPage = () => {
           setSelectedCategory={setSelectedCategory}
           categories={categories}
           activeTab={activeTab}
-          onTabChange={tab => setActiveTab(tab as 'request' | 'business')}
+          onTabChange={tab => setActiveTab(tab as TabKey)}
           tabOptions={[
             { value: 'request', label: 'Request' },
             { value: 'business', label: 'Business' },
@@ -496,11 +478,12 @@ const BusinessRequestsPage = () => {
               {isRequestLoading ? (
                 <Loading message="Loading requests..." size="sm" className="py-12" />
               ) : !requestData?.success || requests.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
-                  </div>
-                ) : (
-                  currentRequests.map((request: any, index: number) => (
+                <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  {searchTerm ? `No requests found matching "${searchTerm}"` : 'No requests found'}
+                </div>
+              ) : (
+                <>
+                  {currentRequests.map((request: any, index: number) => (
                     <BusinessRequestCard
                       key={request._id || request.id}
                       business={request}
@@ -511,10 +494,22 @@ const BusinessRequestsPage = () => {
                       }}
                       onReject={() => handleApproveOrReject(request._id, 'reject')}
                     />
-                  ))
+                  ))}
+
+                  {/* Pagination for REQUESTS */}
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <CommonPagination
+                        page={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
-            <PaginationComponent />
+
             {/* Business Request Modal using createPortal */}
             <BusinessRequestModal
               isOpen={open}
@@ -526,7 +521,10 @@ const BusinessRequestsPage = () => {
                 } catch (err: any) {
                   toast({
                     title: 'Approval Failed',
-                    description: err?.data?.message || err?.error || 'An error occurred while approving the request.',
+                    description:
+                      err?.data?.message ||
+                      err?.error ||
+                      'An error occurred while approving the request.',
                     variant: 'destructive',
                   });
                 }
@@ -537,7 +535,10 @@ const BusinessRequestsPage = () => {
                 } catch (err: any) {
                   toast({
                     title: 'Rejection Failed',
-                    description: err?.data?.message || err?.error || 'An error occurred while rejecting the request.',
+                    description:
+                      err?.data?.message ||
+                      err?.error ||
+                      'An error occurred while rejecting the request.',
                     variant: 'destructive',
                   });
                 }
@@ -556,7 +557,7 @@ const BusinessRequestsPage = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {businessData.data.map((business) => (
+                  {businessData.data.map((business: Business) => (
                     <BusinessCard
                       key={business._id}
                       business={business}
@@ -564,10 +565,18 @@ const BusinessRequestsPage = () => {
                     />
                   ))}
                 </div>
+
                 {businessData.pagination && businessData.pagination.totalPages > 1 && (
                   <div className="mt-8">
-                    <ReviewPagination
+                    {/* Dùng ReviewPagination cũ của bạn, hoặc CommonPagination đều được.
+                       Ở đây giữ ReviewPagination theo code gốc của bạn nếu component đó phụ trách tab Business */}
+                    {/* <ReviewPagination
                       currentPage={businessData.pagination.currentPage}
+                      totalPages={businessData.pagination.totalPages}
+                      onPageChange={setBusinessPage}
+                    /> */}
+                    <CommonPagination
+                      page={businessData.pagination.currentPage}
                       totalPages={businessData.pagination.totalPages}
                       onPageChange={setBusinessPage}
                     />
@@ -589,4 +598,4 @@ const BusinessRequestsPage = () => {
   );
 };
 
-export default BusinessRequestsPage; 
+export default BusinessRequestsPage;
