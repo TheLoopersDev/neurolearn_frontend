@@ -192,13 +192,13 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
                     className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <img
-                      src={employee.user.avatar?.url || '/assets/images/avatar-default.png'}
-                      alt={employee.user.name || 'Employee'}
+                      src={employee.user?.avatar?.url || '/assets/images/avatar-default.png'}
+                      alt={employee.user?.name || 'Employee'}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
                       <div className="font-medium text-sm text-gray-900">
-                        {employee.user.name || 'Unknown Employee'}
+                        {employee.user?.name || 'Unknown Employee'}
                       </div>
                       <div className="text-xs text-gray-500">{employee.role || 'No Role'}</div>
                     </div>
@@ -228,21 +228,21 @@ const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
                     className="bg-white border border-gray-200 rounded-lg overflow-hidden"
                   >
                     <img
-                      src={course.course.thumbnail?.url || '/assets/images/avatar-default.png'}
-                      alt={course.course.name || 'Course'}
+                      src={course.course?.thumbnail?.url || '/assets/images/avatar-default.png'}
+                      alt={course.course?.name || 'Course'}
                       className="w-full h-24 object-cover"
                     />
                     <div className="p-3">
                       <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
-                        {course.course.name || 'Unnamed Course'}
+                        {course.course?.name || 'Unnamed Course'}
                       </h4>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-sm font-medium text-green-600">
-                          ${course.course.price || 0}
+                          ${course.course?.price || 0}
                         </span>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
-                            course.course.isPublished
+                            course.course?.isPublished
                               ? 'bg-green-100 text-green-800'
                               : 'bg-yellow-100 text-yellow-800'
                           }`}
