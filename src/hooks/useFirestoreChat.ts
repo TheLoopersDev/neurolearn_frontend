@@ -19,7 +19,8 @@ import {
 import { useFirebaseAuth } from './useFirebaseAuth';
 import { Timestamp } from 'firebase/firestore';
 
-export const useFirestoreChat = () => {
+export const useFirestoreChat = (options?: { optimistic?: boolean }) => {
+  const enableOptimistic = options?.optimistic !== false;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,7 @@ export const useFirestoreChat = () => {
   // Thêm ref để track current active chat room
   const currentActiveChatRef = useRef<string | null>(null);
   const messagesSubscriptionRef = useRef<(() => void) | null>(null);
+  const lastSendRef = useRef<{ roomId: string; content: string; at: number } | null>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
   const { user: firebaseUser, signInAnonymouslyIfNeeded } = useFirebaseAuth();
@@ -102,53 +104,55 @@ export const useFirestoreChat = () => {
 
   // Subscribe to messages when active chat room changes
   useEffect(() => {
+    let localUnsubscribe: (() => void) | null = null;
+
     if (!activeChatRoomId) {
       setMessages([]);
       currentActiveChatRef.current = null;
-      return;
+      // Ensure previous subscription is fully cleaned
+      if (messagesSubscriptionRef.current) {
+        messagesSubscriptionRef.current();
+        messagesSubscriptionRef.current = null;
+      }
+      return () => {
+        if (localUnsubscribe) localUnsubscribe();
+      };
     }
 
     const setupMessagesSubscription = async () => {
       try {
-        // Đảm bảo có mock user cho Firestore
         if (!firebaseUser) {
           await signInAnonymouslyIfNeeded();
         }
 
-        // Cleanup previous subscription
+        // Cleanup previous subscription before creating a new one
         if (messagesSubscriptionRef.current) {
           messagesSubscriptionRef.current();
           messagesSubscriptionRef.current = null;
         }
 
-        // Set current active chat
         currentActiveChatRef.current = activeChatRoomId;
 
         const unsubscribe = subscribeToMessages(activeChatRoomId, (newMessages) => {
-          // Chỉ update messages nếu vẫn đang ở cùng chat room
           if (currentActiveChatRef.current === activeChatRoomId) {
-            console.log('Messages updated for chat room:', activeChatRoomId, 'count:', newMessages.length);
-            
-            // Remove temporary messages when real messages arrive from Firestore
             const filteredMessages = newMessages.filter(msg => !msg.id?.startsWith('temp-'));
             setMessages(filteredMessages);
           }
         });
 
         messagesSubscriptionRef.current = unsubscribe;
-
-        return () => {
-          if (unsubscribe) {
-            unsubscribe();
-          }
-        };
+        localUnsubscribe = unsubscribe;
       } catch (error) {
         console.error('Error setting up messages subscription:', error);
       }
     };
 
     setupMessagesSubscription();
-  }, [activeChatRoomId, firebaseUser]); // Removed signInAnonymouslyIfNeeded from dependencies
+
+    return () => {
+      if (localUnsubscribe) localUnsubscribe();
+    };
+  }, [activeChatRoomId, firebaseUser]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -196,17 +200,28 @@ export const useFirestoreChat = () => {
         // Nếu có activeChatRoomId, sử dụng nó (cho group chat)
         if (activeChatRoomId) {
           // Send message trực tiếp vào chat room hiện tại
-          await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
+          // Simple de-dup guard: ignore if same content sent to same room within 1.5s
+          const now = Date.now();
+          const last = lastSendRef.current;
+          if (!last || last.roomId !== activeChatRoomId || last.content !== content || now - last.at > 1500) {
+            await sendMessage(activeChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
+            lastSendRef.current = { roomId: activeChatRoomId, content, at: now };
+          }
         } else {
           // Get or create chat room (cho 1-1 chat)
           targetChatRoomId = await getOrCreateChatRoom(userId, receiverId);
-          await sendMessage(targetChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
+          const now = Date.now();
+          const last = lastSendRef.current;
+          if (!last || last.roomId !== targetChatRoomId || last.content !== content || now - last.at > 1500) {
+            await sendMessage(targetChatRoomId, userId, receiverId, content, type, replyTo, senderInfo);
+            lastSendRef.current = { roomId: targetChatRoomId, content, at: now };
+          }
           
           // Set active chat room if not already set
           setActiveChatRoomId(targetChatRoomId);
         }
 
-        // Add message to local state immediately for instant UI feedback
+        // Optimistic UI message; Firestore snapshot will replace this shortly
         const newMessage = {
           id: `temp-${Date.now()}`,
           senderId: userId,
@@ -220,16 +235,33 @@ export const useFirestoreChat = () => {
           ...(senderInfo && { senderInfo })
         };
         
-        setMessages(prev => [...prev, newMessage]);
+        if (enableOptimistic) {
+          setMessages(prev => {
+            const last = prev[prev.length - 1] as any;
+            const lastMs = (last?.timestamp?.toMillis?.() ?? (last?.timestamp?.seconds ? last.timestamp.seconds * 1000 : undefined)) as number | undefined;
+            const nowMs = Timestamp.now().toMillis();
+            if (
+              last &&
+              last.senderId === userId &&
+              last.content === content &&
+              lastMs !== undefined &&
+              nowMs - lastMs < 1500 &&
+              String(last.id || '').startsWith('temp-')
+            ) {
+              return prev; // avoid duplicate optimistic append
+            }
+            return [...prev, newMessage as any];
+          });
+        }
 
-        // Also update chatRooms to reflect new lastMessage in sidebar
+        // Optimistically update sidebar lastMessage only; messages list relies on snapshot
         setChatRooms(prev => prev.map(room => {
           if (room.id === (activeChatRoomId || targetChatRoomId)) {
             return {
               ...room,
               lastMessage: newMessage,
               lastMessageTime: newMessage.timestamp
-            };
+            } as any;
           }
           return room;
         }));

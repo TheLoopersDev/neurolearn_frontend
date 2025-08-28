@@ -44,7 +44,7 @@ const MessagePage: React.FC = () => {
     updateGroupName,
     addMembersToGroup,
     removeMemberFromGroup
-  } = useFirestoreChat();
+  } = useFirestoreChat({ optimistic: false });
 
   // State loading cho box chat
   const [isChatLoading, setIsChatLoading] = useState(false);
