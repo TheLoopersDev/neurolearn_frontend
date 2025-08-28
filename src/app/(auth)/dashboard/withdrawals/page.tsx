@@ -118,6 +118,7 @@ const WithdrawalsPage = () => {
       toast({
         title: "Success",
         description: `Withdrawal request ${action}d successfully`,
+        variant: action === 'approve' ? 'success' : 'default',
       });
 
       setOpen(false);

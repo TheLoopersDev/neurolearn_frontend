@@ -16,7 +16,7 @@ const LearnerList: React.FC<LearnerListProps> = ({ learners }) => {
       </div>
 
       {/* Overview */}
-      <div className="overflow-x-auto">
+      <div>
         <div className="min-w-[1000px]">
           <div className="grid grid-cols-12 gap-6 pb-4 text-gray-500 font-medium">
             <div className="col-span-3 pl-10">Full Name</div>

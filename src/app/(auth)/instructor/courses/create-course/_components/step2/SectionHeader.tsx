@@ -7,7 +7,7 @@ export default function SectionHeader({
     onAdd: () => void;
 }) {
     return (
-        <div className="flex flex-col gap-2 px-6 py-5 bg-background rounded-xl w-full">
+        <div className="flex flex-col gap-2 bg-background rounded-xl w-full">
             <div className="flex flex-row justify-between items-center w-full">
                 <h2 className="text-2xl font-semibold text-gray-900">
                     Curriculum Lesson
