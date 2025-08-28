@@ -201,7 +201,7 @@ const BusinessMessagePage: React.FC = () => {
         <p className="text-gray-600">Manage communications with your team and customers</p>
       </div>
 
-      <div className="flex-1 flex gap-5 py-5">
+      <div className="flex-1 flex gap-5 py-5 min-h-0">
         <BusinessChatList
           chats={chatRooms.map(mapChatRoomToChat)}
           activeChatId={currentActiveChatId}

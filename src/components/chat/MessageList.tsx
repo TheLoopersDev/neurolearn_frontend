@@ -46,7 +46,7 @@ const MessageList: React.FC<MessageListProps> = ({
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-full" style={{ minHeight: 0 }}>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ minHeight: 0 }}>
             {messages.map((message) => {
                 const sender = chatMembers.find(member => member._id === message.sender);
                 const isMe = message.sender === currentUserId;

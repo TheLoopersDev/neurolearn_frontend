@@ -49,7 +49,7 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
     };
 
     return (
-        <div className="w-80 bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+        <div className="w-80 bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col min-h-0">
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-4">
@@ -111,7 +111,7 @@ const BusinessChatList: React.FC<BusinessChatListProps> = ({
             </div>
 
             {/* Chat List */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
                 {filteredChats.length === 0 ? (
                     <div className="p-4 text-center text-gray-500">
                         <p className="text-sm">
