@@ -86,7 +86,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
             <div className="flex items-center gap-1">
               <Image src="/assets/home/star.svg" alt="Star" width={10} height={10} className="sm:w-3 sm:h-3" />
               <span className="text-[10px] sm:text-xs">{course?.rating.toFixed(1)}</span>
-              <span className="text-[#6B6B6B] ml-1 text-[9px] sm:text-[10px] sm:text-xs">({course?.purchased} reviews)</span>
+              <span className="text-[#6B6B6B] ml-1 text-[9px] sm:text-[10px] sm:text-xs">({course?.ratingCount} reviews)</span>
             </div>
             <span className="text-[#6B6B6B] line-through text-[9px] sm:text-[10px] sm:text-xs">
               {typeof course?.estimatedPrice === "number"
@@ -95,7 +95,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-[9px] sm:text-[10px] sm:text-xs text-[#0D0D0D]">200 Review rating</span>
+            <span className="text-[9px] sm:text-[10px] sm:text-xs text-[#0D0D0D]">{course?.purchased} students</span>
             <span className="text-[#3858F8] text-[15px] sm:text-[16px] font-semibold">
               {course?.isFree ? "Free" : formatPrice(course?.price || 0)}
             </span>
