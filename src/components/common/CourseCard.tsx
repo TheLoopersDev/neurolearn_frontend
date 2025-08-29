@@ -11,23 +11,17 @@ interface CourseCardProps {
 const CourseCard = ({ course }: CourseCardProps) => {
   const [imageError, setImageError] = useState(false);
 
-
-  //  xác định locale & currency
-  const locale = typeof window !== "undefined" ? navigator.language : "en-US";
-  const currency = locale.startsWith("vi") ? "VND" : "USD";
-
-  // Hàm format: đơn vị ở SAU số + loại bỏ thập phân thừa
+  // Hàm format: luôn sử dụng VND, đơn vị ở SAU số + loại bỏ thập phân thừa
   const formatPrice = (raw: number) => {
-    const isVND = currency === "VND";
-    const value = isVND ? Math.round(raw) : raw;
+    const value = Math.round(raw); // VND không có thập phân
 
-    const nf = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: isVND ? 0 : (Number.isInteger(value) ? 0 : 2),
-      maximumFractionDigits: isVND ? 0 : 2,
+    const nf = new Intl.NumberFormat("vi-VN", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
 
     const core = nf.format(value);
-    const suffix = isVND ? " VNĐ" : " $";
+    const suffix = " VNĐ";
     return core + suffix;
   };
 

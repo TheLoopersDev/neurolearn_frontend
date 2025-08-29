@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import AnimatedSection from '@/components/animations/AnimatedSection';
 import { slideUp } from '@/utils/animations';
@@ -37,7 +36,7 @@ const VideoSection = () => {
           </p>
         </div>
 
-        {/* Video thumbnail */}
+        {/* Video */}
         <motion.div
           className="w-full h-[610px] rounded-[16px] relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -45,22 +44,36 @@ const VideoSection = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <Image
-            src="/assets/home/TopTrend.png"
-            alt="Video Cover"
-            fill
-            className="object-cover rounded-[16px]"
-            priority
-          />
+          <video
+            src="/demo.mp4"
+            controls
+            muted
+            className="w-full h-full object-cover rounded-[16px]"
+            poster="/assets/home/TopTrend.png"
+            onEnded={(e) => {
+              // Show replay button when video ends
+              const replayBtn = e.currentTarget.parentElement?.querySelector('.replay-btn');
+              if (replayBtn) {
+                replayBtn.classList.remove('hidden');
+              }
+            }}
+          >
+            Your browser does not support the video tag.
+          </video>
 
-          {/* Play Button Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.button
-              className="bg-white rounded-full p-5 shadow-xl hover:scale-110 transition"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.3 }}
-            >
+          {/* Replay Button Overlay */}
+          <button
+            className="replay-btn hidden absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-70 transition-all duration-300"
+            onClick={(e) => {
+              const video = e.currentTarget.previousElementSibling as HTMLVideoElement;
+              if (video) {
+                video.currentTime = 0;
+                video.play();
+                e.currentTarget.classList.add('hidden');
+              }
+            }}
+          >
+            <div className="bg-white rounded-full p-5 shadow-xl hover:scale-110 transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-8 w-8 text-blue-600"
@@ -69,12 +82,12 @@ const VideoSection = () => {
               >
                 <path
                   fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
                   clipRule="evenodd"
                 />
               </svg>
-            </motion.button>
-          </div>
+            </div>
+          </button>
         </motion.div>
       </div>
     </section>
