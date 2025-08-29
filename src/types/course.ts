@@ -210,6 +210,7 @@ export interface Course {
   rating: number;
   purchased: number;
   isPublished: boolean;
+  ratingCount?: number;
   isFree: boolean;
   category?: string | { _id: string; title: string } | null;
   subCategory?: string | { _id: string; title: string } | null;

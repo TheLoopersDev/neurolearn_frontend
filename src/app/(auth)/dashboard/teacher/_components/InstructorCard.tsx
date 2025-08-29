@@ -59,11 +59,11 @@ const InstructorCard: React.FC<InstructorCardProps> = ({ instructor }) => {
           <span className="font-medium">{instructor.rating?.toFixed(1) || '4.5'}</span>
           <Image src={'/assets/icons/blue-star.svg'} alt="Star icon" width={16} height={16} />
         </div>
-        <span className="text-gray-300">|</span>
+        {/* <span className="text-gray-300">|</span>
         <div className="flex items-center">
           <span className="font-bold text-gray-800 mr-1.5">{instructor.student || 0}</span>
           <span>Students</span>
-        </div>
+        </div> */}
       </div>
 
       {/* Các nút hành động */}
